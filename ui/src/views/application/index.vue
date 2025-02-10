@@ -242,20 +242,7 @@ const importApplication = (file: any) => {
   })
 }
 function openCreateDialog() {
-  common
-    .asyncGetValid(ValidType.Application, ValidCount.Application, loading)
-    .then(async (res: any) => {
-      if (res?.data) {
-        CreateApplicationDialogRef.value.open()
-      } else if (res?.code === 400) {
-        MsgConfirm(t('common.tip'), t('views.application.tip.professionalMessage'), {
-          cancelButtonText: t('common.confirm'),
-          confirmButtonText: t('common.professional')
-        }).then(() => {
-          window.open('https://maxkb.cn/pricing.html', '_blank')
-        })
-      }
-    })
+  CreateApplicationDialogRef.value.open()
 }
 
 function searchHandle() {
