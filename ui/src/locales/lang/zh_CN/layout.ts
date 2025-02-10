@@ -16,7 +16,7 @@ export default {
         },
         avatar: {
             resetPassword: "修改密码",
-            about: "关于",
+            // about: "关于",
             logout: "退出",
             version:"版本号",
             apiKey: "API Key 管理",

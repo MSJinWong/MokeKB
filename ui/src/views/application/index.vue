@@ -242,26 +242,20 @@ const importApplication = (file: any) => {
   })
 }
 function openCreateDialog() {
-  if (user.isEnterprise()) {
-    CreateApplicationDialogRef.value.open()
-  } else {
-    MsgConfirm(`提示`, '社区版最多支持 5 个应用，如需拥有更多应用，请升级为专业版。', {
-      cancelButtonText: '确定',
-      confirmButtonText: '购买专业版'
+  common
+    .asyncGetValid(ValidType.Application, ValidCount.Application, loading)
+    .then(async (res: any) => {
+      if (res?.data) {
+        CreateApplicationDialogRef.value.open()
+      } else if (res?.code === 400) {
+        MsgConfirm(t('common.tip'), t('views.application.tip.professionalMessage'), {
+          cancelButtonText: t('common.confirm'),
+          confirmButtonText: t('common.professional')
+        }).then(() => {
+          window.open('https://maxkb.cn/pricing.html', '_blank')
+        })
+      }
     })
-      .then(() => {
-        window.open('https://maxkb.cn/pricing.html', '_blank')
-      })
-      .catch(() => {
-        common
-          .asyncGetValid(ValidType.Application, ValidCount.Application, loading)
-          .then(async (res: any) => {
-            if (res?.data) {
-              CreateApplicationDialogRef.value.open()
-            }
-          })
-      })
-  }
 }
 
 function searchHandle() {

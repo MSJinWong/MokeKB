@@ -146,26 +146,21 @@ function editUser(row: any) {
 }
 
 function createUser() {
-  if (user.isEnterprise()) {
-    title.value = '创建用户'
-    UserDialogRef.value.open()
-  } else {
-    MsgConfirm(`提示`, '社区版最多支持 2 个用户，如需拥有更多用户，请升级为专业版。', {
-      cancelButtonText: '确定',
-      confirmButtonText: '购买专业版'
-    })
-      .then(() => {
-        window.open('https://maxkb.cn/pricing.html', '_blank')
+  common.asyncGetValid(ValidType.User, ValidCount.User, loading).then(async (res: any) => {
+    if (res?.data) {
+      title.value = t('views.user.createUser')
+      UserDialogRef.value.open()
+    } else if (res?.code === 400) {
+      MsgConfirm(t('common.tip'), t('views.user.tip.professionalMessage'), {
+        cancelButtonText: t('common.confirm'),
+        confirmButtonText: t('common.professional')
       })
-      .catch(() => {
-        common.asyncGetValid(ValidType.User, ValidCount.User, loading).then(async (res: any) => {
-          if (res?.data) {
-            title.value = '创建用户'
-            UserDialogRef.value.open()
-          }
+        .then(() => {
+          window.open('https://maxkb.cn/pricing.html', '_blank')
         })
-      })
-  }
+        .catch(() => {})
+    }
+  })
 }
 
 function deleteUserManage(row: any) {

@@ -479,8 +479,8 @@ class ApplicationSerializer(serializers.Serializer):
     class Create(serializers.Serializer):
         user_id = serializers.UUIDField(required=True, error_messages=ErrMessage.uuid("用户id"))
 
-        @valid_license(model=Application, count=5,
-                       message='社区版最多支持 5 个应用，如需拥有更多应用，请联系我们（https://fit2cloud.com/）。')
+        @valid_license(model=Application, count=5000,
+                       message='当前版本最多支持5000个应用')
         @transaction.atomic
         def insert(self, application: Dict):
             application_type = application.get('type')
@@ -687,7 +687,7 @@ class ApplicationSerializer(serializers.Serializer):
         user_id = serializers.UUIDField(required=True, error_messages=ErrMessage.uuid("用户id"))
 
         @valid_license(model=Application, count=5,
-                       message='社区版最多支持 5 个应用，如需拥有更多应用，请联系我们（https://fit2cloud.com/）。')
+                       message='当前版本最多支持5000个应用')
         @transaction.atomic
         def import_(self, with_valid=True):
             if with_valid:

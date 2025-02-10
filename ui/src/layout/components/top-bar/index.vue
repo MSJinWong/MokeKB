@@ -10,7 +10,7 @@
       <TopMenu></TopMenu>
     </div>
     <div class="flex-center avatar">
-      <el-button
+      <!-- <el-button
         v-if="!user.isEnterprise()"
         link
         type="primary"
@@ -19,8 +19,8 @@
       >
         <AppIcon iconName="app-pricing" class="mr-8" style="font-size: 20px"></AppIcon>
         购买专业版
-      </el-button>
-      <el-tooltip
+      </el-button> -->
+      <!-- <el-tooltip
         effect="dark"
         :content="$t('layout.topbar.github')"
         placement="top"
@@ -45,8 +45,8 @@
           style="font-size: 20px"
           @click="toUrl(user.themeInfo?.userManualUrl)"
         ></AppIcon>
-      </el-tooltip>
-      <el-tooltip
+      </el-tooltip> -->
+      <!-- <el-tooltip
         effect="dark"
         :content="$t('layout.topbar.forum')"
         placement="top"
@@ -58,7 +58,7 @@
           style="font-size: 20px"
           @click="toUrl(user.themeInfo?.forumUrl)"
         ></AppIcon>
-      </el-tooltip>
+      </el-tooltip> -->
       <el-dropdown v-if="false" trigger="click" type="primary">
         <template #dropdown>
           <el-dropdown-menu>
