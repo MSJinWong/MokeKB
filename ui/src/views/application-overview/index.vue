@@ -102,7 +102,7 @@
                 </el-text>
               </div>
               <div class="mt-4 mb-16 url-height">
-                <div>
+                <!-- <div>
                   <el-text>API 文档：</el-text
                   ><el-button
                     type="primary"
@@ -112,7 +112,7 @@
                   >
                     {{ apiUrl }}
                   </el-button>
-                </div>
+                </div> -->
                 <div class="flex align-center">
                   <span class="flex">
                     <el-text style="width: 80px">Base URL：</el-text>
