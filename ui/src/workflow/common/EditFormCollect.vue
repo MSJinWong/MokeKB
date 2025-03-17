@@ -16,8 +16,10 @@
     ></DynamicsFormConstructor>
     <template #footer>
       <span class="dialog-footer">
-        <el-button @click.prevent="dialogVisible = false"> 取消 </el-button>
-        <el-button type="primary" @click="submit()" :loading="loading"> 修改 </el-button>
+        <el-button @click.prevent="dialogVisible = false"> {{ $t('common.cancel') }} </el-button>
+        <el-button type="primary" @click="submit()" :loading="loading">
+          {{ $t('common.modify') }}
+        </el-button>
       </span>
     </template>
   </el-dialog>
@@ -25,9 +27,10 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import DynamicsFormConstructor from '@/components/dynamics-form/constructor/index.vue'
+import { t } from '@/locales'
 const props = withDefaults(
   defineProps<{ title?: string; editFormField: (form_data: any, index: number) => void }>(),
-  { title: '修改参数' }
+  { title: t('views.template.templateForm.title.editParam') }
 )
 const dialogVisible = ref<boolean>(false)
 const dynamicsFormConstructorRef = ref<InstanceType<typeof DynamicsFormConstructor>>()

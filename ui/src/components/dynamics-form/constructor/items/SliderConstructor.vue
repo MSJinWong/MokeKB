@@ -1,14 +1,14 @@
 <template>
-  <el-form-item label="是否带输入框" required prop="showInput">
+  <el-form-item :label="$t('dynamicsForm.Slider.showInput.label')" required prop="showInput">
     <el-switch v-model="formValue.showInput" />
   </el-form-item>
-  <el-form-item label="取值范围" required>
+  <el-form-item :label="$t('dynamicsForm.Slider.valueRange.label')" required>
     <el-col :span="11" style="padding-left: 0">
       <el-form-item
         :rules="[
           {
             required: true,
-            message: '最小值必填',
+            message: $t('dynamicsForm.Slider.valueRange.minRequired'),
             trigger: 'change'
           }
         ]"
@@ -25,7 +25,7 @@
         :rules="[
           {
             required: true,
-            message: '最大值必填',
+            message: $t('dynamicsForm.Slider.valueRange.maxRequired'),
             trigger: 'change'
           }
         ]"
@@ -40,7 +40,12 @@
     </el-col>
   </el-form-item>
   <el-col :span="11" style="padding-left: 0">
-    <el-form-item label="步长值" required prop="step" :rules="step_rules">
+    <el-form-item
+      :label="$t('dynamicsForm.Slider.step.label')"
+      required
+      prop="step"
+      :rules="step_rules"
+    >
       <el-input-number
         style="width: 100%"
         v-model="formValue.step"
@@ -51,10 +56,14 @@
   </el-col>
 
   <el-form-item
-    label="默认值"
+    :label="$t('dynamicsForm.default.label')"
     :required="formValue.required"
     prop="default_value"
-    :rules="formValue.required ? [{ required: true, message: '默认值 为必填属性' }] : []"
+    :rules="
+      formValue.required
+        ? [{ required: true, message: $t('dynamicsForm.default.requiredMessage') }]
+        : []
+    "
   >
     <el-slider
       v-model="formValue.default_value"
@@ -69,7 +78,7 @@
 </template>
 <script setup lang="ts">
 import { computed, onBeforeMount, watch } from 'vue'
-
+import { t } from '@/locales'
 const props = defineProps<{
   modelValue: any
 }>()
@@ -97,7 +106,7 @@ const getData = () => {
     props_info: {
       rules: [
         {
-          message: formValue.value.label + '不能为空',
+          message: formValue.value.label + ' ' + t('dynamicsForm.tip.requiredMessage'),
           trigger: 'blur',
           required: formValue.value.required
         }
@@ -129,11 +138,11 @@ const step_rules = [
     required: true,
     validator: (rule: any, value: any, callback: any) => {
       if (!value) {
-        callback(new Error('步长值必填'))
+        callback(new Error(t('dynamicsForm.Slider.step.requiredMessage1')))
         return false
       }
       if (value === 0) {
-        callback(new Error('步长不能为0'))
+        callback(new Error(t('dynamicsForm.Slider.step.requiredMessage2')))
         return false
       }
       return true

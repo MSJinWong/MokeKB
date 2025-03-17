@@ -14,18 +14,24 @@ from setting.models_provider.base_model_provider import IModelProvider, ModelPro
 from setting.models_provider.impl.deepseek_model_provider.credential.llm import DeepSeekLLMModelCredential
 from setting.models_provider.impl.deepseek_model_provider.model.llm import DeepSeekChatModel
 from smartdoc.conf import PROJECT_DIR
+from django.utils.translation import gettext as _
 
 deepseek_llm_model_credential = DeepSeekLLMModelCredential()
+deepseek_reasoner = ModelInfo('deepseek-reasoner', '', ModelTypeConst.LLM,
+                              deepseek_llm_model_credential, DeepSeekChatModel
+                              )
 
-deepseek_chat = ModelInfo('deepseek-chat', '擅长通用对话任务，支持 32K 上下文', ModelTypeConst.LLM,
+deepseek_chat = ModelInfo('deepseek-chat', _('Good at common conversational tasks, supports 32K contexts'),
+                          ModelTypeConst.LLM,
                           deepseek_llm_model_credential, DeepSeekChatModel
                           )
 
-deepseek_coder = ModelInfo('deepseek-coder', '擅长处理编程任务，支持 16K 上下文', ModelTypeConst.LLM,
+deepseek_coder = ModelInfo('deepseek-coder', _('Good at handling programming tasks, supports 16K contexts'),
+                           ModelTypeConst.LLM,
                            deepseek_llm_model_credential,
                            DeepSeekChatModel)
 
-model_info_manage = ModelInfoManage.builder().append_model_info(deepseek_chat).append_model_info(
+model_info_manage = ModelInfoManage.builder().append_model_info(deepseek_reasoner).append_model_info(deepseek_chat).append_model_info(
     deepseek_coder).append_default_model_info(
     deepseek_coder).build()
 

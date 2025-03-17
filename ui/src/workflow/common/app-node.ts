@@ -3,38 +3,31 @@ import ElementPlus from 'element-plus'
 import * as ElementPlusIcons from '@element-plus/icons-vue'
 import zhCn from 'element-plus/dist/locale/zh-cn.mjs'
 import { HtmlResize } from '@logicflow/extension'
-
 import { h as lh } from '@logicflow/core'
 import { createApp, h } from 'vue'
 import directives from '@/directives'
 import i18n from '@/locales'
 import { WorkflowType } from '@/enums/workflow'
 import { nodeDict } from '@/workflow/common/data'
+import { isActive, connect, disconnect } from './teleport'
+import { t } from '@/locales'
+import { type Dict } from '@/api/type/common'
 class AppNode extends HtmlResize.view {
   isMounted
-  r
-  app
-
+  r?: any
+  component: any
+  app: any
+  root?: any
+  VueNode: any
+  up_node_field_dict?: Dict<Array<any>>
   constructor(props: any, VueNode: any) {
     super(props)
+    this.component = VueNode
     this.isMounted = false
-    this.r = h(VueNode, {
-      properties: props.model.properties,
-      nodeModel: props.model
-    })
-
-    this.app = createApp({
-      render: () => this.r
-    })
-    this.app.use(ElementPlus, {
-      locale: zhCn
-    })
-    this.app.use(Components)
-    this.app.use(directives)
-    this.app.use(i18n)
-    for (const [key, component] of Object.entries(ElementPlusIcons)) {
-      this.app.component(key, component)
-    }
+    props.model.clear_next_node_field = this.clear_next_node_field.bind(this)
+    props.model.get_up_node_field_dict = this.get_up_node_field_dict.bind(this)
+    props.model.get_node_field_list = this.get_node_field_list.bind(this)
+    props.model.get_up_node_field_list = this.get_up_node_field_list.bind(this)
 
     if (props.model.properties.noRender) {
       delete props.model.properties.noRender
@@ -45,13 +38,12 @@ class AppNode extends HtmlResize.view {
       }
     }
     function getNodesName(num: number) {
-      let number = num
+      const number = num
       const name = props.model.properties.stepName + number
       if (!props.graphModel.nodes?.some((node: any) => node.properties.stepName === name.trim())) {
         props.model.properties.stepName = name
       } else {
-        number += 1
-        getNodesName(number)
+        getNodesName(number + 1)
       }
     }
     props.model.properties.config = nodeDict[props.model.type].properties.config
@@ -59,7 +51,61 @@ class AppNode extends HtmlResize.view {
       props.model.height = props.model.properties.height
     }
   }
+  get_node_field_list() {
+    const result = []
+    if (this.props.model.type === 'start-node') {
+      result.push({
+        value: 'global',
+        label: t('views.applicationWorkflow.variable.global'),
+        type: 'global',
+        children: this.props.model.properties?.config?.globalFields || []
+      })
+    }
+    result.push({
+      value: this.props.model.id,
+      label: this.props.model.properties.stepName,
+      type: this.props.model.type,
+      children: this.props.model.properties?.config?.fields || []
+    })
+    return result
+  }
+  get_up_node_field_dict(contain_self: boolean, use_cache: boolean) {
+    if (!this.up_node_field_dict || !use_cache) {
+      const up_node_list = this.props.graphModel.getNodeIncomingNode(this.props.model.id)
+      this.up_node_field_dict = up_node_list
+        .filter((node) => node.id != 'start-node')
+        .map((node) => node.get_up_node_field_dict(true, use_cache))
+        .reduce((pre, next) => ({ ...pre, ...next }), {})
+    }
+    if (contain_self) {
+      return {
+        ...this.up_node_field_dict,
+        [this.props.model.id]: this.get_node_field_list()
+      }
+    }
+    return this.up_node_field_dict ? this.up_node_field_dict : {}
+  }
 
+  get_up_node_field_list(contain_self: boolean, use_cache: boolean) {
+    const result = Object.values(this.get_up_node_field_dict(contain_self, use_cache)).reduce(
+      (pre, next) => [...pre, ...next],
+      []
+    )
+    const start_node_field_list = this.props.graphModel
+      .getNodeModelById('start-node')
+      .get_node_field_list()
+    return [...start_node_field_list, ...result]
+  }
+
+  clear_next_node_field(contain_self: boolean) {
+    const next_node_list = this.props.graphModel.getNodeOutgoingNode(this.props.model.id)
+    next_node_list.forEach((node) => {
+      node.clear_next_node_field(true)
+    })
+    if (contain_self) {
+      this.up_node_field_dict = undefined
+    }
+  }
   getAnchorShape(anchorData: any) {
     const { x, y, type } = anchorData
     let isConnect = false
@@ -137,12 +183,78 @@ class AppNode extends HtmlResize.view {
       this.isMounted = true
       const node = document.createElement('div')
       rootEl.appendChild(node)
-      this.app?.mount(node)
+      this.renderVueComponent(node)
     } else {
       if (this.r && this.r.component) {
         this.r.component.props.properties = this.props.model.getProperties()
       }
     }
+  }
+  componentWillUnmount() {
+    super.componentWillUnmount()
+    this.unmount()
+  }
+  getComponentContainer() {
+    return this.root
+  }
+  protected targetId() {
+    return `${this.props.graphModel.flowId}:${this.props.model.id}`
+  }
+  protected renderVueComponent(root: any) {
+    this.unmountVueComponent()
+    this.root = root
+    const { model, graphModel } = this.props
+
+    if (root) {
+      if (isActive()) {
+        connect(this.targetId(), this.component, root, model, graphModel)
+      } else {
+        this.r = h(this.component, {
+          properties: this.props.model.properties,
+          nodeModel: this.props.model
+        })
+        this.app = createApp({
+          render() {
+            return this.r
+          },
+          provide() {
+            return {
+              getNode: () => model,
+              getGraph: () => graphModel
+            }
+          }
+        })
+
+        this.app.use(ElementPlus, {
+          locale: zhCn
+        })
+        this.app.use(Components)
+        this.app.use(directives)
+        this.app.use(i18n)
+        for (const [key, component] of Object.entries(ElementPlusIcons)) {
+          this.app.component(key, component)
+        }
+        this.app?.mount(root)
+      }
+    }
+  }
+
+  protected unmountVueComponent() {
+    if (this.app) {
+      this.app.unmount()
+      this.app = null
+    }
+    if (this.root) {
+      this.root.innerHTML = ''
+    }
+    return this.root
+  }
+
+  unmount() {
+    if (isActive()) {
+      disconnect(this.targetId())
+    }
+    this.unmountVueComponent()
   }
 }
 
@@ -225,6 +337,7 @@ class AppNodeModel extends HtmlResize.model {
   }
 
   setAttributes() {
+    const { t } = i18n.global
     this.width = this.get_width()
     const isLoop = (node_id: string, target_node_id: string) => {
       const up_node_list = this.graphModel.getNodeIncomingNode(node_id)
@@ -242,13 +355,13 @@ class AppNodeModel extends HtmlResize.model {
       return false
     }
     const circleOnlyAsTarget = {
-      message: '只允许从右边的锚点连出',
+      message: t('views.applicationWorkflow.tip.onlyRight'),
       validate: (sourceNode: any, targetNode: any, sourceAnchor: any) => {
         return sourceAnchor.type === 'right'
       }
     }
     this.sourceRules.push({
-      message: '不可循环连线',
+      message: t('views.applicationWorkflow.tip.notRecyclable'),
       validate: (sourceNode: any, targetNode: any, sourceAnchor: any, targetAnchor: any) => {
         return !isLoop(sourceNode.id, targetNode.id)
       }
@@ -256,7 +369,7 @@ class AppNodeModel extends HtmlResize.model {
 
     this.sourceRules.push(circleOnlyAsTarget)
     this.targetRules.push({
-      message: '只允许连接左边的锚点',
+      message: t('views.applicationWorkflow.tip.onlyLeft'),
       validate: (sourceNode: any, targetNode: any, sourceAnchor: any, targetAnchor: any) => {
         return targetAnchor.type === 'left'
       }

@@ -20,18 +20,27 @@
       </el-button>
     </div>
     <!-- Codemirror 弹出层 -->
-    <el-dialog v-model="dialogVisible" title="Python 代码" append-to-body fullscreen>
+    <el-dialog
+      v-model="dialogVisible"
+      :title="$t('dynamicsForm.default.label')"
+      append-to-body
+      fullscreen
+    >
       <Codemirror
         v-model="cloneContent"
         :extensions="extensions"
         :style="codemirrorStyle"
         :tab-size="4"
         :autofocus="true"
-        style="height: calc(100vh - 160px) !important; border: 1px solid #bbbfc4; border-radius: 4px"
+        style="
+          height: calc(100vh - 160px) !important;
+          border: 1px solid #bbbfc4;
+          border-radius: 4px;
+        "
       />
       <template #footer>
         <div class="dialog-footer mt-24">
-          <el-button type="primary" @click="submitDialog"> 确认</el-button>
+          <el-button type="primary" @click="submitDialog"> {{ $t('common.confirm') }}</el-button>
         </div>
       </template>
     </el-dialog>
@@ -43,6 +52,7 @@ import { oneDark } from '@codemirror/theme-one-dark'
 import { Codemirror } from 'vue-codemirror'
 import { linter } from '@codemirror/lint'
 import { computed, ref } from 'vue'
+import { t } from '@/locales'
 const props = withDefaults(defineProps<{ modelValue?: any }>(), { modelValue: () => {} })
 const emit = defineEmits(['update:modelValue'])
 
@@ -107,7 +117,7 @@ const validate_rules = (rule: any, value: any, callback: any) => {
     try {
       JSON.parse(model_value.value)
     } catch (e) {
-      callback(new Error('JSON格式不正确'))
+      callback(new Error(t('dynamicsForm.tip.requiredMessage')))
       return false
     }
   }

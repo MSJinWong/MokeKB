@@ -7,6 +7,7 @@
     @desc:
 """
 import io
+import os
 import re
 import traceback
 import uuid
@@ -21,6 +22,7 @@ from docx.text.paragraph import Paragraph
 from common.handle.base_split_handle import BaseSplitHandle
 from common.util.split_model import SplitModel
 from dataset.models import Image
+from django.utils.translation import gettext_lazy as _
 
 default_pattern_list = [re.compile('(?<=^)# .*|(?<=\\n)# .*'),
                         re.compile('(?<=\\n)(?<!#)## (?!#).*|(?<=^)(?<!#)## (?!#).*'),
@@ -166,6 +168,7 @@ class DocSplitHandle(BaseSplitHandle):
              in elements])
 
     def handle(self, file, pattern_list: List, with_filter: bool, limit: int, get_buffer, save_image):
+        file_name = os.path.basename(file.name)
         try:
             image_list = []
             buffer = get_buffer(file)
@@ -179,9 +182,9 @@ class DocSplitHandle(BaseSplitHandle):
                 split_model = SplitModel(default_pattern_list, with_filter=with_filter, limit=limit)
         except BaseException as e:
             traceback.print_exception(e)
-            return {'name': file.name,
+            return {'name': file_name,
                     'content': []}
-        return {'name': file.name,
+        return {'name': file_name,
                 'content': split_model.parse(content)
                 }
 

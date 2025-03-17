@@ -11,18 +11,23 @@
         hide-required-asterisk
       >
         <el-form-item
-          label="重排内容"
+          :label="$t('views.applicationWorkflow.nodes.rerankerNode.rerankerContent.label')"
           prop="reranker_reference_list"
           :rules="{
             type: 'array',
-            message: '请选择重排内容',
+            message: $t(
+              'views.applicationWorkflow.nodes.rerankerNode.rerankerContent.requiredMessage'
+            ),
             trigger: 'change',
             required: true
           }"
         >
           <template #label>
             <div class="flex-between">
-              <span>重排内容<span class="danger">*</span></span>
+              <span
+                >{{ $t('views.applicationWorkflow.nodes.rerankerNode.rerankerContent.label')
+                }}<span class="danger">*</span></span
+              >
               <el-button @click="add_reranker_reference" link type="primary">
                 <el-icon class="mr-4"><Plus /></el-icon>
               </el-button>
@@ -40,7 +45,7 @@
                 :rules="{
                   type: 'array',
                   required: true,
-                  message: '请选择变量',
+                  message: $t('views.applicationWorkflow.variable.placeholder'),
                   trigger: 'change'
                 }"
               >
@@ -48,7 +53,11 @@
                   :key="index"
                   :nodeModel="nodeModel"
                   class="w-full"
-                  placeholder="请选择重排内容"
+                  :placeholder="
+                    $t(
+                      'views.applicationWorkflow.nodes.rerankerNode.rerankerContent.requiredMessage'
+                    )
+                  "
                   v-model="form_data.reranker_reference_list[index]"
                 />
               </el-form-item>
@@ -60,10 +69,10 @@
             </el-col>
           </el-row>
         </el-form-item>
-        <el-form-item label="检索参数">
+        <el-form-item :label="$t('views.applicationWorkflow.nodes.searchDatasetNode.searchParam')">
           <template #label>
             <div class="flex-between">
-              <span>检索参数</span>
+              <span>{{ $t('views.applicationWorkflow.nodes.searchDatasetNode.searchParam') }}</span>
               <el-button type="primary" link @click="openParamSettingDialog">
                 <el-icon><Setting /></el-icon>
               </el-button>
@@ -71,13 +80,22 @@
           </template>
           <div class="w-full">
             <el-row>
-              <el-col :span="12" class="color-secondary lighter"> Score 高于</el-col>
+              <el-col :span="12" class="color-secondary lighter">
+                Score
+                {{ $t('views.applicationWorkflow.nodes.rerankerNode.higher') }}</el-col
+              >
               <el-col :span="12" class="lighter">
                 {{ form_data.reranker_setting.similarity?.toFixed(3) }}</el-col
               >
-              <el-col :span="12" class="color-secondary lighter"> 引用分段 Top</el-col>
+              <el-col :span="12" class="color-secondary lighter">
+                {{ $t('chat.KnowledgeSource.referenceParagraph') }} Top</el-col
+              >
               <el-col :span="12" class="lighter"> {{ form_data.reranker_setting.top_n }}</el-col>
-              <el-col :span="12" class="color-secondary lighter"> 最大引用字符数</el-col>
+              <el-col :span="12" class="color-secondary lighter">
+                {{
+                  $t('views.applicationWorkflow.nodes.rerankerNode.max_paragraph_char_number')
+                }}</el-col
+              >
               <el-col :span="12" class="lighter">
                 {{ form_data.reranker_setting.max_paragraph_char_number }}</el-col
               >
@@ -85,117 +103,64 @@
           </div>
         </el-form-item>
         <el-form-item
-          label="检索问题"
+          :label="$t('views.applicationWorkflow.nodes.searchDatasetNode.searchQuestion.label')"
           prop="question_reference_address"
           :rules="{
-            message: '请选择检索问题',
+            message: $t(
+              'views.applicationWorkflow.nodes.searchDatasetNode.searchQuestion.requiredMessage'
+            ),
             trigger: 'blur',
             required: true
           }"
         >
           <template #label>
             <div class="flex-between">
-              <span>检索问题<span class="danger">*</span></span>
+              <span
+                >{{ $t('views.applicationWorkflow.nodes.searchDatasetNode.searchQuestion.label')
+                }}<span class="danger">*</span></span
+              >
             </div>
           </template>
           <NodeCascader
             ref="nodeCascaderRef"
             :nodeModel="nodeModel"
             class="w-full"
-            placeholder="检索问题"
+            :placeholder="
+              $t('views.applicationWorkflow.nodes.searchDatasetNode.searchQuestion.label')
+            "
             v-model="form_data.question_reference_address"
           />
         </el-form-item>
         <el-form-item
-          label="重排模型"
+          :label="$t('views.applicationWorkflow.nodes.rerankerNode.reranker_model.label')"
           prop="reranker_model_id"
           :rules="{
             required: true,
-            message: '请选择重排模型',
+            message: $t('views.applicationWorkflow.nodes.rerankerNode.reranker_model.placeholder'),
             trigger: 'change'
           }"
         >
           <template #label>
             <div class="flex-between">
-              <span>重排模型<span class="danger">*</span></span>
+              <span
+                >{{ $t('views.applicationWorkflow.nodes.rerankerNode.reranker_model.label')
+                }}<span class="danger">*</span></span
+              >
             </div>
           </template>
-          <el-select
+          <ModelSelect
             @wheel="wheel"
             :teleported="false"
             v-model="form_data.reranker_model_id"
-            placeholder="请选择重排模型"
-            class="w-full"
-            popper-class="select-model"
-            :clearable="true"
-          >
-            <el-option-group
-              v-for="(value, label) in modelOptions"
-              :key="value"
-              :label="relatedObject(providerOptions, label, 'provider')?.name"
-            >
-              <el-option
-                v-for="item in value.filter((v: any) => v.status === 'SUCCESS')"
-                :key="item.id"
-                :label="item.name"
-                :value="item.id"
-                class="flex-between"
-              >
-                <div class="flex align-center">
-                  <span
-                    v-html="relatedObject(providerOptions, label, 'provider')?.icon"
-                    class="model-icon mr-8"
-                  ></span>
-                  <span>{{ item.name }}</span>
-                  <el-tag v-if="item.permission_type === 'PUBLIC'" type="info" class="info-tag ml-8"
-                    >公用
-                  </el-tag>
-                </div>
-                <el-icon class="check-icon" v-if="item.id === form_data.model_id"
-                  ><Check
-                /></el-icon>
-              </el-option>
-              <el-option
-                v-for="item in value.filter((v: any) => v.status !== 'SUCCESS')"
-                :key="item.id"
-                :label="item.name"
-                :value="item.id"
-                class="flex-between"
-                disabled
-              >
-                <div class="flex">
-                  <span
-                    v-html="relatedObject(providerOptions, label, 'provider')?.icon"
-                    class="model-icon mr-8"
-                  ></span>
-                  <span>{{ item.name }}</span>
-                  <span class="danger">（不可用）</span>
-                </div>
-                <el-icon class="check-icon" v-if="item.id === form_data.model_id"
-                  ><Check
-                /></el-icon>
-              </el-option>
-            </el-option-group>
-            <template #footer>
-              <div class="w-full text-left cursor" @click="openCreateModel()">
-                <el-button type="primary" link>
-                  <el-icon class="mr-4"><Plus /></el-icon>
-                  添加模型
-                </el-button>
-              </div>
-            </template>
-          </el-select>
+            :placeholder="$t('views.applicationWorkflow.nodes.rerankerNode.reranker_model.placeholder')"
+            :options="modelOptions"
+            @submitModel="getModel"
+            showFooter
+          ></ModelSelect>
         </el-form-item>
       </el-form>
     </el-card>
     <ParamSettingDialog ref="ParamSettingDialogRef" @refresh="refreshParam" />
-    <!-- 添加模版 -->
-    <CreateModelDialog
-      ref="createModelRef"
-      @submit="getModel"
-      @change="openCreateModel($event)"
-    ></CreateModelDialog>
-    <SelectProviderDialog ref="selectProviderRef" @change="openCreateModel($event)" />
   </NodeContainer>
 </template>
 <script setup lang="ts">
@@ -204,19 +169,14 @@ import NodeContainer from '@/workflow/common/NodeContainer.vue'
 import NodeCascader from '@/workflow/common/NodeCascader.vue'
 import ParamSettingDialog from './ParamSettingDialog.vue'
 import { ref, computed, onMounted } from 'vue'
-import { isLastNode } from '@/workflow/common/data'
-import type { Provider } from '@/api/type/model'
-import CreateModelDialog from '@/views/template/component/CreateModelDialog.vue'
-import SelectProviderDialog from '@/views/template/component/SelectProviderDialog.vue'
+
 import applicationApi from '@/api/application'
 import useStore from '@/stores'
 import { app } from '@/main'
-import { relatedObject } from '@/utils/utils'
 
 const { model } = useStore()
 const props = defineProps<{ nodeModel: any }>()
-const createModelRef = ref<InstanceType<typeof CreateModelDialog>>()
-const selectProviderRef = ref<InstanceType<typeof SelectProviderDialog>>()
+
 const ParamSettingDialogRef = ref<InstanceType<typeof ParamSettingDialog>>()
 const {
   params: { id }
@@ -231,7 +191,7 @@ const form = {
     max_paragraph_char_number: 5000
   }
 }
-const providerOptions = ref<Array<Provider>>([])
+
 const modelOptions = ref<any>(null)
 const openParamSettingDialog = () => {
   ParamSettingDialogRef.value?.open(form_data.value.reranker_setting)
@@ -277,11 +237,7 @@ function getModel() {
     })
   }
 }
-function getProvider() {
-  model.asyncGetProvider().then((res: any) => {
-    providerOptions.value = res?.data
-  })
-}
+
 const add_reranker_reference = () => {
   const list = cloneDeep(props.nodeModel.properties.node_data.reranker_reference_list)
   list.push([])
@@ -297,15 +253,8 @@ const validate = () => {
     return Promise.reject({ node: props.nodeModel, errMessage: err })
   })
 }
-const openCreateModel = (provider?: Provider) => {
-  if (provider && provider.provider) {
-    createModelRef.value?.open(provider)
-  } else {
-    selectProviderRef.value?.open()
-  }
-}
+
 onMounted(() => {
-  getProvider()
   getModel()
   set(props.nodeModel, 'validate', validate)
 })

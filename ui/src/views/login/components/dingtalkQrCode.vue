@@ -1,7 +1,7 @@
 <template>
   <div class="flex-center mb-16">
     <img src="@/assets/logo_dingtalk.svg" alt="" width="24px" class="mr-4" />
-    <h2>钉钉扫码登录</h2>
+    <h2>{{ $t('views.system.authentication.scanTheQRCode.dingtalkQrCode') }}</h2>
   </div>
   <div class="ding-talk-qrName">
     <div id="ding-talk-qr"></div>
@@ -14,6 +14,7 @@ import { useScriptTag } from '@vueuse/core'
 import { ref, watch } from 'vue'
 import useStore from '@/stores'
 import { MsgError } from '@/utils/message'
+import { t } from '@/locales'
 
 // 声明 DTFrameLogin 和 QRLogin 的类型
 declare global {
@@ -81,7 +82,6 @@ const initActive = async () => {
     if (!isConfigReady.value) {
       return
     }
-    console.log(props.config)
 
     const data = {
       appKey: props.config.app_key,
@@ -99,10 +99,11 @@ const initActive = async () => {
       {
         redirect_uri: redirectUri,
         client_id: data.appKey,
-        scope: 'openid',
+        scope: 'openid corpid',
         response_type: 'code',
         state: 'fit2cloud-ding-qr',
-        prompt: 'consent'
+        prompt: 'consent',
+        corpId: data.corp_id
       },
       (loginResult) => {
         const authCode = loginResult.authCode
@@ -112,7 +113,6 @@ const initActive = async () => {
       },
       (errorMsg: string) => {
         MsgError(errorMsg)
-        console.log(errorMsg)
       }
     )
   } catch (error) {

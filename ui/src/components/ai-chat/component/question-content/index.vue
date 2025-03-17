@@ -1,33 +1,24 @@
 <template>
   <!-- 问题内容 -->
-  <div class="item-content mb-16 lighter">
-    <div class="avatar">
-      <el-image
-        v-if="application.user_avatar"
-        :src="application.user_avatar"
-        alt=""
-        fit="cover"
-        style="width: 32px; height: 32px; display: block"
-      />
-      <AppAvatar v-else>
-        <img src="@/assets/user-icon.svg" style="width: 50%" alt="" />
-      </AppAvatar>
-    </div>
-    <div class="content">
+  <div class="question-content item-content mb-16 lighter">
+    <div
+      class="content mr-12 p-12-16 border-r-8"
+      :class="document_list.length >= 2 ? 'media_2' : `media_${document_list.length}`"
+    >
       <div class="text break-all pre-wrap">
         <div class="mb-8" v-if="document_list.length">
-          <el-space wrap>
+          <el-space wrap class="w-full media-file-width">
             <template v-for="(item, index) in document_list" :key="index">
               <el-card shadow="never" style="--el-card-padding: 8px" class="download-file cursor">
                 <div class="download-button flex align-center" @click="downloadFile(item)">
                   <el-icon class="mr-4">
                     <Download />
                   </el-icon>
-                  点击下载文件
+                  {{ $t('chat.download') }}
                 </div>
                 <div class="show flex align-center">
                   <img :src="getImgUrl(item && item?.name)" alt="" width="24" />
-                  <div class="ml-4 ellipsis" style="max-width: 150px" :title="item && item?.name">
+                  <div class="ml-4 ellipsis-1" :title="item && item?.name">
                     {{ item && item?.name }}
                   </div>
                 </div>
@@ -69,8 +60,20 @@
             </template>
           </el-space>
         </div>
-        {{ chatRecord.problem_text }}
+        <span> {{ chatRecord.problem_text }}</span>
       </div>
+    </div>
+    <div class="avatar">
+      <el-image
+        v-if="application.user_avatar"
+        :src="application.user_avatar"
+        alt=""
+        fit="cover"
+        style="width: 32px; height: 32px; display: block"
+      />
+      <AppAvatar v-else>
+        <img src="@/assets/user-icon.svg" style="width: 50%" alt="" />
+      </AppAvatar>
     </div>
   </div>
 </template>
@@ -82,6 +85,7 @@ import { onMounted, computed } from 'vue'
 const props = defineProps<{
   application: any
   chatRecord: chatType
+  type: 'log' | 'ai-chat' | 'debug-ai-chat'
 }>()
 const document_list = computed(() => {
   if (props.chatRecord?.upload_meta) {
@@ -118,31 +122,80 @@ function downloadFile(item: any) {
 onMounted(() => {})
 </script>
 <style lang="scss" scoped>
-.download-file {
-  width: 200px;
-  height: 43px;
+.question-content {
+  display: flex;
+  justify-content: flex-end;
+  padding-left: var(--padding-left);
+  width: 100%;
+  box-sizing: border-box;
 
-  &:hover {
-    color: var(--el-color-primary);
-    border: 1px solid var(--el-color-primary);
+  .content {
+    background: #d6e2ff;
+    padding-left: 16px;
+    padding-right: 16px;
 
-    .download-button {
-      display: block;
-      text-align: center;
-      line-height: 26px;
+  }
+
+  .download-file {
+    height: 43px;
+
+    &:hover {
+      color: var(--el-color-primary);
+      border: 1px solid var(--el-color-primary);
+
+      .download-button {
+        display: block;
+        text-align: center;
+        line-height: 26px;
+      }
+
+      .show {
+        display: none;
+      }
     }
 
-    .show {
+    .download-button {
       display: none;
     }
   }
-
-  .show {
-    display: block;
+  .media-file-width {
+    :deep(.el-space__item) {
+      min-width: 40% !important;
+      flex-grow: 1;
+    }
   }
-
-  .download-button {
-    display: none;
+  .media_2 {
+    flex: 1;
+  }
+  .media_0 {
+    flex: inherit;
+  }
+  .media_1 {
+    width: 50%;
+  }
+}
+@media only screen and (max-width: 768px) {
+  .question-content {
+    .media-file-width {
+      :deep(.el-space__item) {
+        min-width: 100% !important;
+      }
+    }
+    .media_1 {
+      width: 100%;
+    }
+  }
+}
+.debug-ai-chat {
+  .question-content {
+    .media-file-width {
+      :deep(.el-space__item) {
+        min-width: 100% !important;
+      }
+    }
+    .media_1 {
+      width: 100%;
+    }
   }
 }
 </style>

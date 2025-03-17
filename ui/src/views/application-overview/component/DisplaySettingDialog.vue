@@ -1,27 +1,42 @@
 <template>
   <el-dialog
-    title="显示设置"
+    :title="$t('views.applicationOverview.appInfo.SettingDisplayDialog.dialogTitle')"
     v-model="dialogVisible"
     :close-on-click-modal="false"
     :close-on-press-escape="false"
   >
     <el-form label-position="top" ref="displayFormRef" :model="form">
       <el-form-item>
+        <span>{{
+          $t('views.applicationOverview.appInfo.SettingDisplayDialog.languageLabel')
+        }}</span>
+        <el-select v-model="form.language" clearable>
+          <el-option
+            v-for="item in langList"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value"
+          />
+        </el-select>
+      </el-form-item>
+      <el-form-item>
         <el-space direction="vertical" alignment="start">
           <el-checkbox
             v-model="form.show_source"
-            :label="isWorkFlow(detail.type) ? '显示执行详情' : '显示知识来源'"
+            :label="
+              isWorkFlow(detail.type)
+                ? $t('views.applicationOverview.appInfo.SettingDisplayDialog.showExecutionDetail')
+                : $t('views.applicationOverview.appInfo.SettingDisplayDialog.showSourceLabel')
+            "
           />
         </el-space>
       </el-form-item>
     </el-form>
     <template #footer>
       <span class="dialog-footer">
-        <el-button @click.prevent="dialogVisible = false"
-          >{{ $t('views.applicationOverview.appInfo.LimitDialog.cancelButtonText') }}
-        </el-button>
+        <el-button @click.prevent="dialogVisible = false">{{ $t('common.cancel') }} </el-button>
         <el-button type="primary" @click="submit(displayFormRef)" :loading="loading">
-          {{ $t('views.applicationOverview.appInfo.LimitDialog.saveButtonText') }}
+          {{ $t('common.save') }}
         </el-button>
       </span>
     </template>
@@ -34,8 +49,7 @@ import type { FormInstance, FormRules, UploadFiles } from 'element-plus'
 import applicationApi from '@/api/application'
 import { isWorkFlow } from '@/utils/application'
 import { MsgSuccess, MsgError } from '@/utils/message'
-import { t } from '@/locales'
-
+import { getBrowserLang, langList, t } from '@/locales'
 const route = useRoute()
 const {
   params: { id }
@@ -43,10 +57,10 @@ const {
 
 const emit = defineEmits(['refresh'])
 
-
 const displayFormRef = ref()
 const form = ref<any>({
-  show_source: false
+  show_source: false,
+  language: ''
 })
 
 const detail = ref<any>(null)
@@ -57,15 +71,15 @@ const loading = ref(false)
 watch(dialogVisible, (bool) => {
   if (!bool) {
     form.value = {
-      show_source: false
+      show_source: false,
+      language: ''
     }
   }
 })
-
 const open = (data: any, content: any) => {
   detail.value = content
   form.value.show_source = data.show_source
-
+  form.value.language = data.language
   dialogVisible.value = true
 }
 
@@ -73,13 +87,10 @@ const submit = async (formEl: FormInstance | undefined) => {
   if (!formEl) return
   await formEl.validate((valid, fields) => {
     if (valid) {
-      const obj = {
-        show_source: form.value.show_source
-      }
-      applicationApi.putAccessToken(id as string, obj, loading).then((res) => {
+      applicationApi.putAccessToken(id as string, form.value, loading).then((res) => {
         emit('refresh')
         // @ts-ignore
-        MsgSuccess(t('views.applicationOverview.appInfo.LimitDialog.settingSuccessMessage'))
+        MsgSuccess(t('common.settingSuccess'))
         dialogVisible.value = false
       })
     }

@@ -11,12 +11,13 @@ import hashlib
 import hmac
 import json
 import logging
-import os
+import ssl
 from datetime import datetime, UTC
 from typing import Dict
 from urllib.parse import urlencode, urlparse
-import ssl
+
 import websockets
+from django.utils.translation import gettext as _
 
 from common.util.common import _remove_empty_lines
 from setting.models_provider.base_model_provider import MaxKBBaseModel
@@ -97,7 +98,7 @@ class XFSparkTextToSpeech(MaxKBBaseModel, BaseTextToSpeech):
         return url
 
     def check_auth(self):
-        self.text_to_speech("你好")
+        self.text_to_speech(_('Hello'))
 
     def text_to_speech(self, text):
 

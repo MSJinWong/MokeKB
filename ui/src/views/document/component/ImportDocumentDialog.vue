@@ -13,34 +13,43 @@
       :model="form"
       require-asterisk-position="right"
     >
-      <el-form-item label="文档地址" prop="source_url" v-if="isImport">
+      <el-form-item
+        :label="$t('views.document.form.source_url.label')"
+        prop="source_url"
+        v-if="isImport"
+      >
         <el-input
           v-model="form.source_url"
-          placeholder="请输入文档地址，一行一个，地址不正确文档会导入失败。"
+          :placeholder="$t('views.document.form.source_url.placeholder')"
           :rows="10"
           type="textarea"
         />
       </el-form-item>
       <el-form-item
         v-else-if="!isImport && documentType === '1'"
-        label="文档地址"
+        :label="$t('views.document.form.source_url.label')"
         prop="source_url"
       >
-        <el-input v-model="form.source_url" placeholder="请输入文档地址" />
+        <el-input
+          v-model="form.source_url"
+          :placeholder="$t('views.document.form.source_url.requiredMessage')"
+        />
       </el-form-item>
-      <el-form-item label="选择器" v-if="documentType === '1'">
+      <el-form-item :label="$t('views.document.form.selector.label')" v-if="documentType === '1'">
         <el-input
           v-model="form.selector"
-          placeholder="默认为 body，可输入 .classname/#idname/tagname"
+          :placeholder="$t('views.document.form.selector.placeholder')"
         />
       </el-form-item>
       <el-form-item v-if="!isImport">
         <template #label>
           <div class="flex align-center">
-            <span class="mr-4">命中处理方式</span>
+            <span class="mr-4">{{
+              $t('views.document.form.hit_handling_method.label')
+            }}</span>
             <el-tooltip
               effect="dark"
-              content="用户提问时，命中文档下的分段时按照设置的方式进行处理。"
+              :content="$t('views.document.form.hit_handling_method.tooltip')"
               placement="right"
             >
               <AppIcon iconName="app-warning" class="app-warning-icon"></AppIcon>
@@ -49,7 +58,7 @@
         </template>
         <el-radio-group v-model="form.hit_handling_method" class="radio-block mt-4">
           <template v-for="(value, key) of hitHandlingMethod" :key="key">
-            <el-radio :value="key">{{ value }} </el-radio>
+            <el-radio :value="key">{{ $t(value) }} </el-radio>
           </template>
         </el-radio-group>
       </el-form-item>
@@ -58,7 +67,7 @@
         v-if="!isImport && form.hit_handling_method === 'directly_return'"
       >
         <div class="lighter w-full" style="margin-top: -20px">
-          <span>相似度高于</span>
+          <span>{{ $t('views.document.form.similarity.label') }}</span>
           <el-input-number
             v-model="form.directly_return_similarity"
             :min="0"
@@ -69,14 +78,16 @@
             controls-position="right"
             size="small"
             class="ml-4 mr-4"
-          /><span>直接返回分段内容</span>
+          /><span>{{ $t('views.document.form.similarity.placeholder') }}</span>
         </div>
       </el-form-item>
     </el-form>
     <template #footer>
       <span class="dialog-footer">
-        <el-button @click.prevent="dialogVisible = false"> 取消 </el-button>
-        <el-button type="primary" @click="submit(webFormRef)" :loading="loading"> 确定 </el-button>
+        <el-button @click.prevent="dialogVisible = false"> {{ $t('common.cancel') }} </el-button>
+        <el-button type="primary" @click="submit(webFormRef)" :loading="loading">
+          {{ $t('common.confirm') }}
+        </el-button>
       </span>
     </template>
   </el-dialog>
@@ -88,7 +99,7 @@ import type { FormInstance } from 'element-plus'
 import documentApi from '@/api/document'
 import { MsgSuccess } from '@/utils/message'
 import { hitHandlingMethod } from '@/enums/document'
-
+import { t } from '@/locales'
 const route = useRoute()
 const {
   params: { id }
@@ -117,8 +128,20 @@ const documentType = ref<string | number>('') //文档类型：1: web文档；0:
 const documentList = ref<Array<string>>([])
 
 const rules = reactive({
-  source_url: [{ required: true, message: '请输入文档地址', trigger: 'blur' }],
-  directly_return_similarity: [{ required: true, message: '请输入相似度', trigger: 'blur' }]
+  source_url: [
+    {
+      required: true,
+      message: t('views.document.form.source_url.requiredMessage'),
+      trigger: 'blur'
+    }
+  ],
+  directly_return_similarity: [
+    {
+      required: true,
+      message: t('views.document.form.similarity.requiredMessage'),
+      trigger: 'blur'
+    }
+  ]
 })
 
 const dialogVisible = ref<boolean>(false)
@@ -169,7 +192,7 @@ const submit = async (formEl: FormInstance | undefined) => {
           selector: form.value.selector
         }
         documentApi.postWebDocument(id, obj, loading).then(() => {
-          MsgSuccess('导入成功')
+          MsgSuccess(t('views.document.tip.importMessage'))
           emit('refresh')
           dialogVisible.value = false
         })
@@ -184,7 +207,7 @@ const submit = async (formEl: FormInstance | undefined) => {
             }
           }
           documentApi.putDocument(id, documentId.value, obj, loading).then(() => {
-            MsgSuccess('设置成功')
+            MsgSuccess(t('common.settingSuccess'))
             emit('refresh')
             dialogVisible.value = false
           })
@@ -196,7 +219,7 @@ const submit = async (formEl: FormInstance | undefined) => {
             id_list: documentList.value
           }
           documentApi.batchEditHitHandling(id, obj, loading).then(() => {
-            MsgSuccess('设置成功')
+            MsgSuccess(t('common.settingSuccess'))
             emit('refresh')
             dialogVisible.value = false
           })

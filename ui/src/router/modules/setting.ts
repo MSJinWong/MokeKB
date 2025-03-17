@@ -4,7 +4,7 @@ import { Role, ComplexPermission } from '@/utils/permission/type'
 const settingRouter = {
   path: '/setting',
   name: 'setting',
-  meta: { icon: 'Setting', title: '系统设置', permission: 'SETTING:READ' },
+  meta: { icon: 'Setting', title: 'views.system.title', permission: 'SETTING:READ' },
   redirect: () => {
     if (hasPermission(new Role('ADMIN'), 'AND')) {
       return '/user'
@@ -19,7 +19,7 @@ const settingRouter = {
       meta: {
         icon: 'User',
         iconActive: 'UserFilled',
-        title: '用户管理',
+        title: 'views.user.title',
         activeMenu: '/setting',
         parentPath: '/setting',
         parentName: 'setting',
@@ -33,7 +33,7 @@ const settingRouter = {
       meta: {
         icon: 'app-team',
         iconActive: 'app-team-active',
-        title: '团队成员',
+        title: 'views.team.title',
         activeMenu: '/setting',
         parentPath: '/setting',
         parentName: 'setting'
@@ -46,7 +46,7 @@ const settingRouter = {
       meta: {
         icon: 'app-template',
         iconActive: 'app-template-active',
-        title: '模型设置',
+        title: 'views.template.title',
         activeMenu: '/setting',
         parentPath: '/setting',
         parentName: 'setting'
@@ -59,7 +59,7 @@ const settingRouter = {
       meta: {
         icon: 'app-setting',
         iconActive: 'app-setting-active',
-        title: '系统设置',
+        title: 'common.setting',
         activeMenu: '/setting',
         parentPath: '/setting',
         parentName: 'setting',
@@ -70,7 +70,7 @@ const settingRouter = {
           path: '/system/theme',
           name: 'theme',
           meta: {
-            title: '外观设置',
+            title: 'views.system.theme.title',
             activeMenu: '/setting',
             parentPath: '/setting',
             parentName: 'setting',
@@ -82,7 +82,7 @@ const settingRouter = {
           path: '/system/authentication',
           name: 'authentication',
           meta: {
-            title: '登录认证',
+            title: 'views.system.authentication.title',
             activeMenu: '/setting',
             parentPath: '/setting',
             parentName: 'setting',
@@ -94,7 +94,7 @@ const settingRouter = {
           path: '/system/email',
           name: 'email',
           meta: {
-            title: '邮箱配置',
+            title: 'views.system.email.title',
             activeMenu: '/setting',
             parentPath: '/setting',
             parentName: 'setting',

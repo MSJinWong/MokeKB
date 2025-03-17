@@ -1,5 +1,5 @@
 <template>
-  <LayoutContainer header="文档" class="document-main">
+  <LayoutContainer :header="$t('common.fileUpload.document')" class="document-main">
     <div class="main-calc-height">
       <div class="p-24">
         <div class="flex-between">
@@ -8,37 +8,37 @@
               v-if="datasetDetail.type === '0'"
               type="primary"
               @click="router.push({ path: '/dataset/upload', query: { id: id } })"
-              >上传文档</el-button
+              >{{ $t('views.document.uploadDocument') }}</el-button
             >
-            <el-button v-if="datasetDetail.type === '1'" type="primary" @click="importDoc"
-              >导入文档</el-button
-            >
+            <el-button v-if="datasetDetail.type === '1'" type="primary" @click="importDoc">{{
+              $t('views.document.importDocument')
+            }}</el-button>
             <el-button
               @click="syncMulDocument"
               :disabled="multipleSelection.length === 0"
               v-if="datasetDetail.type === '1'"
-              >同步文档</el-button
+              >{{ $t('views.document.syncDocument') }}</el-button
             >
             <el-button @click="openDatasetDialog()" :disabled="multipleSelection.length === 0">
-              迁移
+              {{ $t('views.document.setting.migration') }}
             </el-button>
             <el-button @click="batchRefresh" :disabled="multipleSelection.length === 0">
-              向量化
+              {{ $t('views.dataset.setting.vectorization') }}
             </el-button>
             <el-button @click="openGenerateDialog()" :disabled="multipleSelection.length === 0">
-              生成问题
+              {{ $t('views.document.generateQuestion.title') }}
             </el-button>
             <el-button @click="openBatchEditDocument" :disabled="multipleSelection.length === 0">
-              设置
+              {{ $t('common.setting') }}
             </el-button>
             <el-button @click="deleteMulDocument" :disabled="multipleSelection.length === 0">
-              删除
+              {{ $t('common.delete') }}
             </el-button>
           </div>
 
           <el-input
             v-model="filterText"
-            placeholder="按 文档名称 搜索"
+            :placeholder="$t('views.document.searchBar.placeholder')"
             prefix-icon="Search"
             class="w-240"
             @change="getList"
@@ -58,12 +58,13 @@
           @creatQuick="creatQuickHandle"
           @row-click="rowClickHandle"
           @selection-change="handleSelectionChange"
+          @sort-change="handleSortChange"
           v-loading="loading"
           :row-key="(row: any) => row.id"
           :storeKey="storeKey"
         >
           <el-table-column type="selection" width="55" :reserve-selection="true" />
-          <el-table-column prop="name" label="文件名称" min-width="280">
+          <el-table-column prop="name" :label="$t('views.document.table.name')" min-width="280">
             <template #default="{ row }">
               <ReadWrite
                 @change="editName($event, row.id)"
@@ -72,16 +73,28 @@
               />
             </template>
           </el-table-column>
-          <el-table-column prop="char_length" label="字符数" align="right">
+          <el-table-column
+            prop="char_length"
+            :label="$t('views.document.table.char_length')"
+            align="right"
+            min-width="90"
+            sortable
+          >
             <template #default="{ row }">
               {{ numberFormat(row.char_length) }}
             </template>
           </el-table-column>
-          <el-table-column prop="paragraph_count" label="分段" align="right" />
-          <el-table-column prop="status" label="文件状态" width="130">
+          <el-table-column
+            prop="paragraph_count"
+            :label="$t('views.document.table.paragraph')"
+            align="right"
+            min-width="90"
+            sortable
+          />
+          <el-table-column prop="status" :label="$t('views.document.fileStatus.label')" width="130">
             <template #header>
               <div>
-                <span>文件状态</span>
+                <span>{{ $t('views.document.fileStatus.label') }}</span>
                 <el-dropdown trigger="click" @command="dropdownHandle">
                   <el-button
                     style="margin-top: 1px"
@@ -96,19 +109,19 @@
                         :class="filterMethod['status'] ? '' : 'is-active'"
                         :command="beforeCommand('status', '')"
                         class="justify-center"
-                        >全部</el-dropdown-item
+                        >{{ $t('views.document.table.all') }}</el-dropdown-item
                       >
                       <el-dropdown-item
                         :class="filterMethod['status'] === State.SUCCESS ? 'is-active' : ''"
                         class="justify-center"
                         :command="beforeCommand('status', State.SUCCESS)"
-                        >成功</el-dropdown-item
+                        >{{ $t('views.document.fileStatus.SUCCESS') }}</el-dropdown-item
                       >
                       <el-dropdown-item
                         :class="filterMethod['status'] === State.FAILURE ? 'is-active' : ''"
                         class="justify-center"
                         :command="beforeCommand('status', State.FAILURE)"
-                        >失败</el-dropdown-item
+                        >{{ $t('views.document.fileStatus.FAILURE') }}</el-dropdown-item
                       >
                       <el-dropdown-item
                         :class="
@@ -119,13 +132,13 @@
                         "
                         class="justify-center"
                         :command="beforeCommand('status', State.STARTED, TaskType.EMBEDDING)"
-                        >索引中</el-dropdown-item
+                        >{{ $t('views.document.fileStatus.EMBEDDING') }}</el-dropdown-item
                       >
                       <el-dropdown-item
                         :class="filterMethod['status'] === State.PENDING ? 'is-active' : ''"
                         class="justify-center"
                         :command="beforeCommand('status', State.PENDING)"
-                        >排队中</el-dropdown-item
+                        >{{ $t('views.document.fileStatus.PENDING') }}</el-dropdown-item
                       >
                       <el-dropdown-item
                         :class="
@@ -136,7 +149,7 @@
                         "
                         class="justify-center"
                         :command="beforeCommand('status', State.STARTED, TaskType.GENERATE_PROBLEM)"
-                        >生成中</el-dropdown-item
+                        >{{ $t('views.document.fileStatus.GENERATE') }}</el-dropdown-item
                       >
                     </el-dropdown-menu>
                   </template>
@@ -150,7 +163,7 @@
           <el-table-column width="130">
             <template #header>
               <div>
-                <span>启用状态</span>
+                <span>{{ $t('views.document.enableStatus.label') }}</span>
                 <el-dropdown trigger="click" @command="dropdownHandle">
                   <el-button
                     style="margin-top: 1px"
@@ -165,19 +178,19 @@
                         :class="filterMethod['is_active'] === '' ? 'is-active' : ''"
                         :command="beforeCommand('is_active', '')"
                         class="justify-center"
-                        >全部</el-dropdown-item
+                        >{{ $t('views.document.table.all') }}</el-dropdown-item
                       >
                       <el-dropdown-item
                         :class="filterMethod['is_active'] === true ? 'is-active' : ''"
                         class="justify-center"
                         :command="beforeCommand('is_active', true)"
-                        >开启</el-dropdown-item
+                        >{{ $t('views.document.enableStatus.enable') }}</el-dropdown-item
                       >
                       <el-dropdown-item
                         :class="filterMethod['is_active'] === false ? 'is-active' : ''"
                         class="justify-center"
                         :command="beforeCommand('is_active', false)"
-                        >关闭</el-dropdown-item
+                        >{{ $t('views.document.enableStatus.close') }}</el-dropdown-item
                       >
                     </el-dropdown-menu>
                   </template>
@@ -195,10 +208,10 @@
               </div>
             </template>
           </el-table-column>
-          <el-table-column width="130">
+          <el-table-column width="170">
             <template #header>
               <div>
-                <span>命中处理方式</span>
+                <span>{{ $t('views.document.form.hit_handling_method.label') }}</span>
                 <el-dropdown trigger="click" @command="dropdownHandle">
                   <el-button
                     style="margin-top: 1px"
@@ -208,19 +221,19 @@
                     <el-icon><Filter /></el-icon>
                   </el-button>
                   <template #dropdown>
-                    <el-dropdown-menu style="width: 100px">
+                    <el-dropdown-menu style="width: 150px">
                       <el-dropdown-item
                         :class="filterMethod['hit_handling_method'] ? '' : 'is-active'"
                         :command="beforeCommand('hit_handling_method', '')"
                         class="justify-center"
-                        >全部</el-dropdown-item
+                        >{{ $t('views.document.table.all') }}</el-dropdown-item
                       >
                       <template v-for="(value, key) of hitHandlingMethod" :key="key">
                         <el-dropdown-item
                           :class="filterMethod['hit_handling_method'] === key ? 'is-active' : ''"
                           class="justify-center"
                           :command="beforeCommand('hit_handling_method', key)"
-                          >{{ value }}</el-dropdown-item
+                          >{{ $t(value) }}</el-dropdown-item
                         >
                       </template>
                     </el-dropdown-menu>
@@ -229,20 +242,25 @@
               </div>
             </template>
             <template #default="{ row }">
-              {{ hitHandlingMethod[row.hit_handling_method as keyof typeof hitHandlingMethod] }}
+              {{ $t(hitHandlingMethod[row.hit_handling_method as keyof typeof hitHandlingMethod]) }}
             </template>
           </el-table-column>
-          <el-table-column prop="create_time" label="创建时间" width="175">
+          <el-table-column prop="create_time" :label="$t('common.createTime')" width="175" sortable>
             <template #default="{ row }">
               {{ datetimeFormat(row.create_time) }}
             </template>
           </el-table-column>
-          <el-table-column prop="update_time" label="更新时间" width="175">
+          <el-table-column
+            prop="update_time"
+            :label="$t('views.document.table.updateTime')"
+            width="175"
+            sortable
+          >
             <template #default="{ row }">
               {{ datetimeFormat(row.update_time) }}
             </template>
           </el-table-column>
-          <el-table-column label="操作" align="left" width="110" fixed="right">
+          <el-table-column :label="$t('common.operation')" align="left" width="110" fixed="right">
             <template #default="{ row }">
               <div v-if="datasetDetail.type === '0'">
                 <span class="mr-4">
@@ -253,7 +271,7 @@
                         getTaskState(row.status, TaskType.EMBEDDING)
                       )
                     "
-                    content="取消向量化"
+                    :content="$t('views.document.setting.cancelVectorization')"
                     placement="top"
                   >
                     <el-button
@@ -264,14 +282,19 @@
                       <AppIcon iconName="app-close" style="font-size: 16px"></AppIcon>
                     </el-button>
                   </el-tooltip>
-                  <el-tooltip v-else effect="dark" content="向量化" placement="top">
+                  <el-tooltip
+                    v-else
+                    effect="dark"
+                    :content="$t('views.dataset.setting.vectorization')"
+                    placement="top"
+                  >
                     <el-button type="primary" text @click.stop="refreshDocument(row)">
                       <AppIcon iconName="app-document-refresh" style="font-size: 16px"></AppIcon>
                     </el-button>
                   </el-tooltip>
                 </span>
                 <span class="mr-4">
-                  <el-tooltip effect="dark" content="设置" placement="top">
+                  <el-tooltip effect="dark" :content="$t('common.setting')" placement="top">
                     <el-button type="primary" text @click.stop="settingDoc(row)">
                       <el-icon><Setting /></el-icon>
                     </el-button>
@@ -293,27 +316,27 @@
                           @click="cancelTask(row, TaskType.GENERATE_PROBLEM)"
                         >
                           <el-icon><Connection /></el-icon>
-                          取消生成问题
+                          {{ $t('views.document.setting.cancelGenerateQuestion') }}
                         </el-dropdown-item>
                         <el-dropdown-item v-else @click="openGenerateDialog(row)">
                           <el-icon><Connection /></el-icon>
-                          生成问题
+                          {{ $t('views.document.generateQuestion.title') }}
                         </el-dropdown-item>
                         <el-dropdown-item @click="openDatasetDialog(row)">
                           <AppIcon iconName="app-migrate"></AppIcon>
-                          迁移
+                          {{ $t('views.document.setting.migration') }}
                         </el-dropdown-item>
                         <el-dropdown-item @click="exportDocument(row)">
                           <AppIcon iconName="app-export"></AppIcon>
-                          导出Excel
+                          {{ $t('views.document.setting.export') }} Excel
                         </el-dropdown-item>
                         <el-dropdown-item @click="exportDocumentZip(row)">
                           <AppIcon iconName="app-export"></AppIcon>
-                          导出Zip
+                          {{ $t('views.document.setting.export') }} Zip
                         </el-dropdown-item>
-                        <el-dropdown-item icon="Delete" @click.stop="deleteDocument(row)"
-                          >删除</el-dropdown-item
-                        >
+                        <el-dropdown-item icon="Delete" @click.stop="deleteDocument(row)">{{
+                          $t('common.delete')
+                        }}</el-dropdown-item>
                       </el-dropdown-menu>
                     </template>
                   </el-dropdown>
@@ -321,7 +344,11 @@
               </div>
               <div v-if="datasetDetail.type === '1'">
                 <span class="mr-4">
-                  <el-tooltip effect="dark" content="同步" placement="top">
+                  <el-tooltip
+                    effect="dark"
+                    :content="$t('views.dataset.setting.sync')"
+                    placement="top"
+                  >
                     <el-button type="primary" text @click.stop="syncDocument(row)">
                       <el-icon><Refresh /></el-icon>
                     </el-button>
@@ -335,7 +362,7 @@
                         getTaskState(row.status, TaskType.EMBEDDING)
                       )
                     "
-                    content="取消向量化"
+                    :content="$t('views.document.setting.cancelVectorization')"
                     placement="top"
                   >
                     <el-button
@@ -347,7 +374,12 @@
                     </el-button>
                   </el-tooltip>
 
-                  <el-tooltip effect="dark" v-else content="向量化" placement="top">
+                  <el-tooltip
+                    effect="dark"
+                    v-else
+                    :content="$t('views.dataset.setting.vectorization')"
+                    placement="top"
+                  >
                     <el-button type="primary" text @click.stop="refreshDocument(row)">
                       <AppIcon iconName="app-document-refresh" style="font-size: 16px"></AppIcon>
                     </el-button>
@@ -361,9 +393,9 @@
                     </el-button>
                     <template #dropdown>
                       <el-dropdown-menu>
-                        <el-dropdown-item icon="Setting" @click="settingDoc(row)"
-                          >设置</el-dropdown-item
-                        >
+                        <el-dropdown-item icon="Setting" @click="settingDoc(row)">{{
+                          $t('common.setting')
+                        }}</el-dropdown-item>
                         <el-dropdown-item
                           v-if="
                             ([State.STARTED, State.PENDING] as Array<string>).includes(
@@ -373,27 +405,27 @@
                           @click="cancelTask(row, TaskType.GENERATE_PROBLEM)"
                         >
                           <el-icon><Connection /></el-icon>
-                          取消生成问题
+                          {{ $t('views.document.setting.cancelGenerateQuestion') }}
                         </el-dropdown-item>
                         <el-dropdown-item v-else @click="openGenerateDialog(row)">
                           <el-icon><Connection /></el-icon>
-                          生成问题
+                          {{ $t('views.document.generateQuestion.title') }}
                         </el-dropdown-item>
                         <el-dropdown-item @click="openDatasetDialog(row)">
                           <AppIcon iconName="app-migrate"></AppIcon>
-                          迁移</el-dropdown-item
+                          {{ $t('views.document.setting.migration') }}</el-dropdown-item
                         >
                         <el-dropdown-item @click="exportDocument(row)">
                           <AppIcon iconName="app-export"></AppIcon>
-                          导出Excel
+                          {{ $t('views.document.setting.export') }} Excel
                         </el-dropdown-item>
                         <el-dropdown-item @click="exportDocumentZip(row)">
                           <AppIcon iconName="app-export"></AppIcon>
-                          导出Zip
+                          {{ $t('views.document.setting.export') }} Zip
                         </el-dropdown-item>
-                        <el-dropdown-item icon="Delete" @click.stop="deleteDocument(row)"
-                          >删除</el-dropdown-item
-                        >
+                        <el-dropdown-item icon="Delete" @click.stop="deleteDocument(row)">{{
+                          $t('common.delete')
+                        }}</el-dropdown-item>
                       </el-dropdown-menu>
                     </template>
                   </el-dropdown>
@@ -408,19 +440,22 @@
       <SyncWebDialog ref="SyncWebDialogRef" @refresh="refresh" />
       <!-- 选择知识库 -->
       <SelectDatasetDialog ref="SelectDatasetDialogRef" @refresh="refreshMigrate" />
-      <GenerateRelatedDialog ref="GenerateRelatedDialogRef" @refresh="refresh" />
+      <GenerateRelatedDialog ref="GenerateRelatedDialogRef" @refresh="getList" />
     </div>
     <div class="mul-operation w-full flex" v-if="multipleSelection.length !== 0">
       <el-button :disabled="multipleSelection.length === 0" @click="cancelTaskHandle(1)">
-        取消向量化
+        {{ $t('views.document.setting.cancelVectorization') }}
       </el-button>
       <el-button :disabled="multipleSelection.length === 0" @click="cancelTaskHandle(2)">
-        取消生成
+        {{ $t('views.document.setting.cancelGenerate') }}
       </el-button>
       <el-text type="info" class="secondary ml-24">
-        已选 {{ multipleSelection.length }} 项
+        {{ $t('views.document.selected') }} {{ multipleSelection.length }}
+        {{ $t('views.document.items') }}
       </el-text>
-      <el-button class="ml-16" type="primary" link @click="clearSelection"> 清空 </el-button>
+      <el-button class="ml-16" type="primary" link @click="clearSelection">
+        {{ $t('common.clear') }}
+      </el-button>
     </div>
     <EmbeddingContentDialog ref="embeddingContentDialogRef"></EmbeddingContentDialog>
   </LayoutContainer>
@@ -442,6 +477,7 @@ import StatusVlue from '@/views/document/component/Status.vue'
 import GenerateRelatedDialog from '@/components/generate-related-dialog/index.vue'
 import EmbeddingContentDialog from '@/views/document/component/EmbeddingContentDialog.vue'
 import { TaskType, State } from '@/utils/status'
+import { t } from '@/locales'
 const router = useRouter()
 const route = useRoute()
 const {
@@ -477,6 +513,7 @@ const loading = ref(false)
 let interval: any
 const filterText = ref('')
 const filterMethod = ref<any>({})
+const orderBy = ref<string>('')
 const documentData = ref<any[]>([])
 const currentMouseId = ref(null)
 const datasetDetail = ref<any>({})
@@ -496,14 +533,14 @@ const SelectDatasetDialogRef = ref()
 
 const exportDocument = (document: any) => {
   documentApi.exportDocument(document.name, document.dataset_id, document.id, loading).then(() => {
-    MsgSuccess('导出成功')
+    MsgSuccess(t('common.exportSuccess'))
   })
 }
 const exportDocumentZip = (document: any) => {
   documentApi
     .exportDocumentZip(document.name, document.dataset_id, document.id, loading)
     .then(() => {
-      MsgSuccess('导出成功')
+      MsgSuccess(t('common.exportSuccess'))
     })
 }
 
@@ -519,7 +556,7 @@ function cancelTaskHandle(val: any) {
     type: val
   }
   documentApi.batchCancelTask(id, obj, loading).then(() => {
-    MsgSuccess('批量取消成功')
+    MsgSuccess(t('views.document.tip.cancelSuccess'))
     multipleTableRef.value?.clearSelection()
   })
 }
@@ -561,16 +598,16 @@ function beforeCommand(attr: string, val: any, task_type?: number) {
 }
 const cancelTask = (row: any, task_type: number) => {
   documentApi.cancelTask(row.dataset_id, row.id, { type: task_type }).then(() => {
-    MsgSuccess('发送成功')
+    MsgSuccess(t('views.document.tip.sendMessage'))
   })
 }
 
 function importDoc() {
-  title.value = '导入文档'
+  title.value = t('views.document.importDocument')
   ImportDocumentDialogRef.value.open()
 }
 function settingDoc(row: any) {
-  title.value = '设置'
+  title.value = t('common.setting')
   ImportDocumentDialogRef.value.open(row)
 }
 
@@ -579,7 +616,7 @@ const handleSelectionChange = (val: any[]) => {
 }
 
 function openBatchEditDocument() {
-  title.value = '设置'
+  title.value = t('common.setting')
   const arr: string[] = multipleSelection.value.map((v) => v.id)
   ImportDocumentDialogRef.value.open(null, arr)
 }
@@ -604,8 +641,8 @@ const closeInterval = () => {
 
 function syncDocument(row: any) {
   if (row.meta?.source_url) {
-    MsgConfirm(`确认同步文档?`, `同步将删除已有数据重新获取新数据，请谨慎操作。`, {
-      confirmButtonText: '同步',
+    MsgConfirm(t('views.document.sync.confirmTitle'), t('views.document.sync.confirmMessage1'), {
+      confirmButtonText: t('views.document.sync.label'),
       confirmButtonClass: 'danger'
     })
       .then(() => {
@@ -615,8 +652,8 @@ function syncDocument(row: any) {
       })
       .catch(() => {})
   } else {
-    MsgConfirm(`提示`, `无法同步，请先去设置文档 URL地址`, {
-      confirmButtonText: '确认',
+    MsgConfirm(t('common.tip'), t('views.document.sync.confirmMessage2'), {
+      confirmButtonText: t('common.confirm'),
       type: 'warning'
     })
       .then(() => {})
@@ -651,7 +688,7 @@ function creatQuickHandle(val: string) {
     .asyncPostDocument(id, obj)
     .then(() => {
       getList()
-      MsgSuccess('创建成功')
+      MsgSuccess(t('common.createSuccess'))
     })
     .catch(() => {
       loading.value = false
@@ -666,17 +703,17 @@ function syncMulDocument() {
     }
   })
   documentApi.delMulSyncDocument(id, arr, loading).then(() => {
-    MsgSuccess('同步文档成功')
+    MsgSuccess(t('views.document.sync.successMessage'))
     getList()
   })
 }
 
 function deleteMulDocument() {
   MsgConfirm(
-    `是否批量删除 ${multipleSelection.value.length} 个文档?`,
-    `所选文档中的分段会跟随删除，请谨慎操作。`,
+    `${t('views.document.delete.confirmTitle1')} ${multipleSelection.value.length} ${t('views.document.delete.confirmTitle2')}`,
+    t('views.document.delete.confirmMessage'),
     {
-      confirmButtonText: '删除',
+      confirmButtonText: t('common.confirm'),
       confirmButtonClass: 'danger'
     }
   )
@@ -688,7 +725,7 @@ function deleteMulDocument() {
         }
       })
       documentApi.delMulDocument(id, arr, loading).then(() => {
-        MsgSuccess('批量删除成功')
+        MsgSuccess(t('views.document.delete.successMessage'))
         multipleTableRef.value?.clearSelection()
         getList()
       })
@@ -700,7 +737,7 @@ function batchRefresh() {
   const arr: string[] = multipleSelection.value.map((v) => v.id)
   const embeddingBatchDocument = (stateList: Array<string>) => {
     documentApi.batchRefresh(id, arr, stateList, loading).then(() => {
-      MsgSuccess('批量向量化成功')
+      MsgSuccess(t('views.document.tip.vectorizationSuccess'))
       multipleTableRef.value?.clearSelection()
     })
   }
@@ -709,16 +746,16 @@ function batchRefresh() {
 
 function deleteDocument(row: any) {
   MsgConfirm(
-    `是否删除文档：${row.name} ?`,
-    `此文档下的 ${row.paragraph_count} 个分段都会被删除，请谨慎操作。`,
+    `${t('views.document.delete.confirmTitle3')} ${row.name} ?`,
+    `${t('views.document.delete.confirmMessage1')} ${row.paragraph_count} ${t('views.document.delete.confirmMessage2')}`,
     {
-      confirmButtonText: '删除',
+      confirmButtonText: t('common.confirm'),
       confirmButtonClass: 'danger'
     }
   )
     .then(() => {
       documentApi.delDocument(id, row.id, loading).then(() => {
-        MsgSuccess('删除成功')
+        MsgSuccess(t('common.deleteSuccess'))
         getList()
       })
     })
@@ -746,7 +783,7 @@ function changeState(row: any) {
   const obj = {
     is_active: !row.is_active
   }
-  const str = !row.is_active ? '启用成功' : '禁用成功'
+  const str = !row.is_active ? t('common.status.enableSuccess') : t('common.status.disableSuccess')
   currentMouseId.value && updateData(row.id, obj, str)
 }
 
@@ -755,9 +792,9 @@ function editName(val: string, id: string) {
     const obj = {
       name: val
     }
-    updateData(id, obj, '修改成功')
+    updateData(id, obj, t('common.modifySuccess'))
   } else {
-    MsgError('文件名称不能为空！')
+    MsgError(t('views.document.tip.nameMessage'))
   }
 }
 
@@ -773,10 +810,16 @@ function handleSizeChange() {
   getList()
 }
 
+function handleSortChange({ prop, order }: { prop: string; order: string }) {
+  orderBy.value = order === 'ascending' ? prop : `-${prop}`
+  getList()
+}
+
 function getList(bool?: boolean) {
   const param = {
     ...(filterText.value && { name: filterText.value }),
-    ...filterMethod.value
+    ...filterMethod.value,
+    order_by: orderBy.value
   }
   documentApi
     .getDocument(id as string, paginationConfig.value, param, bool ? undefined : loading)

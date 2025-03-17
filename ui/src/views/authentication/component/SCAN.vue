@@ -1,20 +1,26 @@
 <template>
-  <div v-loading="loading">
-    <el-card shadow="hover" class="border-none cursor" style="--el-card-padding: 16px 24px">
+  <div v-loading="loading" class="scan-height">
+    <el-scrollbar>
       <div v-for="item in platforms" :key="item.key" class="mb-16">
-        <el-card class="mb-16" shadow="hover" style="--el-card-padding: 16px">
+        <el-card class="border-none mb-16" shadow="none">
           <div class="flex-between">
-            <div class="flex align-center ml-8 mr-8">
-              <img :src="item.logoSrc" alt="" class="icon" />
-              <h5 style="margin-left: 8px">{{ item.name }}</h5>
-              <el-tag v-if="item.isValid" type="success" class="ml-4">有效</el-tag>
+            <div class="flex align-center">
+              <img :src="item.logoSrc" alt="" width="24px" />
+              <h5 class="ml-8">{{ item.name }}</h5>
+              <el-tag v-if="item.isValid" type="success" class="ml-8"
+                >{{ $t('views.system.authentication.scanTheQRCode.effective') }}
+              </el-tag>
             </div>
             <div>
               <el-button type="primary" v-if="!item.isValid" @click="showDialog(item)"
-                >接入</el-button
-              >
+                >{{ $t('views.system.authentication.scanTheQRCode.access') }}
+              </el-button>
               <span v-if="item.isValid">
-                <span class="mr-4">{{ item.isActive ? '已开启' : '未开启' }}</span>
+                <span class="mr-4">{{
+                  item.isActive
+                    ? $t('views.system.authentication.scanTheQRCode.alreadyTurnedOn')
+                    : $t('views.system.authentication.scanTheQRCode.notEnabled')
+                }}</span>
                 <el-switch
                   size="small"
                   v-model="item.isActive"
@@ -64,14 +70,18 @@
                   </div>
                 </el-col>
               </el-row>
-              <el-button type="primary" @click="showDialog(item)">编辑</el-button>
-              <el-button @click="validateConnection(item)">校验</el-button>
+              <el-button type="primary" @click="showDialog(item)">
+                {{ $t('common.edit') }}
+              </el-button>
+              <el-button @click="validateConnection(item)">
+                {{ $t('views.system.authentication.scanTheQRCode.validate') }}
+              </el-button>
             </div>
           </el-collapse-transition>
         </el-card>
       </div>
       <EditModel ref="EditModelRef" @refresh="refresh" />
-    </el-card>
+    </el-scrollbar>
   </div>
 </template>
 
@@ -81,6 +91,7 @@ import { copyClick } from '@/utils/clipboard'
 import EditModel from './EditModal.vue'
 import platformApi from '@/api/platform-source'
 import { MsgError, MsgSuccess } from '@/utils/message'
+import { t } from '@/locales'
 
 interface PlatformConfig {
   [key: string]: string
@@ -106,9 +117,9 @@ onMounted(() => {
 
 function initializePlatforms(): Platform[] {
   return [
-    createPlatform('wecom', '企业微信'),
-    createPlatform('dingtalk', '钉钉'),
-    createPlatform('lark', '飞书')
+    createPlatform('wecom', t('views.system.authentication.scanTheQRCode.wecom')),
+    createPlatform('dingtalk', t('views.system.authentication.scanTheQRCode.dingtalk')),
+    createPlatform('lark', t('views.system.authentication.scanTheQRCode.lark'))
   ]
 }
 
@@ -151,7 +162,7 @@ function formatFieldName(key?: any, item?: Platform): string {
     app_key: item?.key != 'lark' ? 'APP Key' : 'App ID',
     app_secret: 'APP Secret',
     agent_id: 'Agent ID',
-    callback_url: '回调地址'
+    callback_url: t('views.application.applicationAccess.callback')
   }
   return (
     fieldNames[key as keyof typeof fieldNames] ||
@@ -190,7 +201,9 @@ function getPlatformInfo() {
 
 function validateConnection(currentPlatform: Platform) {
   platformApi.validateConnection(currentPlatform, loading).then((res: any) => {
-    res.data ? MsgSuccess('校验成功') : MsgError('校验失败')
+    res.data
+      ? MsgSuccess(t('views.system.authentication.scanTheQRCode.validateSuccess'))
+      : MsgError(t('views.system.authentication.scanTheQRCode.validateFailed'))
   })
 }
 
@@ -200,7 +213,7 @@ function refresh() {
 
 function changeStatus(currentPlatform: Platform) {
   platformApi.updateConfig(currentPlatform, loading).then((res: any) => {
-    MsgSuccess('操作成功')
+    MsgSuccess(t('common.saveSuccess'))
   })
 }
 
@@ -217,46 +230,7 @@ function showDialog(platform: Platform) {
 </script>
 
 <style lang="scss" scoped>
-.icon {
-  width: 24px;
-  height: 24px;
-}
-
-.flex-between {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.flex {
-  display: flex;
-}
-
-.align-center {
-  align-items: center;
-}
-
-.ml-4 {
-  margin-left: 4px;
-}
-
-.ml-8 {
-  margin-left: 8px;
-}
-
-.mr-8 {
-  margin-right: 8px;
-}
-
-.mb-16 {
-  margin-bottom: 16px;
-}
-
-.border-t {
-  border-top: 1px solid #ebeef5;
-}
-
-.vertical-middle {
-  vertical-align: middle;
+.scan-height {
+  height: calc(100vh - var(--app-header-height) - var(--app-view-padding) * 2 - 70px);
 }
 </style>

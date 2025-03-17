@@ -54,7 +54,7 @@ class BaseFormNode(IFormNode):
         form_setting = {"form_field_list": form_field_list, "runtime_node_id": self.runtime_node_id,
                         "chat_record_id": self.flow_params_serializer.data.get("chat_record_id"),
                         "is_submit": self.context.get("is_submit", False)}
-        form = f'<form_rander>{json.dumps(form_setting)}</form_rander>'
+        form = f'<form_rander>{json.dumps(form_setting, ensure_ascii=False)}</form_rander>'
         context = self.workflow_manage.get_workflow_content()
         form_content_format = self.workflow_manage.reset_prompt(form_content_format)
         prompt_template = PromptTemplate.from_template(form_content_format, template_format='jinja2')
@@ -70,12 +70,13 @@ class BaseFormNode(IFormNode):
                         "chat_record_id": self.flow_params_serializer.data.get("chat_record_id"),
                         'form_data': self.context.get('form_data', {}),
                         "is_submit": self.context.get("is_submit", False)}
-        form = f'<form_rander>{json.dumps(form_setting)}</form_rander>'
+        form = f'<form_rander>{json.dumps(form_setting,ensure_ascii=False)}</form_rander>'
         context = self.workflow_manage.get_workflow_content()
         form_content_format = self.workflow_manage.reset_prompt(form_content_format)
         prompt_template = PromptTemplate.from_template(form_content_format, template_format='jinja2')
         value = prompt_template.format(form=form, context=context)
-        return [Answer(value, self.view_type, self.runtime_node_id, self.workflow_params['chat_record_id'], None)]
+        return [Answer(value, self.view_type, self.runtime_node_id, self.workflow_params['chat_record_id'], None,
+                       self.runtime_node_id, '')]
 
     def get_details(self, index: int, **kwargs):
         form_content_format = self.context.get('form_content_format')
@@ -84,7 +85,7 @@ class BaseFormNode(IFormNode):
                         "chat_record_id": self.flow_params_serializer.data.get("chat_record_id"),
                         'form_data': self.context.get('form_data', {}),
                         "is_submit": self.context.get("is_submit", False)}
-        form = f'<form_rander>{json.dumps(form_setting)}</form_rander>'
+        form = f'<form_rander>{json.dumps(form_setting,ensure_ascii=False)}</form_rander>'
         context = self.workflow_manage.get_workflow_content()
         form_content_format = self.workflow_manage.reset_prompt(form_content_format)
         prompt_template = PromptTemplate.from_template(form_content_format, template_format='jinja2')

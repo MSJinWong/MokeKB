@@ -1,6 +1,6 @@
 <template>
   <el-dialog
-    title="文件上传设置"
+    :title="$t('views.applicationWorkflow.nodes.baseNode.FileUploadSetting.title')"
     v-model="dialogVisible"
     :close-on-click-modal="false"
     :close-on-press-escape="false"
@@ -15,7 +15,9 @@
       :model="form_data"
       require-asterisk-position="right"
     >
-      <el-form-item label="单次上传最多文件数">
+      <el-form-item
+        :label="$t('views.applicationWorkflow.nodes.baseNode.FileUploadSetting.maxFiles')"
+      >
         <el-slider
           v-model="form_data.maxFiles"
           show-input
@@ -24,7 +26,9 @@
           :max="10"
         />
       </el-form-item>
-      <el-form-item label="每个文件最大（MB）">
+      <el-form-item
+        :label="$t('views.applicationWorkflow.nodes.baseNode.FileUploadSetting.fileLimit')"
+      >
         <el-slider
           v-model="form_data.fileLimit"
           show-input
@@ -33,7 +37,11 @@
           :max="100"
         />
       </el-form-item>
-      <el-form-item label="上传的文件类型">
+      <el-form-item
+        :label="
+          $t('views.applicationWorkflow.nodes.baseNode.FileUploadSetting.fileUploadType.label')
+        "
+      >
         <el-card
           shadow="hover"
           class="card-checkbox cursor w-full mb-8"
@@ -45,8 +53,14 @@
             <div class="flex align-center">
               <img class="mr-12" src="@/assets/icon_file-doc.svg" alt="" />
               <div>
-                <p class="line-height-22 mt-4">文档（TXT、MD、DOCX、HTML、CSV、XLSX、XLS、PDF）</p>
-                <el-text class="color-secondary">需要使用“文档内容提取”节点解析文档内容</el-text>
+                <p class="line-height-22 mt-4">
+                  {{ $t('common.fileUpload.document') }}（TXT、MD、DOCX、HTML、CSV、XLSX、XLS、PDF）
+                </p>
+                <el-text class="color-secondary">{{
+                  $t(
+                    'views.applicationWorkflow.nodes.baseNode.FileUploadSetting.fileUploadType.documentText'
+                  )
+                }}</el-text>
               </div>
             </div>
             <el-checkbox
@@ -66,8 +80,14 @@
             <div class="flex align-center">
               <img class="mr-12" src="@/assets/icon_file-image.svg" alt="" />
               <div>
-                <p class="line-height-22 mt-4">图片（JPG、JPEG、PNG、GIF）</p>
-                <el-text class="color-secondary">需要使用“图片理解”节点解析图片内容</el-text>
+                <p class="line-height-22 mt-4">
+                  {{ $t('common.fileUpload.image') }}（JPG、JPEG、PNG、GIF）
+                </p>
+                <el-text class="color-secondary">{{
+                  $t(
+                    'views.applicationWorkflow.nodes.baseNode.FileUploadSetting.fileUploadType.imageText'
+                  )
+                }}</el-text>
               </div>
             </div>
             <el-checkbox v-model="form_data.image" @change="form_data.image = !form_data.image" />
@@ -85,8 +105,14 @@
             <div class="flex align-center">
               <img class="mr-12" src="@/assets/icon_file-audio.svg" alt="" />
               <div>
-                <p class="line-height-22 mt-4">音频（MP3、WAV、OGG、ACC）</p>
-                <el-text class="color-secondary">需要使用“语音转文本”节点解析音频内容</el-text>
+                <p class="line-height-22 mt-4">
+                  {{ $t('common.fileUpload.audio') }}（MP3、WAV、OGG、ACC、M4A）
+                </p>
+                <el-text class="color-secondary">{{
+                  $t(
+                    'views.applicationWorkflow.nodes.baseNode.FileUploadSetting.fileUploadType.audioText'
+                  )
+                }}</el-text>
               </div>
             </div>
             <el-checkbox v-model="form_data.audio" @change="form_data.audio = !form_data.audio" />
@@ -96,8 +122,10 @@
     </el-form>
     <template #footer>
       <span class="dialog-footer">
-        <el-button @click.prevent="close"> 取消 </el-button>
-        <el-button type="primary" @click="submit()" :loading="loading"> 确定 </el-button>
+        <el-button @click.prevent="close"> {{ $t('common.cancel') }} </el-button>
+        <el-button type="primary" @click="submit()" :loading="loading">
+          {{ $t('common.confirm') }}
+        </el-button>
       </span>
     </template>
   </el-dialog>

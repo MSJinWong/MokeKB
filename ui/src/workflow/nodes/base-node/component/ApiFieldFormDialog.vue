@@ -1,6 +1,10 @@
 <template>
   <el-dialog
-    :title="isEdit ? '编辑参数' : '添加参数'"
+    :title="
+      isEdit
+        ? $t('views.template.templateForm.title.editParam')
+        : $t('views.template.templateForm.title.addParam')
+    "
     v-model="dialogVisible"
     :close-on-click-modal="false"
     :close-on-press-escape="false"
@@ -15,40 +19,40 @@
       :model="form"
       require-asterisk-position="right"
     >
-      <el-form-item label="参数" prop="variable">
+      <el-form-item :label="$t('dynamicsForm.paramForm.field.label')" prop="variable">
         <el-input
           v-model="form.variable"
-          placeholder="请输入参数"
+          :placeholder="$t('dynamicsForm.paramForm.field.placeholder')"
           maxlength="64"
           show-word-limit
           @blur="form.variable = form.variable.trim()"
         />
       </el-form-item>
 
-      <el-form-item label="是否必填" @click.prevent>
+      <el-form-item :label="$t('dynamicsForm.paramForm.required.label')" @click.prevent>
         <el-switch size="small" v-model="form.is_required"></el-switch>
       </el-form-item>
       <el-form-item
-        label="默认值"
+        :label="$t('dynamicsForm.default.label')"
         prop="default_value"
         :rules="{
           required: form.is_required,
-          message: '请输入默认值',
+          message: $t('dynamicsForm.default.placeholder'),
           trigger: 'blur'
         }"
       >
         <el-input
           v-model="form.default_value"
-          placeholder="请输入默认值"
+          :placeholder="$t('dynamicsForm.default.placeholder')"
           @blur="form.name = form.name.trim()"
         />
       </el-form-item>
     </el-form>
     <template #footer>
       <span class="dialog-footer">
-        <el-button @click.prevent="dialogVisible = false"> 取消 </el-button>
+        <el-button @click.prevent="dialogVisible = false"> {{ $t('common.cancel') }} </el-button>
         <el-button type="primary" @click="submit(fieldFormRef)" :loading="loading">
-          {{ isEdit ? '保存' : '添加' }}
+          {{ isEdit ? $t('common.save') : $t('common.add') }}
         </el-button>
       </span>
     </template>
@@ -58,7 +62,7 @@
 import { reactive, ref, watch } from 'vue'
 import type { FormInstance } from 'element-plus'
 import { cloneDeep } from 'lodash'
-
+import { t } from '@/locales'
 const emit = defineEmits(['refresh'])
 
 const fieldFormRef = ref()
@@ -76,10 +80,10 @@ const form = ref<any>({
 })
 
 const rules = reactive({
-  name: [{ required: true, message: '请输入显示名称', trigger: 'blur' }],
+  name: [{ required: true, message: t('dynamicsForm.paramForm.name.requiredMessage'), trigger: 'blur' }],
   variable: [
-    { required: true, message: '请输入参数', trigger: 'blur' },
-    { pattern: /^[a-zA-Z0-9_]+$/, message: '只能输入字母数字和下划线', trigger: 'blur' }
+    { required: true, message:  t('dynamicsForm.paramForm.field.requiredMessage'), trigger: 'blur' },
+    { pattern: /^[a-zA-Z0-9_]+$/, message: t('dynamicsForm.paramForm.field.requiredMessage2'), trigger: 'blur' }
   ]
 })
 

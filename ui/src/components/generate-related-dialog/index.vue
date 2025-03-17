@@ -1,6 +1,6 @@
 <template>
   <el-dialog
-    title="生成问题"
+    :title="$t('views.document.generateQuestion.title')"
     v-model="dialogVisible"
     width="650"
     :close-on-click-modal="false"
@@ -19,84 +19,52 @@
             <AppIcon iconName="app-warning-colorful" style="font-size: 16px"></AppIcon>
           </div>
           <div class="ml-12 lighter">
-            <p>提示词中的 {data} 为分段内容的占位符，执行时替换为分段内容发送给 AI 模型；</p>
+            <p>{{ $t('views.document.generateQuestion.tip1', { data: '{data}' }) }}</p>
             <p>
-              AI
-              模型根据分段内容生成相关问题，请将生成的问题放至&lt;question&gt;&lt;/question&gt;标签中，系统会自动关联标签中的问题；
+              {{ $t('views.document.generateQuestion.tip2')+ '<question></question>' +
+              $t('views.document.generateQuestion.tip3') }}
             </p>
-            <p>生成效果依赖于所选模型和提示词，用户可自行调整至最佳效果。</p>
+            <p>{{ $t('views.document.generateQuestion.tip4') }}</p>
           </div>
         </div>
-        <el-form-item label="AI 模型" prop="model_id">
-          <el-select
+        <el-form-item
+          :label="$t('views.application.applicationForm.form.aiModel.label')"
+          prop="model_id"
+        >
+          <ModelSelect
             v-model="form.model_id"
             :placeholder="$t('views.application.applicationForm.form.aiModel.placeholder')"
-            class="w-full"
-            popper-class="select-model"
-            :clearable="true"
-          >
-            <el-option-group
-              v-for="(value, label) in modelOptions"
-              :key="value"
-              :label="relatedObject(providerOptions, label, 'provider')?.name"
-            >
-              <el-option
-                v-for="item in value.filter((v: any) => v.status === 'SUCCESS')"
-                :key="item.id"
-                :label="item.name"
-                :value="item.id"
-                class="flex-between"
-              >
-                <div class="flex align-center">
-                  <span
-                    v-html="relatedObject(providerOptions, label, 'provider')?.icon"
-                    class="model-icon mr-8"
-                  ></span>
-                  <span>{{ item.name }}</span>
-                  <el-tag v-if="item.permission_type === 'PUBLIC'" type="info" class="info-tag ml-8"
-                    >公用
-                  </el-tag>
-                </div>
-                <el-icon class="check-icon" v-if="item.id === form.model_id">
-                  <Check />
-                </el-icon>
-              </el-option>
-              <!-- 不可用 -->
-              <el-option
-                v-for="item in value.filter((v: any) => v.status !== 'SUCCESS')"
-                :key="item.id"
-                :label="item.name"
-                :value="item.id"
-                class="flex-between"
-                disabled
-              >
-                <div class="flex">
-                  <span
-                    v-html="relatedObject(providerOptions, label, 'provider')?.icon"
-                    class="model-icon mr-8"
-                  ></span>
-                  <span>{{ item.name }}</span>
-                  <span class="danger">{{
-                    $t('views.application.applicationForm.form.aiModel.unavailable')
-                  }}</span>
-                </div>
-                <el-icon class="check-icon" v-if="item.id === form.model_id">
-                  <Check />
-                </el-icon>
-              </el-option>
-            </el-option-group>
-          </el-select>
+            :options="modelOptions"
+          ></ModelSelect>
         </el-form-item>
-        <el-form-item label="提示词" prop="prompt">
-          <el-input v-model="form.prompt" placeholder="请输入提示词" :rows="7" type="textarea" />
+        <el-form-item
+          :label="$t('views.application.applicationForm.form.prompt.label')"
+          prop="prompt"
+        >
+          <el-input
+            v-model="form.prompt"
+            :placeholder="$t('views.application.applicationForm.form.prompt.placeholder')"
+            :rows="7"
+            type="textarea"
+          />
+        </el-form-item>
+        <el-form-item v-if="apiType === 'document'" :label="$t('components.selectParagraph.title')" prop="state">
+          <el-radio-group v-model="state" class="radio-block">
+            <el-radio value="error" size="large">{{
+              $t('components.selectParagraph.error')
+            }}</el-radio>
+            <el-radio value="all" size="large">{{
+               $t('components.selectParagraph.all')
+            }}</el-radio>
+          </el-radio-group>
         </el-form-item>
       </el-form>
     </div>
     <template #footer>
       <span class="dialog-footer">
-        <el-button @click.prevent="dialogVisible = false"> 取消 </el-button>
+        <el-button @click.prevent="dialogVisible = false"> {{ $t('common.cancel') }} </el-button>
         <el-button type="primary" @click="submitHandle(FormRef)" :disabled="!model || loading">
-          确定
+          {{ $t('common.confirm') }}
         </el-button>
       </span>
     </template>
@@ -109,8 +77,6 @@ import documentApi from '@/api/document'
 import paragraphApi from '@/api/paragraph'
 import datasetApi from '@/api/dataset'
 import useStore from '@/stores'
-import { relatedObject } from '@/utils/utils'
-import type { Provider } from '@/api/type/model'
 import { groupBy } from 'lodash'
 import { MsgSuccess } from '@/utils/message'
 import { t } from '@/locales'
@@ -129,21 +95,41 @@ const loading = ref<boolean>(false)
 
 const dialogVisible = ref<boolean>(false)
 const modelOptions = ref<any>(null)
-const providerOptions = ref<Array<Provider>>([])
 const idList = ref<string[]>([])
 const apiType = ref('') // 文档document或段落paragraph
-
+const state = ref<'all' | 'error'>('error')
+const stateMap = {
+  all: ['0', '1', '2', '3', '4', '5', 'n'],
+  error: ['0', '1', '3', '4', '5', 'n']
+}
 const FormRef = ref()
 const userId = user.userInfo?.id as string
 const form = ref(prompt.get(userId))
-
 const rules = reactive({
-  model_id: [{ required: true, message: '请选择AI 模型', trigger: 'blur' }],
-  prompt: [{ required: true, message: '请输入提示词', trigger: 'blur' }]
+  model_id: [
+    {
+      required: true,
+      message: t('views.application.applicationForm.form.aiModel.placeholder'),
+      trigger: 'blur'
+    }
+  ],
+  prompt: [
+    {
+      required: true,
+      message: t('views.application.applicationForm.form.prompt.placeholder'),
+      trigger: 'blur'
+    }
+  ]
+})
+
+watch(dialogVisible, (bool) => {
+  if (!bool) {
+    form.value = prompt.get(userId)
+    FormRef.value?.clearValidate()
+  }
 })
 
 const open = (ids: string[], type: string) => {
-  getProvider()
   getModel()
   idList.value = ids
   apiType.value = type
@@ -159,16 +145,23 @@ const submitHandle = async (formEl: FormInstance) => {
       // 保存提示词
       prompt.save(user.userInfo?.id as string, form.value)
       if (apiType.value === 'paragraph') {
-        const data = { ...form.value, paragraph_id_list: idList.value }
+        const data = {
+          ...form.value,
+          paragraph_id_list: idList.value,
+        }
         paragraphApi.batchGenerateRelated(id, documentId, data, loading).then(() => {
-          MsgSuccess('生成问题成功')
+          MsgSuccess(t('views.document.generateQuestion.successMessage'))
           emit('refresh')
           dialogVisible.value = false
         })
       } else if (apiType.value === 'document') {
-        const data = { ...form.value, document_id_list: idList.value }
+        const data = {
+          ...form.value,
+          document_id_list: idList.value,
+          state_list: stateMap[state.value]
+        }
         documentApi.batchGenerateRelated(id, data, loading).then(() => {
-          MsgSuccess('生成问题成功')
+          MsgSuccess(t('views.document.generateQuestion.successMessage'))
           emit('refresh')
           dialogVisible.value = false
         })
@@ -183,19 +176,6 @@ function getModel() {
     .getDatasetModel(id)
     .then((res: any) => {
       modelOptions.value = groupBy(res?.data, 'provider')
-      loading.value = false
-    })
-    .catch(() => {
-      loading.value = false
-    })
-}
-
-function getProvider() {
-  loading.value = true
-  model
-    .asyncGetProvider()
-    .then((res: any) => {
-      providerOptions.value = res?.data
       loading.value = false
     })
     .catch(() => {

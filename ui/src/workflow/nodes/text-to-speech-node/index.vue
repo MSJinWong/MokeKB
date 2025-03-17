@@ -1,6 +1,6 @@
 <template>
   <NodeContainer :node-model="nodeModel">
-    <h5 class="title-decoration-1 mb-8">节点设置</h5>
+    <h5 class="title-decoration-1 mb-8">{{ $t('views.applicationWorkflow.nodeSetting') }}</h5>
     <el-card shadow="never" class="card-never">
       <el-form
         @submit.prevent
@@ -12,18 +12,21 @@
         hide-required-asterisk
       >
         <el-form-item
-          label="语音合成模型"
+          :label="$t('views.applicationWorkflow.nodes.textToSpeechNode.tts_model.label')"
           prop="tts_model_id"
           :rules="{
             required: true,
-            message: '请选择语音合成模型',
+            message: $t('views.application.applicationForm.form.voicePlay.placeholder'),
             trigger: 'change'
           }"
         >
           <template #label>
             <div class="flex-between w-full">
               <div>
-                <span>语音合成模型<span class="danger">*</span></span>
+                <span
+                  >{{ $t('views.applicationWorkflow.nodes.textToSpeechNode.tts_model.label')
+                  }}<span class="danger">*</span></span
+                >
               </div>
               <el-button
                 type="primary"
@@ -32,76 +35,23 @@
                 :disabled="!form_data.tts_model_id"
                 class="mr-4"
               >
-                {{ $t('views.application.applicationForm.form.paramSetting') }}
+                <el-icon><Setting /></el-icon>
               </el-button>
             </div>
           </template>
-          <el-select
-            @change="model_change"
+          <ModelSelect
             @wheel="wheel"
             :teleported="false"
             v-model="form_data.tts_model_id"
-            placeholder="请选择语音合成模型"
-            class="w-full"
-            popper-class="select-model"
-            :clearable="true"
-          >
-            <el-option-group
-              v-for="(value, label) in modelOptions"
-              :key="value"
-              :label="relatedObject(providerOptions, label, 'provider')?.name"
-            >
-              <el-option
-                v-for="item in value.filter((v: any) => v.status === 'SUCCESS')"
-                :key="item.id"
-                :label="item.name"
-                :value="item.id"
-                class="flex-between"
-              >
-                <div class="flex align-center">
-                  <span
-                    v-html="relatedObject(providerOptions, label, 'provider')?.icon"
-                    class="model-icon mr-8"
-                  ></span>
-                  <span class="ellipsis" :title="item.name">{{ item.name }}</span>
-                  <el-tag v-if="item.permission_type === 'PUBLIC'" type="info" class="info-tag ml-8"
-                    >公用
-                  </el-tag>
-                </div>
-                <el-icon class="check-icon" v-if="item.id === form_data.model_id">
-                  <Check />
-                </el-icon>
-              </el-option>
-              <!-- 不可用 -->
-              <el-option
-                v-for="item in value.filter((v: any) => v.status !== 'SUCCESS')"
-                :key="item.id"
-                :label="item.name"
-                :value="item.id"
-                class="flex-between"
-                disabled
-              >
-                <div class="flex">
-                  <span
-                    v-html="relatedObject(providerOptions, label, 'provider')?.icon"
-                    class="model-icon mr-8"
-                  ></span>
-
-                  <span class="ellipsis" :title="item.name">{{ item.name }}</span>
-                  <span class="danger">（不可用）</span>
-                </div>
-                <el-icon class="check-icon" v-if="item.id === form_data.model_id">
-                  <Check />
-                </el-icon>
-              </el-option>
-            </el-option-group>
-          </el-select>
+            :placeholder="$t('views.application.applicationForm.form.voicePlay.placeholder')"
+            :options="modelOptions"
+          ></ModelSelect>
         </el-form-item>
         <el-form-item
           prop="content_list"
-          label="选择文本内容"
+          :label="$t('views.applicationWorkflow.nodes.textToSpeechNode.content.label')"
           :rules="{
-            message: '选择文本内容',
+            message: $t('views.applicationWorkflow.nodes.textToSpeechNode.content.label'),
             trigger: 'blur',
             required: true
           }"
@@ -109,7 +59,10 @@
           <template #label>
             <div class="flex-between w-full">
               <div>
-                <span>选择文本内容<span class="danger">*</span></span>
+                <span
+                  >{{ $t('views.applicationWorkflow.nodes.textToSpeechNode.content.label')
+                  }}<span class="danger">*</span></span
+                >
               </div>
             </div>
           </template>
@@ -117,21 +70,26 @@
             ref="nodeCascaderRef"
             :nodeModel="nodeModel"
             class="w-full"
-            placeholder="选择文本内容"
+            :placeholder="$t('views.applicationWorkflow.nodes.textToSpeechNode.content.label')"
             v-model="form_data.content_list"
           />
         </el-form-item>
 
-        <el-form-item label="返回内容" @click.prevent>
+        <el-form-item
+          :label="$t('views.applicationWorkflow.nodes.aiChatNode.returnContent.label')"
+          @click.prevent
+        >
           <template #label>
             <div class="flex align-center">
               <div class="mr-4">
-                <span>返回内容<span class="danger">*</span></span>
+                <span
+                  >{{ $t('views.applicationWorkflow.nodes.aiChatNode.returnContent.label')
+                  }}<span class="danger">*</span></span
+                >
               </div>
               <el-tooltip effect="dark" placement="right" popper-class="max-w-200">
                 <template #content>
-                  关闭后该节点的内容则不输出给用户。
-                  如果你想让用户看到该节点的输出内容，请打开开关。
+                  {{ $t('views.applicationWorkflow.nodes.aiChatNode.returnContent.tooltip') }}
                 </template>
                 <AppIcon iconName="app-warning" class="app-warning-icon"></AppIcon>
               </el-tooltip>
@@ -141,16 +99,14 @@
         </el-form-item>
       </el-form>
     </el-card>
+    <TTSModeParamSettingDialog ref="TTSModeParamSettingDialogRef" @refresh="refreshTTSForm" />
   </NodeContainer>
-  <TTSModeParamSettingDialog ref="TTSModeParamSettingDialogRef" @refresh="refreshTTSForm" />
 </template>
 
 <script setup lang="ts">
 import NodeContainer from '@/workflow/common/NodeContainer.vue'
 import { computed, onMounted, ref } from 'vue'
 import { groupBy, set } from 'lodash'
-import { relatedObject } from '@/utils/utils'
-import type { Provider } from '@/api/type/model'
 import applicationApi from '@/api/application'
 import { app } from '@/main'
 import useStore from '@/stores'
@@ -169,7 +125,6 @@ const {
 
 const props = defineProps<{ nodeModel: any }>()
 const modelOptions = ref<any>(null)
-const providerOptions = ref<Array<Provider>>([])
 
 const aiChatNodeFormRef = ref<FormInstance>()
 const nodeCascaderRef = ref()
@@ -225,16 +180,10 @@ function getModel() {
   }
 }
 
-function getProvider() {
-  model.asyncGetProvider().then((res: any) => {
-    providerOptions.value = res?.data
-  })
-}
-
 const openTTSParamSettingDialog = () => {
   const model_id = form_data.value.tts_model_id
   if (!model_id) {
-    MsgSuccess(t('请选择语音播放模型'))
+    MsgSuccess(t('views.application.applicationForm.form.voicePlay.requiredMessage'))
     return
   }
   TTSModeParamSettingDialogRef.value?.open(model_id, id, form_data.value.model_params_setting)
@@ -243,11 +192,8 @@ const refreshTTSForm = (data: any) => {
   form_data.value.model_params_setting = data
 }
 
-const model_change = (model_id?: string) => {}
-
 onMounted(() => {
   getModel()
-  getProvider()
 
   set(props.nodeModel, 'validate', validate)
 })

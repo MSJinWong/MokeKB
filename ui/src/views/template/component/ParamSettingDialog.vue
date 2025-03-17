@@ -1,6 +1,6 @@
 <template>
   <el-dialog
-    title="模型参数设置"
+    :title="$t('views.template.templateForm.title.paramSetting')"
     v-model="dialogVisible"
     width="800px"
     :close-on-click-modal="false"
@@ -8,9 +8,11 @@
     :destroy-on-close="true"
     :before-close="close"
   >
-    <el-button type="primary" @click="openAddDrawer()" class="mb-12"> 添加参数 </el-button>
+    <el-button type="primary" @click="openAddDrawer()" class="mb-12">
+      {{ $t('views.template.templateForm.title.addParam') }}
+    </el-button>
     <el-table :data="modelParamsForm" class="mb-16">
-      <el-table-column prop="label" label="显示名称" show-overflow-tooltip>
+      <el-table-column prop="label" :label="$t('dynamicsForm.paramForm.name.label')" show-overflow-tooltip>
         <template #default="{ row }">
           <span v-if="row.label && row.label.input_type === 'TooltipLabel'">{{
             row.label.label
@@ -18,16 +20,20 @@
           <span v-else>{{ row.label }}</span>
         </template>
       </el-table-column>
-      <el-table-column prop="field" label="参数" show-overflow-tooltip />
-      <el-table-column label="组件类型" width="110px">
+      <el-table-column prop="field" :label="$t('dynamicsForm.paramForm.field.label')" show-overflow-tooltip />
+      <el-table-column :label="$t('dynamicsForm.paramForm.input_type.label')" width="110px">
         <template #default="{ row }">
           <el-tag type="info" class="info-tag">{{
             input_type_list.find((item) => item.value === row.input_type)?.label
           }}</el-tag>
         </template>
       </el-table-column>
-      <el-table-column prop="default_value" label="默认值" show-overflow-tooltip />
-      <el-table-column label="必填">
+      <el-table-column
+        prop="default_value"
+        :label="$t('dynamicsForm.default.label')"
+        show-overflow-tooltip
+      />
+      <el-table-column :label="$t('common.required')">
         <template #default="{ row }">
           <div @click.stop>
             <el-switch disabled size="small" v-model="row.required" />
@@ -35,16 +41,16 @@
         </template>
       </el-table-column>
 
-      <el-table-column label="操作" align="left" width="80">
+      <el-table-column :label="$t('common.operation')" align="left" width="90">
         <template #default="{ row, $index }">
           <span class="mr-4">
-            <el-tooltip effect="dark" content="修改" placement="top">
+            <el-tooltip effect="dark" :content="$t('common.modify')" placement="top">
               <el-button type="primary" text @click.stop="openAddDrawer(row, $index)">
                 <el-icon><EditPen /></el-icon>
               </el-button>
             </el-tooltip>
           </span>
-          <el-tooltip effect="dark" content="删除" placement="top">
+          <el-tooltip effect="dark" :content="$t('common.delete')" placement="top">
             <el-button type="primary" text @click="deleteParam($index)">
               <el-icon>
                 <Delete />
@@ -56,8 +62,10 @@
     </el-table>
     <template #footer>
       <span class="dialog-footer">
-        <el-button @click="close">取消</el-button>
-        <el-button type="primary" @click="submit" :loading="loading"> 保存 </el-button>
+        <el-button @click="close">{{ $t('common.cancel') }}</el-button>
+        <el-button type="primary" @click="submit" :loading="loading">
+          {{ $t('common.save') }}
+        </el-button>
       </span>
     </template>
   </el-dialog>
@@ -71,7 +79,7 @@ import AddParamDrawer from './AddParamDrawer.vue'
 import { MsgError, MsgSuccess } from '@/utils/message'
 import ModelApi from '@/api/model'
 import { input_type_list } from '@/components/dynamics-form/constructor/data'
-
+import { t } from '@/locales'
 const props = defineProps<{
   model: Model
 }>()
@@ -119,11 +127,11 @@ function refresh(data: any, index: any) {
     }
 
     if (field === data.field && index !== i) {
-      MsgError('变量已存在: ' + data.field)
+      MsgError(t('views.template.tip.errorMessage') + data.field)
       return
     }
     if (label === label2 && index !== i) {
-      MsgError('变量已存在: ' + label)
+      MsgError(t('views.template.tip.errorMessage') + label)
       return
     }
   }
@@ -136,7 +144,7 @@ function refresh(data: any, index: any) {
 
 function submit() {
   ModelApi.updateModelParamsForm(props.model.id, modelParamsForm.value, loading).then((ok) => {
-    MsgSuccess('模型参数保存成功')
+    MsgSuccess(t('views.template.tip.saveSuccessMessage'))
     close()
     // emit('submit')
   })

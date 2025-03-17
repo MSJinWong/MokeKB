@@ -8,19 +8,19 @@
     <div>
       <!-- 语音播放 -->
       <span v-if="tts">
-        <el-tooltip effect="dark" content="点击播放" placement="top" v-if="!audioPlayerStatus">
+        <el-tooltip effect="dark" :content="$t('chat.operation.play')" placement="top" v-if="!audioPlayerStatus">
           <el-button text @click="playAnswerText(data?.answer_text)">
             <AppIcon iconName="app-video-play"></AppIcon>
           </el-button>
         </el-tooltip>
-        <el-tooltip v-else effect="dark" content="停止" placement="top">
+        <el-tooltip v-else effect="dark" :content="$t('chat.operation.pause')" placement="top">
           <el-button type="primary" text @click="pausePlayAnswerText()">
             <AppIcon iconName="app-video-pause"></AppIcon>
           </el-button>
         </el-tooltip>
         <el-divider direction="vertical" />
       </span>
-      <el-tooltip effect="dark" content="复制" placement="top">
+      <el-tooltip effect="dark" :content="$t('common.copy')" placement="top">
         <el-button text @click="copyClick(data?.answer_text)">
           <AppIcon iconName="app-copy"></AppIcon>
         </el-button>
@@ -29,7 +29,7 @@
       <el-tooltip
         v-if="buttonData.improve_paragraph_id_list.length === 0"
         effect="dark"
-        content="修改内容"
+        :content="$t('views.log.editContent')"
         placement="top"
       >
         <el-button text @click="editContent(data)">
@@ -37,7 +37,7 @@
         </el-button>
       </el-tooltip>
 
-      <el-tooltip v-else effect="dark" content="修改标注" placement="top">
+      <el-tooltip v-else effect="dark" :content="$t('views.log.editMark')" placement="top">
         <el-button text @click="editMark(data)">
           <AppIcon iconName="app-document-active" class="primary"></AppIcon>
         </el-button>
@@ -54,7 +54,7 @@
       <EditContentDialog ref="EditContentDialogRef" @refresh="refreshContent" />
       <EditMarkDialog ref="EditMarkDialogRef" @refresh="refreshMark" />
       <!-- 先渲染，不然不能播放   -->
-      <audio ref="audioPlayer" controls hidden="hidden"></audio>
+      <audio ref="audioPlayer" v-for="item in audioList" :key="item" controls hidden="hidden"></audio>
     </div>
   </div>
 </template>
@@ -67,7 +67,7 @@ import { datetimeFormat } from '@/utils/time'
 import applicationApi from '@/api/application'
 import { useRoute } from 'vue-router'
 import { MsgError } from '@/utils/message'
-
+import { t } from '@/locales'
 const route = useRoute()
 const {
   params: { id }
@@ -88,7 +88,7 @@ const props = defineProps({
 
 const emit = defineEmits(['update:data'])
 
-const audioPlayer = ref<HTMLAudioElement | null>(null)
+const audioPlayer = ref<HTMLAudioElement[] | null>(null)
 
 const EditContentDialogRef = ref()
 const EditMarkDialogRef = ref()
@@ -96,6 +96,8 @@ const EditMarkDialogRef = ref()
 const buttonData = ref(props.data)
 const loading = ref(false)
 const utterance = ref<SpeechSynthesisUtterance | null>(null)
+const audioList = ref<string[]>([])
+const currentAudioIndex = ref(0)
 
 function editContent(data: any) {
   EditContentDialogRef.value.open(data)
@@ -141,7 +143,7 @@ function removeFormRander(text: string) {
 
 const playAnswerText = (text: string) => {
   if (!text) {
-    text = '抱歉，没有查找到相关内容，请重新描述您的问题或提供更多信息。'
+    text = t('chat.tip.answerMessage')
   }
   // 移除表单渲染器
   text = removeFormRander(text)
@@ -149,19 +151,41 @@ const playAnswerText = (text: string) => {
   text = markdownToPlainText(text)
   // console.log(text)
   audioPlayerStatus.value = true
-  if (props.tts_type === 'BROWSER') {
-    if (text !== utterance.value?.text) {
+  // 分割成多份
+  audioList.value = text.split(/(<audio[^>]*><\/audio>)/)
+  playAnswerTextPart()
+}
+
+const playAnswerTextPart = () => {
+  // console.log(audioList.value, currentAudioIndex.value)
+  if (currentAudioIndex.value === audioList.value.length) {
+    audioPlayerStatus.value = false
+    currentAudioIndex.value = 0
+    return
+  }
+  if (audioList.value[currentAudioIndex.value].includes('<audio')) {
+    if (audioPlayer.value) {
+      audioPlayer.value[currentAudioIndex.value].src = audioList.value[currentAudioIndex.value].match(/src="([^"]*)"/)?.[1] || ''
+      audioPlayer.value[currentAudioIndex.value].play() // 自动播放音频
+      audioPlayer.value[currentAudioIndex.value].onended = () => {
+        currentAudioIndex.value += 1
+        playAnswerTextPart()
+      }
+    }
+  } else if (props.tts_type === 'BROWSER') {
+    if (audioList.value[currentAudioIndex.value] !== utterance.value?.text) {
       window.speechSynthesis.cancel()
     }
-    if (window.speechSynthesis.paused) {
+    if (window.speechSynthesis.paused && audioList.value[currentAudioIndex.value] === utterance.value?.text) {
       window.speechSynthesis.resume()
       return
     }
     // 创建一个新的 SpeechSynthesisUtterance 实例
-    utterance.value = new SpeechSynthesisUtterance(text)
+    utterance.value = new SpeechSynthesisUtterance(audioList.value[currentAudioIndex.value])
     utterance.value.onend = () => {
-      audioPlayerStatus.value = false
       utterance.value = null
+      currentAudioIndex.value += 1
+      playAnswerTextPart()
     }
     utterance.value.onerror = () => {
       audioPlayerStatus.value = false
@@ -169,15 +193,14 @@ const playAnswerText = (text: string) => {
     }
     // 调用浏览器的朗读功能
     window.speechSynthesis.speak(utterance.value)
-  }
-  if (props.tts_type === 'TTS') {
+  } else if (props.tts_type === 'TTS') {
     // 恢复上次暂停的播放
-    if (audioPlayer.value?.src) {
-      audioPlayer.value?.play()
+    if (audioPlayer.value && audioPlayer.value[currentAudioIndex.value]?.src) {
+      audioPlayer.value[currentAudioIndex.value].play()
       return
     }
     applicationApi
-      .postTextToSpeech(id || (props.applicationId as string), { text: text }, loading)
+      .postTextToSpeech((props.applicationId as string) || (id as string), { text: audioList.value[currentAudioIndex.value] }, loading)
       .then(async (res: any) => {
         if (res.type === 'application/json') {
           const text = await res.text()
@@ -198,11 +221,12 @@ const playAnswerText = (text: string) => {
         // link.click()
 
         // 检查 audioPlayer 是否已经引用了 DOM 元素
-        if (audioPlayer.value instanceof HTMLAudioElement) {
-          audioPlayer.value.src = url
-          audioPlayer.value.play() // 自动播放音频
-          audioPlayer.value.onended = () => {
-            audioPlayerStatus.value = false
+        if (audioPlayer.value) {
+          audioPlayer.value[currentAudioIndex.value].src = url
+          audioPlayer.value[currentAudioIndex.value].play() // 自动播放音频
+          audioPlayer.value[currentAudioIndex.value].onended = () => {
+            currentAudioIndex.value += 1
+            playAnswerTextPart()
           }
         } else {
           console.error('audioPlayer.value is not an instance of HTMLAudioElement')
@@ -217,12 +241,17 @@ const playAnswerText = (text: string) => {
 const pausePlayAnswerText = () => {
   audioPlayerStatus.value = false
   if (props.tts_type === 'TTS') {
-    audioPlayer.value?.pause()
+    if (audioPlayer.value) {
+      audioPlayer.value?.forEach((item) => {
+        item.pause()
+      })
+    }
   }
   if (props.tts_type === 'BROWSER') {
     window.speechSynthesis.pause()
   }
 }
+
 
 function refreshMark() {
   buttonData.value.improve_paragraph_id_list = []

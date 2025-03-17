@@ -14,6 +14,7 @@ from typing import Dict, Iterator, Type, List
 from pydantic.v1 import BaseModel
 
 from common.exception.app_exception import AppApiException
+from django.utils.translation import gettext_lazy as _
 
 
 class DownModelChunkStatus(Enum):
@@ -60,7 +61,7 @@ class IModelProvider(ABC):
 
     def get_model_list(self, model_type):
         if model_type is None:
-            raise AppApiException(500, '模型类型不能为空')
+            raise AppApiException(500, _('Model type cannot be empty'))
         return self.get_model_info_manage().get_model_list_by_model_type(model_type)
 
     def get_model_credential(self, model_type, model_name):
@@ -71,7 +72,8 @@ class IModelProvider(ABC):
         model_info = self.get_model_info_manage().get_model_info(model_type, model_name)
         return model_info.model_credential
 
-    def is_valid_credential(self, model_type, model_name, model_credential: Dict[str, object], model_params: Dict[str, object], raise_exception=False):
+    def is_valid_credential(self, model_type, model_name, model_credential: Dict[str, object],
+                            model_params: Dict[str, object], raise_exception=False):
         model_info = self.get_model_info_manage().get_model_info(model_type, model_name)
         return model_info.model_credential.is_valid(model_type, model_name, model_credential, model_params, self,
                                                     raise_exception=raise_exception)
@@ -84,7 +86,7 @@ class IModelProvider(ABC):
         return 3
 
     def down_model(self, model_type: str, model_name, model_credential: Dict[str, object]) -> Iterator[DownModelChunk]:
-        raise AppApiException(500, "当前平台不支持下载模型")
+        raise AppApiException(500, _('The current platform does not support downloading models'))
 
 
 class MaxKBBaseModel(ABC):
@@ -101,7 +103,7 @@ class MaxKBBaseModel(ABC):
     def filter_optional_params(model_kwargs):
         optional_params = {}
         for key, value in model_kwargs.items():
-            if key not in ['model_id', 'use_local', 'streaming']:
+            if key not in ['model_id', 'use_local', 'streaming', 'show_ref_label']:
                 optional_params[key] = value
         return optional_params
 
@@ -109,7 +111,8 @@ class MaxKBBaseModel(ABC):
 class BaseModelCredential(ABC):
 
     @abstractmethod
-    def is_valid(self, model_type: str, model_name, model: Dict[str, object], model_params, provider, raise_exception=True):
+    def is_valid(self, model_type: str, model_name, model: Dict[str, object], model_params, provider,
+                 raise_exception=True):
         pass
 
     @abstractmethod
@@ -149,13 +152,13 @@ class BaseModelCredential(ABC):
 
 
 class ModelTypeConst(Enum):
-    LLM = {'code': 'LLM', 'message': '大语言模型'}
-    EMBEDDING = {'code': 'EMBEDDING', 'message': '向量模型'}
-    STT = {'code': 'STT', 'message': '语音识别'}
-    TTS = {'code': 'TTS', 'message': '语音合成'}
-    IMAGE = {'code': 'IMAGE', 'message': '图片理解'}
-    TTI = {'code': 'TTI', 'message': '图片生成'}
-    RERANKER = {'code': 'RERANKER', 'message': '重排模型'}
+    LLM = {'code': 'LLM', 'message': _('LLM')}
+    EMBEDDING = {'code': 'EMBEDDING', 'message': _('Embedding Model')}
+    STT = {'code': 'STT', 'message': _('Speech2Text')}
+    TTS = {'code': 'TTS', 'message': _('TTS')}
+    IMAGE = {'code': 'IMAGE', 'message': _('Vision Model')}
+    TTI = {'code': 'TTI', 'message': _('Image Generation')}
+    RERANKER = {'code': 'RERANKER', 'message': _('Rerank')}
 
 
 class ModelInfo:
@@ -229,7 +232,7 @@ class ModelInfoManage:
     def get_model_info(self, model_type, model_name) -> ModelInfo:
         model_info = self.model_dict.get(model_type, {}).get(model_name, self.default_model_dict.get(model_type))
         if model_info is None:
-            raise AppApiException(500, '模型不支持')
+            raise AppApiException(500, _('The model does not support'))
         return model_info
 
     class builder:

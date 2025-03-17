@@ -2,9 +2,8 @@ import { defineStore } from 'pinia'
 import applicationApi from '@/api/application'
 import applicationXpackApi from '@/api/application-xpack'
 import { type Ref } from 'vue'
-
+import { getBrowserLang } from '@/locales/index'
 import useUserStore from './user'
-
 const useApplicationStore = defineStore({
   id: 'application',
   state: () => ({
@@ -77,11 +76,11 @@ const useApplicationStore = defineStore({
 
     async asyncGetAppProfile(loading?: Ref<boolean>) {
       return new Promise((resolve, reject) => {
-        const user = useUserStore()
         applicationApi
           .getAppProfile(loading)
-          .then((data) => {
-            resolve(data)
+          .then((res) => {
+            sessionStorage.setItem('language', res.data?.language || getBrowserLang())
+            resolve(res)
           })
           .catch((error) => {
             reject(error)

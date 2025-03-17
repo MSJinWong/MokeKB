@@ -6,8 +6,12 @@
       <LogoIcon v-else height="32px" width="32px" />
     </div>
     <div class="content" v-if="prologue">
-      <el-card shadow="always" class="dialog-card" style="--el-card-padding: 10px 16px 12px">
-        <MdRenderer :source="prologue" :send-message="sendMessage"></MdRenderer>
+      <el-card shadow="always" class="border-r-8" style="--el-card-padding: 10px 16px 12px">
+        <MdRenderer
+          :source="prologue"
+          :send-message="sendMessage"
+          reasoning_content=""
+        ></MdRenderer>
       </el-card>
     </div>
   </div>
@@ -16,6 +20,7 @@
 import { type chatType } from '@/api/type/application'
 import { computed } from 'vue'
 import MdRenderer from '@/components/markdown/MdRenderer.vue'
+import { t } from '@/locales'
 const props = defineProps<{
   application: any
   available: boolean
@@ -26,10 +31,27 @@ const toQuickQuestion = (match: string, offset: number, input: string) => {
   return `<quick_question>${match.replace('- ', '')}</quick_question>`
 }
 const prologue = computed(() => {
-  const temp = props.available
-    ? props.application?.prologue
-    : '抱歉，当前正在维护，无法提供服务，请稍后再试！'
-  return temp?.replace(/-\s.+/g, toQuickQuestion)
+  const temp = props.available ? props.application?.prologue : t('chat.tip.prologueMessage')
+  if (temp) {
+    const tag_list = [
+      /<html_rander>[\d\D]*?<\/html_rander>/g,
+      /<echarts_rander>[\d\D]*?<\/echarts_rander>/g,
+      /<quick_question>[\d\D]*?<\/quick_question>/g,
+      /<form_rander>[\d\D]*?<\/form_rander>/g
+    ]
+    let _temp = temp
+    for (const index in tag_list) {
+      _temp = _temp.replaceAll(tag_list[index], '')
+    }
+    const quick_question_list = _temp.match(/-\s.+/g)
+    let result = temp
+    for (const index in quick_question_list) {
+      const quick_question = quick_question_list[index]
+      result = result.replace(quick_question, toQuickQuestion)
+    }
+    return result
+  }
+  return ''
 })
 </script>
 <style lang="scss" scoped></style>

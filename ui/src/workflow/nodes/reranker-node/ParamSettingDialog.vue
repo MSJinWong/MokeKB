@@ -1,7 +1,7 @@
 <template>
   <el-dialog
     align-center
-    :title="$t('views.application.applicationForm.dialogues.paramSettings')"
+    :title="$t('common.paramSetting')"
     class="param-dialog"
     v-model="dialogVisible"
     style="width: 550px"
@@ -18,8 +18,14 @@
                 <el-form-item>
                   <template #label>
                     <div class="flex align-center">
-                      <span class="mr-4">Score 高于</span>
-                      <el-tooltip effect="dark" content="Score越高相关性越强。" placement="right">
+                      <span class="mr-4"
+                        >Score {{ $t('views.applicationWorkflow.nodes.rerankerNode.higher') }}</span
+                      >
+                      <el-tooltip
+                        effect="dark"
+                        :content="$t('views.applicationWorkflow.nodes.rerankerNode.ScoreTooltip')"
+                        placement="right"
+                      >
                         <AppIcon iconName="app-warning" class="app-warning-icon"></AppIcon>
                       </el-tooltip>
                     </div>
@@ -38,12 +44,12 @@
               </el-col>
               <el-col :span="12">
                 <el-form-item
-                  :label="$t('views.application.applicationForm.dialogues.topReferences')"
+                  :label="$t('views.application.applicationForm.dialog.topReferences')"
                 >
                   <el-input-number
                     v-model="form.top_n"
                     :min="1"
-                    :max="100"
+                    :max="10000"
                     :value-on-clear="1"
                     controls-position="right"
                     class="w-full"
@@ -52,7 +58,7 @@
               </el-col>
             </el-row>
 
-            <el-form-item :label="$t('views.application.applicationForm.dialogues.maxCharacters')">
+            <el-form-item :label="$t('views.application.applicationForm.dialog.maxCharacters')">
               <el-slider
                 v-model="form.max_paragraph_char_number"
                 show-input
@@ -68,11 +74,9 @@
     </div>
     <template #footer>
       <span class="dialog-footer p-16">
-        <el-button @click.prevent="dialogVisible = false">{{
-          $t('views.application.applicationForm.buttons.cancel')
-        }}</el-button>
+        <el-button @click.prevent="dialogVisible = false">{{ $t('common.cancel') }}</el-button>
         <el-button type="primary" @click="submit()" :loading="loading">
-          {{ $t('views.application.applicationForm.buttons.save') }}
+          {{ $t('common.save') }}
         </el-button>
       </span>
     </template>

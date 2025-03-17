@@ -75,7 +75,7 @@ const isDefaultTheme = computed(() => {
 })
 
 const fileURL = computed(() => {
-  if (user.themeInfo?.loginLogo) {
+  if (user.themeInfo) {
     if (typeof user.themeInfo?.loginLogo === 'string') {
       return user.themeInfo?.loginLogo
     } else {

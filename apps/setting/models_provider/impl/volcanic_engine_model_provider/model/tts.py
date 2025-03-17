@@ -13,10 +13,12 @@ import copy
 import gzip
 import json
 import re
+import ssl
 import uuid
 from typing import Dict
-import ssl
+
 import websockets
+from django.utils.translation import gettext as _
 
 from common.util.common import _remove_empty_lines
 from setting.models_provider.base_model_provider import MaxKBBaseModel
@@ -72,7 +74,7 @@ class VolcanicEngineTextToSpeech(MaxKBBaseModel, BaseTextToSpeech):
         )
 
     def check_auth(self):
-        self.text_to_speech('你好')
+        self.text_to_speech(_('Hello'))
 
     def text_to_speech(self, text):
         request_json = {

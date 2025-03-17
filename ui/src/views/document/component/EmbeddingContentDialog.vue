@@ -1,13 +1,20 @@
 <template>
-  <el-dialog v-model="dialogVisible" title="选择向量化内容" width="500" :before-close="close">
-    <el-radio-group v-model="state">
-      <el-radio value="error" size="large">向量化未成功的分段</el-radio>
-      <el-radio value="all" size="large">全部分段</el-radio>
+  <el-dialog
+    v-model="dialogVisible"
+    :title="$t('components.selectParagraph.title')"
+    :before-close="close"
+    width="450"
+  >
+    <el-radio-group v-model="state" class="radio-block">
+      <el-radio value="error" size="large" class="mb-16">{{
+        $t('components.selectParagraph.error')
+      }}</el-radio>
+      <el-radio value="all" size="large">{{ $t('components.selectParagraph.all') }}</el-radio>
     </el-radio-group>
     <template #footer>
       <div class="dialog-footer">
-        <el-button @click="close">取消</el-button>
-        <el-button type="primary" @click="submit"> 提交 </el-button>
+        <el-button @click="close">{{ $t('common.cancel') }} </el-button>
+        <el-button type="primary" @click="submit"> {{ $t('common.submit') }} </el-button>
       </div>
     </template>
   </el-dialog>

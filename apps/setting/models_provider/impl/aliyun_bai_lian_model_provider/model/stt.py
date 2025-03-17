@@ -26,6 +26,8 @@ class AliyunBaiLianSpeechToText(MaxKBBaseModel, BaseSpeechToText):
             optional_params['max_tokens'] = model_kwargs['max_tokens']
         if 'temperature' in model_kwargs and model_kwargs['temperature'] is not None:
             optional_params['temperature'] = model_kwargs['temperature']
+        if model_name == 'qwen-omni-turbo':
+            optional_params['streaming'] = True
         return AliyunBaiLianSpeechToText(
             model=model_name,
             api_key=model_credential.get('api_key'),
@@ -61,9 +63,11 @@ class AliyunBaiLianSpeechToText(MaxKBBaseModel, BaseSpeechToText):
             result = recognition.call(temp_file_path)
             text = ''
             if result.status_code == 200:
-                for sentence in result.get_sentence():
-                    text += sentence['text']
-                return text
+                result_sentence = result.get_sentence()
+                if result_sentence is not None:
+                    for sentence in result_sentence:
+                        text += sentence['text']
+                    return text
             else:
                 raise Exception('Error: ', result.message)
         finally:

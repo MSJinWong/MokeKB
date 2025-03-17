@@ -133,6 +133,9 @@ h5 {
 .max-w-200 {
   max-width: 200px;
 }
+.max-w-350 {
+  max-width: 350px;
+}
 
 .mt-4 {
   margin-top: calc(var(--app-base-px) - 4px);
@@ -307,6 +310,9 @@ h5 {
 }
 .border-r-4 {
   border-radius: 4px;
+}
+.border-r-8 {
+  border-radius: 8px;
 }
 
 .border-t-dashed {
@@ -492,7 +498,7 @@ h5 {
 }
 
 .avatar-light {
-  background: var(--el-color-primary-light-4);
+  background: var(--el-color-primary-light-3);
 }
 
 .avatar-purple {
@@ -626,22 +632,6 @@ h5 {
   }
 }
 
-// AI模型选择：添加模型hover样式
-.select-model {
-  .el-select-dropdown__footer {
-    &:hover {
-      background-color: var(--el-fill-color-light);
-    }
-  }
-  .model-icon {
-    width: 20px;
-  }
-  .check-icon {
-    position: absolute;
-    right: 10px;
-  }
-}
-
 // 段落card
 .paragraph-source-card {
   height: 210px;
@@ -767,5 +757,11 @@ h5 {
   }
   &__left {
     border-right: 1px solid var(--el-border-color);
+  }
+}
+
+@media only screen and (max-width: 768px) {
+  .responsive-dialog {
+    width: 90% !important;
   }
 }

@@ -1,14 +1,21 @@
 <template>
   <el-input
     v-model="filterText"
-    placeholder="搜索"
+    :placeholder="$t('common.search')"
     prefix-icon="Search"
     class="p-24 pt-0 pb-0 mb-16 mt-4"
     clearable
   />
   <div class="p-24 pt-0">
     <el-table :data="filterData" :max-height="tableHeight">
-      <el-table-column prop="name" :label="isApplication ? '应用名称' : '知识库名称'">
+      <el-table-column
+        prop="name"
+        :label="
+          isApplication
+            ? $t('views.application.applicationForm.form.appName.label')
+            : $t('views.dataset.datasetForm.form.datasetName.label')
+        "
+      >
         <template #default="{ row }">
           <div class="flex align-center">
             <AppAvatar
@@ -28,13 +35,18 @@
           </div>
         </template>
       </el-table-column>
-      <el-table-column label="管理" align="center" width="80" fixed="right">
+      <el-table-column
+        :label="$t('views.team.setting.management')"
+        align="center"
+        width="100"
+        fixed="right"
+      >
         <template #header>
           <el-checkbox
             :disabled="props.manage"
             v-model="allChecked[TeamEnum.MANAGE]"
             :indeterminate="allIndeterminate[TeamEnum.MANAGE]"
-            label="管理"
+            :label="$t('views.team.setting.management')"
           />
         </template>
         <template #default="{ row }">
@@ -45,13 +57,18 @@
           />
         </template>
       </el-table-column>
-      <el-table-column label="查看" align="center" width="80" fixed="right">
+      <el-table-column
+        :label="$t('views.team.setting.check')"
+        align="center"
+        width="100"
+        fixed="right"
+      >
         <template #header>
           <el-checkbox
             :disabled="props.manage"
             v-model="allChecked[TeamEnum.USE]"
             :indeterminate="allIndeterminate[TeamEnum.USE]"
-            label="查看"
+            :label="$t('views.team.setting.check')"
           />
         </template>
         <template #default="{ row }">
@@ -123,7 +140,9 @@ const allChecked: any = ref({
 
 const filterText = ref('')
 
-const filterData = computed(() => props.data.filter((v: any) => v.name.includes(filterText.value)))
+const filterData = computed(() =>
+  props.data.filter((v: any) => v.name.toLowerCase().includes(filterText.value.toLowerCase()))
+)
 
 const allIndeterminate: any = ref({
   [TeamEnum.MANAGE]: computed(() => {

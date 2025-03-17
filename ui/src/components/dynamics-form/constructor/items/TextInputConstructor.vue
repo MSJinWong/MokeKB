@@ -1,12 +1,12 @@
 <template>
-  <el-form-item label="文本长度" required>
+  <el-form-item :label="$t('dynamicsForm.TextInput.length.label')" required>
     <el-row class="w-full">
       <el-col :span="11">
         <el-form-item
           :rules="[
             {
               required: true,
-              message: '最小长度必填',
+              message: $t('dynamicsForm.TextInput.length.minRequired'),
               trigger: 'change'
             }
           ]"
@@ -30,7 +30,7 @@
           :rules="[
             {
               required: true,
-              message: '最大长度必填',
+              message: $t('dynamicsForm.TextInput.length.maxRequired'),
               trigger: 'change'
             }
           ]"
@@ -52,20 +52,23 @@
     class="defaultValueItem"
     :required="formValue.required"
     prop="default_value"
-    label="默认值"
+    :label="$t('dynamicsForm.default.label')"
     :rules="
-      formValue.required ? [{ required: true, message: '默认值 为必填属性' }, ...rules] : rules
+      formValue.required ? [{ required: true, message: `${$t('dynamicsForm.default.label')}${$t('dynamicsForm.default.requiredMessage')}` }, ...rules] : rules
     "
   >
     <div class="defaultValueCheckbox">
-      <el-checkbox v-model="formValue.show_default_value" label="显示默认值" />
+      <el-checkbox
+        v-model="formValue.show_default_value"
+        :label="$t('dynamicsForm.default.show')"
+      />
     </div>
 
     <el-input
       v-model="formValue.default_value"
       :maxlength="formValue.maxlength"
       :minlength="formValue.minlength"
-      placeholder="请输入默认值"
+      :placeholder="$t('dynamicsForm.default.placeholder')"
       show-word-limit
       type="text"
     />
@@ -73,7 +76,7 @@
 </template>
 <script setup lang="ts">
 import { computed, onMounted, watch } from 'vue'
-
+import { t } from '@/locales'
 const props = defineProps<{
   modelValue: any
 }>()
@@ -107,11 +110,11 @@ const getData = () => {
     props_info: {
       rules: formValue.value.required
         ? [
-            { required: true, message: `${formValue.value.label} 为必填属性` },
+            { required: true, message: `${formValue.value.label} ${t('dynamicsForm.default.requiredMessage')}` },
             {
               min: formValue.value.minlength,
               max: formValue.value.maxlength,
-              message: `${formValue.value.label}长度在 ${formValue.value.minlength} 到 ${formValue.value.maxlength} 个字符`,
+              message: `${formValue.value.label}${t('dynamicsForm.TextInput.length.requiredMessage1')} ${formValue.value.minlength} ${t('dynamicsForm.TextInput.length.requiredMessage2')} ${formValue.value.maxlength} ${t('dynamicsForm.TextInput.length.requiredMessage3')}`,
               trigger: 'blur'
             }
           ]
@@ -119,7 +122,7 @@ const getData = () => {
             {
               min: formValue.value.minlength,
               max: formValue.value.maxlength,
-              message: `${formValue.value.label}长度在 ${formValue.value.minlength} 到 ${formValue.value.maxlength} 个字符`,
+              message: `${formValue.value.label}${t('dynamicsForm.TextInput.length.requiredMessage1')} ${formValue.value.minlength} ${t('dynamicsForm.TextInput.length.requiredMessage2')} ${formValue.value.maxlength} ${t('dynamicsForm.TextInput.length.requiredMessage3')}`,
               trigger: 'blur'
             }
           ]
@@ -138,21 +141,21 @@ const rangeRules = [
     required: true,
     validator: (rule: any, value: any, callback: any) => {
       if (!formValue.value.minlength) {
-        callback(new Error('文本长度为必填参数'))
+        callback(new Error(t('dynamicsForm.TextInput.length.requiredMessage4')))
       }
       if (!formValue.value.maxlength) {
-        callback(new Error('文本长度为必填参数'))
+        callback(new Error(t('dynamicsForm.TextInput.length.requiredMessage4')))
       }
       return true
     },
-    message: `${formValue.value.label} 为必填属性`
+    message: `${formValue.value.label} ${t('dynamicsForm.default.requiredMessage')}`
   }
 ]
 const rules = computed(() => [
   {
     min: formValue.value.minlength,
     max: formValue.value.maxlength,
-    message: `长度在 ${formValue.value.minlength} 到 ${formValue.value.maxlength} 个字符`,
+    message: `${t('dynamicsForm.TextInput.length.requiredMessage1')} ${formValue.value.minlength} ${t('dynamicsForm.TextInput.length.requiredMessage2')} ${formValue.value.maxlength} ${t('dynamicsForm.TextInput.length.requiredMessage3')}`,
     trigger: 'blur'
   }
 ])
@@ -162,7 +165,7 @@ onMounted(() => {
   formValue.value.minlength = 0
   formValue.value.maxlength = 20
   formValue.value.default_value = ''
-  console.log(formValue.value.show_default_value)
+  // console.log(formValue.value.show_default_value)
   if (formValue.value.show_default_value === undefined) {
     formValue.value.show_default_value = true
   }

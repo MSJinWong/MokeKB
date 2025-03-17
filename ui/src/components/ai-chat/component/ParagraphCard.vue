@@ -9,10 +9,10 @@
     <template #icon>
       <AppAvatar class="mr-12 avatar-light" :size="22"> {{ index + 1 + '' }}</AppAvatar>
     </template>
-    <div class="active-button primary">{{ data.similarity?.toFixed(3) }}</div>
+    <div class="active-button primary">{{ score?.toFixed(3) || data.similarity?.toFixed(3) }}</div>
     <template #description>
       <el-scrollbar height="150">
-        <MdPreview ref="editorRef" editorId="preview-only" :modelValue="data.content" />
+        <MdPreview ref="editorRef" editorId="preview-only" :modelValue="content" noImgZoomIn />
       </el-scrollbar>
     </template>
     <template #footer>
@@ -22,11 +22,7 @@
 
           <template v-if="meta?.source_url">
             <a
-              :href="
-                meta?.source_url && !meta?.source_url.endsWith('/')
-                  ? meta?.source_url + '/'
-                  : meta?.source_url
-              "
+              :href="getNormalizedUrl(meta?.source_url)"
               target="_blank"
               class="ellipsis-1 break-all"
               :title="data?.document_name?.trim()"
@@ -54,7 +50,7 @@
   </CardBox>
 </template>
 <script setup lang="ts">
-import { getImgUrl } from '@/utils/utils'
+import { getImgUrl, getNormalizedUrl } from '@/utils/utils'
 import { computed } from 'vue'
 
 const props = defineProps({
@@ -62,9 +58,17 @@ const props = defineProps({
     type: Object,
     default: () => {}
   },
+  content: {
+    type: String,
+    default: ''
+  },
   index: {
     type: Number,
     default: 0
+  },
+  score: {
+    type: Number,
+    default: null
   }
 })
 const isMetaObject = computed(() => typeof props.data.meta === 'object')
@@ -86,6 +90,7 @@ const meta = computed(() => (isMetaObject.value ? props.data.meta : parsedMeta.v
     }
   }
 }
+
 .paragraph-source-card-height {
   height: 260px;
 }
@@ -97,6 +102,7 @@ const meta = computed(() => (isMetaObject.value ? props.data.meta : parsedMeta.v
   .paragraph-source-card {
     .footer-content {
       display: block;
+
       .item {
         max-width: 100%;
       }

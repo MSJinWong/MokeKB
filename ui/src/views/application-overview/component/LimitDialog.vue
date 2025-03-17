@@ -1,6 +1,6 @@
 <template>
   <el-dialog
-    :title="$t('views.applicationOverview.appInfo.LimitDialog.dialogTitle')"
+    :title="$t('views.applicationOverview.appInfo.accessControl')"
     v-model="dialogVisible"
     :close-on-click-modal="false"
     :close-on-press-escape="false"
@@ -50,7 +50,7 @@
           disabled
         >
           <template #append>
-            <el-tooltip content="复制" placement="top">
+            <el-tooltip :content="$t('common.copy')" placement="top">
               <el-button
                 type="primary"
                 text
@@ -60,7 +60,7 @@
                 <AppIcon iconName="app-copy"></AppIcon>
               </el-button>
             </el-tooltip>
-            <el-tooltip content="刷新" placement="top">
+            <el-tooltip :content="$t('common.refresh')" placement="top">
               <el-button
                 @click="refreshAuthentication"
                 type="primary"
@@ -90,11 +90,9 @@
     </el-form>
     <template #footer>
       <span class="dialog-footer">
-        <el-button @click.prevent="dialogVisible = false"
-          >{{ $t('views.applicationOverview.appInfo.LimitDialog.cancelButtonText') }}
-        </el-button>
+        <el-button @click.prevent="dialogVisible = false">{{ $t('common.cancel') }} </el-button>
         <el-button type="primary" @click="submit(limitFormRef)" :loading="loading">
-          {{ $t('views.applicationOverview.appInfo.LimitDialog.saveButtonText') }}
+          {{ $t('common.save') }}
         </el-button>
       </span>
     </template>
@@ -105,11 +103,10 @@ import { ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import type { FormInstance, FormRules } from 'element-plus'
 import applicationApi from '@/api/application'
-import { MsgSuccess, MsgConfirm } from '@/utils/message'
+import { MsgSuccess } from '@/utils/message'
 import { t } from '@/locales'
 import { copyClick } from '@/utils/clipboard'
 import { ComplexPermission } from '@/utils/permission/type'
-import { first } from 'lodash'
 
 const route = useRoute()
 const {
@@ -163,7 +160,7 @@ const submit = async (formEl: FormInstance | undefined) => {
       applicationApi.putAccessToken(id as string, obj, loading).then((res) => {
         emit('refresh')
         // @ts-ignore
-        MsgSuccess(t('views.applicationOverview.appInfo.LimitDialog.settingSuccessMessage'))
+        MsgSuccess(t('common.settingSuccess'))
         dialogVisible.value = false
       })
     }

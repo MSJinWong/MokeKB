@@ -82,6 +82,7 @@ class Config(dict):
         "DB_PASSWORD": "Password123@postgres",
         "DB_ENGINE": "dj_db_conn_pool.backends.postgresql",
         "DB_MAX_OVERFLOW": 80,
+        'LANGUAGE_CODE': 'zh-CN',
         # 向量模型
         "EMBEDDING_MODEL_NAME": "shibing624/text2vec-base-chinese",
         "EMBEDDING_DEVICE": "cpu",
@@ -115,6 +116,9 @@ class Config(dict):
                 "MAX_OVERFLOW": int(self.get('DB_MAX_OVERFLOW'))
             }
         }
+
+    def get_language_code(self):
+        return self.get('LANGUAGE_CODE', 'zh-CN')
 
     def __init__(self, *args):
         super().__init__(*args)
@@ -195,7 +199,7 @@ class ConfigManager:
     def load_from_env(self):
         keys = os.environ.keys()
         config = {key.replace('MAXKB_', ''): os.environ.get(key) for key in keys if key.startswith('MAXKB_')}
-        if len(config.keys()) <= 1:
+        if len(config.keys()) <= 0:
             msg = f"""
 
                              Error: No config env found.

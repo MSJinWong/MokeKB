@@ -20,6 +20,12 @@ from smartdoc.conf import PROJECT_DIR
 
 __all__ = ["User", "password_encrypt", 'get_user_dynamics_permission']
 
+from smartdoc.const import CONFIG
+
+
+def get_language():
+    return CONFIG.get_language_code()
+
 
 def password_encrypt(raw_password):
     """
@@ -71,6 +77,7 @@ class User(AppModelMixin):
     role = models.CharField(max_length=150, verbose_name="角色")
     source = models.CharField(max_length=10, verbose_name="来源", default="LOCAL")
     is_active = models.BooleanField(default=True)
+    language = models.CharField(max_length=10, verbose_name="语言", null=True, default=None)
     create_time = models.DateTimeField(verbose_name="创建时间", auto_now_add=True, null=True)
     update_time = models.DateTimeField(verbose_name="修改时间", auto_now=True, null=True)
 

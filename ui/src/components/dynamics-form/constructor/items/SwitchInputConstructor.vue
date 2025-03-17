@@ -1,9 +1,13 @@
 <template>
   <el-form-item
-    label="默认值"
+    :label="$t('dynamicsForm.default.label')"
     :required="formValue.required"
     prop="default_value"
-    :rules="formValue.required ? [{ required: true, message: '默认值 为必填属性' }] : []"
+    :rules="
+      formValue.required
+        ? [{ required: true, message: `${$t('dynamicsForm.default.label')}${$t('dynamicsForm.default.requiredMessage')}` }]
+        : []
+    "
   >
     <el-switch v-model="formValue.default_value" />
   </el-form-item>

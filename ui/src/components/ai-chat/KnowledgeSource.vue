@@ -1,10 +1,11 @@
 <template>
   <div class="flex align-center mt-16" v-if="!isWorkFlow(props.type)">
-    <span class="mr-4 color-secondary">知识来源</span>
+    <span class="mr-4 color-secondary">{{ $t('chat.KnowledgeSource.title') }}</span>
     <el-divider direction="vertical" />
     <el-button type="primary" class="mr-8" link @click="openParagraph(data)">
       <AppIcon iconName="app-reference-outlined" class="mr-4"></AppIcon>
-      引用分段 {{ data.paragraph_list?.length || 0 }}</el-button
+      {{ $t('chat.KnowledgeSource.referenceParagraph') }}
+      {{ data.paragraph_list?.length || 0 }}</el-button
     >
   </div>
   <div class="mt-8" v-if="!isWorkFlow(props.type)">
@@ -20,11 +21,7 @@
                 </div>
                 <div class="ml-8" v-else>
                   <a
-                    :href="
-                      item.source_url && !item.source_url.endsWith('/')
-                        ? item.source_url + '/'
-                        : item.source_url
-                    "
+                    :href="getNormalizedUrl(item?.source_url)"
                     target="_blank"
                     class="ellipsis"
                     :title="item?.document_name?.trim()"
@@ -42,8 +39,10 @@
 
   <div class="border-t color-secondary flex-between mt-12" style="padding-top: 12px">
     <div>
-      <span class="mr-8"> 消耗 tokens: {{ data?.message_tokens + data?.answer_tokens }} </span>
-      <span> 耗时: {{ data?.run_time?.toFixed(2) }} s</span>
+      <span class="mr-8">
+        {{ $t('chat.KnowledgeSource.consume') }}: {{ data?.message_tokens + data?.answer_tokens }}
+      </span>
+      <span> {{ $t('chat.KnowledgeSource.consumeTime') }}: {{ data?.run_time?.toFixed(2) }} s</span>
     </div>
     <el-button
       v-if="isWorkFlow(props.type)"
@@ -52,7 +51,7 @@
       @click="openExecutionDetail(data.execution_details)"
     >
       <el-icon class="mr-4"><Document /></el-icon>
-      执行详情</el-button
+      {{ $t('chat.executionDetails.title') }}</el-button
     >
   </div>
   <!-- 知识库引用 dialog -->
@@ -65,7 +64,7 @@ import { computed, ref } from 'vue'
 import ParagraphSourceDialog from './ParagraphSourceDialog.vue'
 import ExecutionDetailDialog from './ExecutionDetailDialog.vue'
 import { isWorkFlow } from '@/utils/application'
-import { getImgUrl } from '@/utils/utils'
+import { getImgUrl, getNormalizedUrl } from '@/utils/utils'
 const props = defineProps({
   data: {
     type: Object,

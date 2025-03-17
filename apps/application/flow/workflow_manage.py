@@ -17,12 +17,14 @@ from typing import List, Dict
 
 from django.db import close_old_connections
 from django.db.models import QuerySet
+from django.utils import translation
+from django.utils.translation import get_language
+from django.utils.translation import gettext as _
 from langchain_core.prompts import PromptTemplate
 from rest_framework import status
 from rest_framework.exceptions import ErrorDetail, ValidationError
 
 from application.flow import tools
-from application.flow.common import Answer
 from application.flow.i_step_node import INode, WorkFlowPostHandler, NodeResult
 from application.flow.step_node import get_node
 from common.exception.app_exception import AppApiException
@@ -103,12 +105,14 @@ class Flow:
                 edge_list = [edge for edge in self.edges if edge.sourceAnchorId == source_anchor_id]
                 if len(edge_list) == 0:
                     raise AppApiException(500,
-                                          f'{node.properties.get("stepName")} 节点的{branch.get("type")}分支需要连接')
+                                          _('The branch {branch} of the {node} node needs to be connected').format(
+                                              node=node.properties.get("stepName"), branch=branch.get("type")))
 
         else:
             edge_list = [edge for edge in self.edges if edge.sourceNodeId == node.id]
             if len(edge_list) == 0 and not end_nodes.__contains__(node.type):
-                raise AppApiException(500, f'{node.properties.get("stepName")} 节点不能当做结束节点')
+                raise AppApiException(500, _("{node} Nodes cannot be considered as end nodes").format(
+                    node=node.properties.get("stepName")))
 
     def get_next_nodes(self, node: Node):
         edge_list = [edge for edge in self.edges if edge.sourceNodeId == node.id]
@@ -117,7 +121,7 @@ class Flow:
                            [])
         if len(node_list) == 0 and not end_nodes.__contains__(node.type):
             raise AppApiException(500,
-                                  f'不存在的下一个节点')
+                                  _("The next node that does not exist"))
         return node_list
 
     def is_valid_work_flow(self, up_node=None):
@@ -131,16 +135,17 @@ class Flow:
     def is_valid_start_node(self):
         start_node_list = [node for node in self.nodes if node.id == 'start-node']
         if len(start_node_list) == 0:
-            raise AppApiException(500, '开始节点必填')
+            raise AppApiException(500, _('The starting node is required'))
         if len(start_node_list) > 1:
-            raise AppApiException(500, '开始节点只能有一个')
+            raise AppApiException(500, _('There can only be one starting node'))
 
     def is_valid_model_params(self):
         node_list = [node for node in self.nodes if (node.type == 'ai-chat-node' or node.type == 'question-node')]
         for node in node_list:
             model = QuerySet(Model).filter(id=node.properties.get('node_data', {}).get('model_id')).first()
             if model is None:
-                raise ValidationError(ErrorDetail(f'节点{node.properties.get("stepName")} 模型不存在'))
+                raise ValidationError(ErrorDetail(
+                    _('The node {node} model does not exist').format(node=node.properties.get("stepName"))))
             credential = get_model_credential(model.provider, model.model_type, model.model_name)
             model_params_setting = node.properties.get('node_data', {}).get('model_params_setting')
             model_params_setting_form = credential.get_model_params_setting_form(
@@ -149,22 +154,25 @@ class Flow:
                 model_params_setting = model_params_setting_form.get_default_form_data()
                 node.properties.get('node_data', {})['model_params_setting'] = model_params_setting
             if node.properties.get('status', 200) != 200:
-                raise ValidationError(ErrorDetail(f'节点{node.properties.get("stepName")} 不可用'))
+                raise ValidationError(
+                    ErrorDetail(_("Node {node} is unavailable").format(node.properties.get("stepName"))))
         node_list = [node for node in self.nodes if (node.type == 'function-lib-node')]
         for node in node_list:
             function_lib_id = node.properties.get('node_data', {}).get('function_lib_id')
             if function_lib_id is None:
-                raise ValidationError(ErrorDetail(f'节点{node.properties.get("stepName")} 函数库id不能为空'))
+                raise ValidationError(ErrorDetail(
+                    _('The library ID of node {node} cannot be empty').format(node=node.properties.get("stepName"))))
             f_lib = QuerySet(FunctionLib).filter(id=function_lib_id).first()
             if f_lib is None:
-                raise ValidationError(ErrorDetail(f'节点{node.properties.get("stepName")} 函数库不可用'))
+                raise ValidationError(ErrorDetail(_("The function library for node {node} is not available").format(
+                    node=node.properties.get("stepName"))))
 
     def is_valid_base_node(self):
         base_node_list = [node for node in self.nodes if node.id == 'base-node']
         if len(base_node_list) == 0:
-            raise AppApiException(500, '基本信息节点必填')
+            raise AppApiException(500, _('Basic information node is required'))
         if len(base_node_list) > 1:
-            raise AppApiException(500, '基本信息节点只能有一个')
+            raise AppApiException(500, _('There can only be one basic information node'))
 
 
 class NodeResultFuture:
@@ -303,20 +311,22 @@ class WorkflowManage:
             node = self.get_node_cls_by_id(node_id, node_details.get('up_node_id_list'))
             node.valid_args(node.node_params, node.workflow_params)
             node.save_context(node_details, self)
+            node.node_chunk.end()
             self.node_context.append(node)
 
     def run(self):
         close_old_connections()
+        language = get_language()
         if self.params.get('stream'):
-            return self.run_stream(self.start_node, None)
-        return self.run_block()
+            return self.run_stream(self.start_node, None, language)
+        return self.run_block(language)
 
-    def run_block(self):
+    def run_block(self, language='zh'):
         """
         非流式响应
         @return: 结果
         """
-        self.run_chain_async(None, None)
+        self.run_chain_async(None, None, language)
         while self.is_run():
             pass
         details = self.get_runtime_details()
@@ -325,21 +335,25 @@ class WorkflowManage:
         answer_tokens = sum([row.get('answer_tokens') for row in details.values() if
                              'answer_tokens' in row and row.get('answer_tokens') is not None])
         answer_text_list = self.get_answer_text_list()
-        answer_text = '\n\n'.join(answer['content'] for answer in answer_text_list)
+        answer_text = '\n\n'.join(
+            '\n\n'.join([a.get('content') for a in answer]) for answer in
+            answer_text_list)
+        answer_list = reduce(lambda pre, _n: [*pre, *_n], answer_text_list, [])
         self.work_flow_post_handler.handler(self.params['chat_id'], self.params['chat_record_id'],
                                             answer_text,
                                             self)
         return self.base_to_response.to_block_response(self.params['chat_id'],
                                                        self.params['chat_record_id'], answer_text, True
                                                        , message_tokens, answer_tokens,
-                                                       _status=status.HTTP_200_OK if self.status == 200 else status.HTTP_500_INTERNAL_SERVER_ERROR)
+                                                       _status=status.HTTP_200_OK if self.status == 200 else status.HTTP_500_INTERNAL_SERVER_ERROR,
+                                                       other_params={'answer_list': answer_list})
 
-    def run_stream(self, current_node, node_result_future):
+    def run_stream(self, current_node, node_result_future, language='zh'):
         """
         流式响应
         @return:
         """
-        self.run_chain_async(current_node, node_result_future)
+        self.run_chain_async(current_node, node_result_future, language)
         return tools.to_stream_response_simple(self.await_result())
 
     def is_run(self, timeout=0.5):
@@ -371,6 +385,8 @@ class WorkflowManage:
                     break
                 yield chunk
         finally:
+            while self.is_run():
+                pass
             details = self.get_runtime_details()
             message_tokens = sum([row.get('message_tokens') for row in details.values() if
                                   'message_tokens' in row and row.get('message_tokens') is not None])
@@ -385,11 +401,12 @@ class WorkflowManage:
                                                                  [],
                                                                  '', True, message_tokens, answer_tokens, {})
 
-    def run_chain_async(self, current_node, node_result_future):
-        future = executor.submit(self.run_chain_manage, current_node, node_result_future)
+    def run_chain_async(self, current_node, node_result_future, language='zh'):
+        future = executor.submit(self.run_chain_manage, current_node, node_result_future, language)
         self.future_list.append(future)
 
-    def run_chain_manage(self, current_node, node_result_future):
+    def run_chain_manage(self, current_node, node_result_future, language='zh'):
+        translation.activate(language)
         if current_node is None:
             start_node = self.get_start_node()
             current_node = get_node(start_node.type)(start_node, self.params, self)
@@ -401,11 +418,12 @@ class WorkflowManage:
             return
         node_list = self.get_next_node_list(current_node, result)
         if len(node_list) == 1:
-            self.run_chain_manage(node_list[0], None)
+            self.run_chain_manage(node_list[0], None, language)
         elif len(node_list) > 1:
             sorted_node_run_list = sorted(node_list, key=lambda n: n.node.y)
             # 获取到可执行的子节点
-            result_list = [{'node': node, 'future': executor.submit(self.run_chain_manage, node, None)} for node in
+            result_list = [{'node': node, 'future': executor.submit(self.run_chain_manage, node, None, language)} for
+                           node in
                            sorted_node_run_list]
             for r in result_list:
                 self.future_list.append(r.get('future'))
@@ -448,6 +466,7 @@ class WorkflowManage:
         self.node_context.append(current_node)
 
     def hand_event_node_result(self, current_node, node_result_future):
+        runtime_node_id = current_node.runtime_node_id
         real_node_id = current_node.runtime_node_id
         child_node = {}
         view_type = current_node.view_type
@@ -457,6 +476,7 @@ class WorkflowManage:
             if result is not None:
                 if self.is_result(current_node, current_result):
                     for r in result:
+                        reasoning_content = ''
                         content = r
                         child_node = {}
                         node_is_end = False
@@ -466,20 +486,24 @@ class WorkflowManage:
                             child_node = {'runtime_node_id': r.get('runtime_node_id'),
                                           'chat_record_id': r.get('chat_record_id')
                                 , 'child_node': r.get('child_node')}
-                            real_node_id = r.get('real_node_id')
-                            node_is_end = r.get('node_is_end')
+                            if r.__contains__('real_node_id'):
+                                real_node_id = r.get('real_node_id')
+                            if r.__contains__('node_is_end'):
+                                node_is_end = r.get('node_is_end')
                             view_type = r.get('view_type')
+                            reasoning_content = r.get('reasoning_content')
                         chunk = self.base_to_response.to_stream_chunk_response(self.params['chat_id'],
                                                                                self.params['chat_record_id'],
                                                                                current_node.id,
                                                                                current_node.up_node_id_list,
                                                                                content, False, 0, 0,
                                                                                {'node_type': current_node.type,
-                                                                                'runtime_node_id': current_node.runtime_node_id,
+                                                                                'runtime_node_id': runtime_node_id,
                                                                                 'view_type': view_type,
                                                                                 'child_node': child_node,
                                                                                 'node_is_end': node_is_end,
-                                                                                'real_node_id': real_node_id})
+                                                                                'real_node_id': real_node_id,
+                                                                                'reasoning_content': reasoning_content})
                         current_node.node_chunk.add_chunk(chunk)
                     chunk = (self.base_to_response
                              .to_stream_chunk_response(self.params['chat_id'],
@@ -487,11 +511,12 @@ class WorkflowManage:
                                                        current_node.id,
                                                        current_node.up_node_id_list,
                                                        '', False, 0, 0, {'node_is_end': True,
-                                                                         'runtime_node_id': current_node.runtime_node_id,
+                                                                         'runtime_node_id': runtime_node_id,
                                                                          'node_type': current_node.type,
                                                                          'view_type': view_type,
                                                                          'child_node': child_node,
-                                                                         'real_node_id': real_node_id}))
+                                                                         'real_node_id': real_node_id,
+                                                                         'reasoning_content': ''}))
                     current_node.node_chunk.add_chunk(chunk)
                 else:
                     list(result)
@@ -503,7 +528,7 @@ class WorkflowManage:
                                                                    self.params['chat_record_id'],
                                                                    current_node.id,
                                                                    current_node.up_node_id_list,
-                                                                   str(e), False, 0, 0,
+                                                                   'Exception:' + str(e), False, 0, 0,
                                                                    {'node_is_end': True,
                                                                     'runtime_node_id': current_node.runtime_node_id,
                                                                     'node_type': current_node.type,
@@ -590,20 +615,19 @@ class WorkflowManage:
             if len(current_answer.content) > 0:
                 if up_node is None or current_answer.view_type == 'single_view' or (
                         current_answer.view_type == 'many_view' and up_node.view_type == 'single_view'):
-                    result.append(current_answer)
+                    result.append([current_answer])
                 else:
                     if len(result) > 0:
                         exec_index = len(result) - 1
-                        content = result[exec_index].content
-                        result[exec_index].content += current_answer.content if len(
-                            content) == 0 else ('\n\n' + current_answer.content)
+                        if isinstance(result[exec_index], list):
+                            result[exec_index].append(current_answer)
                     else:
-                        result.insert(0, current_answer)
+                        result.insert(0, [current_answer])
                 up_node = current_answer
         if len(result) == 0:
             # 如果没有响应 就响应一个空数据
-            return [Answer('', '', '', '', {}).to_dict()]
-        return [r.to_dict() for r in result]
+            return [[]]
+        return [[item.to_dict() for item in r] for r in result]
 
     def get_next_node(self):
         """
@@ -730,8 +754,9 @@ class WorkflowManage:
                 if global_fields is not None:
                     for field in global_fields:
                         globeLabel = f"全局变量.{field.get('value')}"
+                        globeLabelNew = f"global.{field.get('value')}"
                         globeValue = f"context.get('global').get('{field.get('value', '')}','')"
-                        prompt = prompt.replace(globeLabel, globeValue)
+                        prompt = prompt.replace(globeLabel, globeValue).replace(globeLabelNew, globeValue)
         return prompt
 
     def generate_prompt(self, prompt: str):

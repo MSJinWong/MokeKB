@@ -33,6 +33,7 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import UserApi from '@/api/user'
+import { t } from '@/locales'
 defineOptions({ name: 'TagsInput' })
 const props = defineProps({
   tags: {
@@ -42,7 +43,7 @@ const props = defineProps({
   },
   placeholder: {
     type: String,
-    default: '请输入'
+    default: t('common.inputPlaceholder')
   },
   limit: {
     /* 最多生成标签数 */
@@ -65,7 +66,7 @@ const querySearchAsync = (queryString: string, cb: (arg: any) => void) => {
     UserApi.getUserList(queryString).then((res) => {
       if (res.data.length === 0) {
         noData.value = true
-        matchResults = [{ default: '无匹配数据' }]
+        matchResults = [{ default: t('common.noData') }]
       } else {
         noData.value = false
         matchResults = res.data
