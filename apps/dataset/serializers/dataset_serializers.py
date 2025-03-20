@@ -409,9 +409,9 @@ class DataSetSerializers(serializers.ModelSerializer):
                                 'embedding_mode_id': instance.get('embedding_mode_id')}
             return self.save(dataset_instance, with_valid=True)
 
-        @valid_license(model=DataSet, count=50,
+        @valid_license(model=DataSet, count=5000,
                        message=_(
-                           'The community version supports up to 50 knowledge bases. If you need more knowledge bases, please contact us (https://fit2cloud.com/).'))
+                           'current version support 5000 dataset'))
         @post(post_function=post_embedding_dataset)
         @transaction.atomic
         def save(self, instance: Dict, with_valid=True):

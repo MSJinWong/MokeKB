@@ -510,9 +510,9 @@ class ApplicationSerializer(serializers.Serializer):
     class Create(serializers.Serializer):
         user_id = serializers.UUIDField(required=True, error_messages=ErrMessage.uuid(_("User ID")))
 
-        @valid_license(model=Application, count=5,
+        @valid_license(model=Application, count=5000,
                        message=_(
-                           'The community version supports up to 5 applications. If you need more applications, please contact us (https://fit2cloud.com/).'))
+                           'current version support 5000 applications'))
         @transaction.atomic
         def insert(self, application: Dict):
             application_type = application.get('type')
@@ -717,9 +717,9 @@ class ApplicationSerializer(serializers.Serializer):
         file = UploadedFileField(required=True, error_messages=ErrMessage.image(_("file")))
         user_id = serializers.UUIDField(required=True, error_messages=ErrMessage.uuid(_("User ID")))
 
-        @valid_license(model=Application, count=5,
+        @valid_license(model=Application, count=5000,
                        message=_(
-                           'The community version supports up to 5 applications. If you need more applications, please contact us (https://fit2cloud.com/).'))
+                           'current version support 5000 applications'))
         @transaction.atomic
         def import_(self, with_valid=True):
             if with_valid:

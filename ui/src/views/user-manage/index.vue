@@ -158,21 +158,8 @@ function editUser(row: any) {
 }
 
 function createUser() {
-  common.asyncGetValid(ValidType.User, ValidCount.User, loading).then(async (res: any) => {
-    if (res?.data) {
-      title.value = t('views.user.createUser')
-      UserDialogRef.value.open()
-    } else if (res?.code === 400) {
-      MsgConfirm(t('common.tip'), t('views.user.tip.professionalMessage'), {
-        cancelButtonText: t('common.confirm'),
-        confirmButtonText: t('common.professional')
-      })
-        .then(() => {
-          window.open('https://maxkb.cn/pricing.html', '_blank')
-        })
-        .catch(() => {})
-    }
-  })
+  title.value = t('views.user.createUser')
+  UserDialogRef.value.open()
 }
 
 function deleteUserManage(row: any) {
