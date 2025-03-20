@@ -6,7 +6,7 @@
           <el-input
             ref="quickInputRef"
             v-model="inputValue"
-            :placeholder="`${$t('common.inputPlaceholder')} ${quickCreateName}`"
+            :placeholder="`请输入${quickCreateName}`"
             class="w-500 mr-12"
             autofocus
             :maxlength="quickCreateMaxlength || '-'"
@@ -15,8 +15,8 @@
             clearable
           />
 
-          <el-button type="primary" @click="submitHandle" :disabled="loading">{{$t('common.create')}}</el-button>
-          <el-button @click="showInput = false" :disabled="loading">{{$t('common.cancel')}}</el-button>
+          <el-button type="primary" @click="submitHandle" :disabled="loading">创建</el-button>
+          <el-button @click="showInput = false" :disabled="loading">取消</el-button>
         </div>
         <div v-else @click="quickCreateHandle" class="w-full">
           <el-button type="primary" link class="quich-button">
@@ -45,7 +45,6 @@
 <script setup lang="ts">
 import { ref, nextTick, watch, computed, onMounted } from 'vue'
 import { MsgError } from '@/utils/message'
-import { t } from '@/locales'
 defineOptions({ name: 'AppTable' })
 
 import useStore from '@/stores'
@@ -62,11 +61,11 @@ const props = defineProps({
   },
   quickCreateName: {
     type: String,
-    default: t('components.quickCreateName')
+    default: '文档名称'
   },
   quickCreatePlaceholder: {
     type: String,
-    default: t('components.quickCreatePlaceholder')
+    default: '快速创建空白文档'
   },
   quickCreateMaxlength: {
     type: Number,
@@ -103,7 +102,7 @@ function submitHandle() {
       loading.value = false
     }, 200)
   } else {
-    MsgError(`${props.quickCreateName} ${t('dynamicsForm.tip.requiredMessage')}`)
+    MsgError(`${props.quickCreateName}不能为空！`)
   }
 }
 

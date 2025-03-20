@@ -1,5 +1,5 @@
 <template>
-  <LayoutContainer :header="$t('views.document.uploadDocument')" class="create-dataset">
+  <LayoutContainer header="上传文档" class="create-dataset">
     <template #backButton>
       <back-button @click="back"></back-button>
     </template>
@@ -22,23 +22,10 @@
       </div>
     </div>
     <div class="create-dataset__footer text-right border-t" v-if="active !== 2">
-      <el-button @click="router.go(-1)" :disabled="SetRulesRef?.loading || loading">{{
-        $t('common.cancel')
-      }}</el-button>
-      <el-button @click="prev" v-if="active === 1" :disabled="SetRulesRef?.loading || loading">{{
-        $t('views.document.buttons.prev')
-      }}</el-button>
-      <el-button
-        @click="next"
-        type="primary"
-        v-if="active === 0"
-        :disabled="SetRulesRef?.loading || loading"
-      >
-        {{
-          documentsType === 'txt'
-            ? $t('views.document.buttons.next')
-            : $t('views.document.buttons.import')
-        }}
+      <el-button @click="router.go(-1)" :disabled="SetRulesRef?.loading || loading">取消</el-button>
+      <el-button @click="prev" v-if="active === 1" :disabled="SetRulesRef?.loading || loading">上一步</el-button>
+      <el-button @click="next" type="primary" v-if="active === 0" :disabled="SetRulesRef?.loading || loading">
+        {{ documentsType === 'txt' ? '下一步' : '开始导入' }}
       </el-button>
       <el-button
         @click="submit"
@@ -46,7 +33,7 @@
         v-if="active === 1"
         :disabled="SetRulesRef?.loading || loading"
       >
-        {{ $t('views.document.buttons.import') }}
+        开始导入
       </el-button>
     </div>
   </LayoutContainer>
@@ -59,7 +46,7 @@ import ResultSuccess from './component/ResultSuccess.vue'
 import UploadComponent from './component/UploadComponent.vue'
 import documentApi from '@/api/document'
 import { MsgConfirm, MsgSuccess } from '@/utils/message'
-import { t } from '@/locales'
+
 import useStore from '@/stores'
 const { dataset, document } = useStore()
 const documentsFiles = computed(() => dataset.documentsFiles)
@@ -91,7 +78,7 @@ async function next() {
       if (id) {
         // QA文档上传
         documentApi.postQADocument(id as string, fd, loading).then((res) => {
-          MsgSuccess(t('common.submitSuccess'))
+          MsgSuccess('提交成功')
           clearStore()
           router.push({ path: `/dataset/${id}/document` })
         })
@@ -106,7 +93,7 @@ async function next() {
       if (id) {
         // table文档上传
         documentApi.postTableDocument(id as string, fd, loading).then((res) => {
-          MsgSuccess(t('common.submitSuccess'))
+          MsgSuccess('提交成功')
           clearStore()
           router.push({ path: `/dataset/${id}/document` })
         })
@@ -146,7 +133,7 @@ function submit() {
     document
       .asyncPostDocument(id as string, documents)
       .then(() => {
-        MsgSuccess(t('common.submitSuccess'))
+        MsgSuccess('提交成功')
         clearStore()
         router.push({ path: `/dataset/${id}/document` })
       })
@@ -157,8 +144,8 @@ function submit() {
 }
 function back() {
   if (documentsFiles.value?.length > 0) {
-    MsgConfirm(t('common.tip'), t('views.document.tip.saveMessage'), {
-      confirmButtonText: t('common.confirm'),
+    MsgConfirm(`提示`, `当前的更改尚未保存，确认退出吗?`, {
+      confirmButtonText: '确认',
       type: 'warning'
     })
       .then(() => {

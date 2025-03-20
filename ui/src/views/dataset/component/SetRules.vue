@@ -2,24 +2,22 @@
   <div class="set-rules">
     <el-row>
       <el-col :span="10" class="p-24">
-        <h4 class="title-decoration-1 mb-16">{{ $t('views.document.setRules.title.setting') }}</h4>
+        <h4 class="title-decoration-1 mb-16">设置分段规则</h4>
         <div class="set-rules__right">
           <el-scrollbar>
             <div class="left-height" @click.stop>
               <el-radio-group v-model="radio" class="set-rules__radio">
                 <el-card shadow="never" class="mb-16" :class="radio === '1' ? 'active' : ''">
                   <el-radio value="1" size="large">
-                    <p class="mb-4">{{ $t('views.document.setRules.intelligent.label') }}</p>
-                    <el-text type="info">{{
-                      $t('views.document.setRules.intelligent.text')
-                    }}</el-text>
+                    <p class="mb-4">智能分段（推荐)</p>
+                    <el-text type="info">不了解如何设置分段规则推荐使用智能分段</el-text>
                   </el-radio>
                 </el-card>
                 <el-card shadow="never" class="mb-16" :class="radio === '2' ? 'active' : ''">
                   <el-radio value="2" size="large">
-                    <p class="mb-4">{{ $t('views.document.setRules.advanced.label') }}</p>
-                    <el-text type="info">
-                      {{ $t('views.document.setRules.advanced.text') }}
+                    <p class="mb-4">高级分段</p>
+                    <el-text type="info"
+                      >用户可根据文档规范自行设置分段标识符、分段长度以及清洗规则
                     </el-text>
                   </el-radio>
 
@@ -32,12 +30,10 @@
                     <div class="set-rules__form">
                       <div class="form-item mb-16">
                         <div class="title flex align-center mb-8">
-                          <span style="margin-right: 4px">{{
-                            $t('views.document.setRules.patterns.label')
-                          }}</span>
+                          <span style="margin-right: 4px">分段标识</span>
                           <el-tooltip
                             effect="dark"
-                            :content="$t('views.document.setRules.patterns.tooltip')"
+                            content="按照所选符号先后顺序做递归分割，分割结果超出分段长度将截取至分段长度。"
                             placement="right"
                           >
                             <AppIcon iconName="app-warning" class="app-warning-icon"></AppIcon>
@@ -50,7 +46,7 @@
                             allow-create
                             default-first-option
                             filterable
-                            :placeholder="$t('views.document.setRules.patterns.placeholder')"
+                            placeholder="请选择"
                           >
                             <el-option
                               v-for="(item, index) in splitPatternList"
@@ -63,9 +59,7 @@
                         </div>
                       </div>
                       <div class="form-item mb-16">
-                        <div class="title mb-8">
-                          {{ $t('views.document.setRules.limit.label') }}
-                        </div>
+                        <div class="title mb-8">分段长度</div>
                         <el-slider
                           v-model="form.limit"
                           show-input
@@ -75,14 +69,10 @@
                         />
                       </div>
                       <div class="form-item mb-16">
-                        <div class="title mb-8">
-                          {{ $t('views.document.setRules.with_filter.label') }}
-                        </div>
+                        <div class="title mb-8">自动清洗</div>
                         <el-switch size="small" v-model="form.with_filter" />
                         <div style="margin-top: 4px">
-                          <el-text type="info">
-                            {{ $t('views.document.setRules.with_filter.text') }}</el-text
-                          >
+                          <el-text type="info">去掉重复多余符号空格、空行、制表符</el-text>
                         </div>
                       </div>
                     </div>
@@ -92,25 +82,19 @@
             </div>
           </el-scrollbar>
           <div>
-            <el-checkbox
-              v-model="checkedConnect"
-              @change="changeHandle"
-              style="white-space: normal"
-            >
-              {{ $t('views.document.setRules.checkedConnect.label') }}
+            <el-checkbox v-model="checkedConnect" @change="changeHandle" style="white-space: normal;">
+              导入时添加分段标题为关联问题（适用于标题为问题的问答对）
             </el-checkbox>
           </div>
           <div class="text-right mt-8">
-            <el-button @click="splitDocument">
-              {{ $t('views.document.buttons.preview') }}</el-button
-            >
+            <el-button @click="splitDocument">生成预览</el-button>
           </div>
         </div>
       </el-col>
 
       <el-col :span="14" class="p-24 border-l">
         <div v-loading="loading">
-          <h4 class="title-decoration-1 mb-8">{{ $t('views.document.setRules.title.preview') }}</h4>
+          <h4 class="title-decoration-1 mb-8">分段预览</h4>
 
           <ParagraphPreview v-model:data="paragraphList" :isConnect="checkedConnect" />
         </div>
@@ -121,7 +105,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, reactive, watch } from 'vue'
 import ParagraphPreview from '@/views/dataset/component/ParagraphPreview.vue'
-import { cutFilename } from '@/utils/utils'
 import documentApi from '@/api/document'
 import useStore from '@/stores'
 import type { KeyValue } from '@/api/type/common'
@@ -150,19 +133,19 @@ const form = reactive<{
 
 function changeHandle(val: boolean) {
   if (val && firstChecked.value) {
-    paragraphList.value = paragraphList.value.map((item: any) => ({
-      ...item,
-      content: item.content.map((v: any) => ({
-        ...v,
-        problem_list: v.title.trim()
+    const list = paragraphList.value
+    list.map((item: any) => {
+      item.content.map((v: any) => {
+        v['problem_list'] = v.title.trim()
           ? [
               {
                 content: v.title.trim()
               }
             ]
           : []
-      }))
-    }))
+      })
+    })
+    paragraphList.value = list
     firstChecked.value = false
   }
 }
@@ -187,12 +170,8 @@ function splitDocument() {
     .postSplitDocument(fd)
     .then((res: any) => {
       const list = res.data
-
-      list.map((item: any) => {
-        if (item.name.length > 128) {
-          item.name = cutFilename(item.name, 128)
-        }
-        if (checkedConnect.value) {
+      if (checkedConnect.value) {
+        list.map((item: any) => {
           item.content.map((v: any) => {
             v['problem_list'] = v.title.trim()
               ? [
@@ -202,9 +181,8 @@ function splitDocument() {
                 ]
               : []
           })
-        }
-      })
-
+        })
+      }
       paragraphList.value = list
       loading.value = false
     })

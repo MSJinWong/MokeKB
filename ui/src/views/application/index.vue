@@ -1,7 +1,7 @@
 <template>
   <div class="application-list-container p-24" style="padding-top: 16px">
     <div class="flex-between mb-16">
-      <h4>{{ $t('views.application.title') }}</h4>
+      <h4>{{ $t('views.application.applicationList.title') }}</h4>
       <div class="flex-between">
         <el-select
           v-model="selectUserId"
@@ -19,7 +19,7 @@
         <el-input
           v-model="searchValue"
           @change="searchHandle"
-          :placeholder="$t('views.application.searchBar.placeholder')"
+          :placeholder="$t('views.application.applicationList.searchBar.placeholder')"
           prefix-icon="Search"
           class="w-240"
           style="min-width: 240px"
@@ -41,7 +41,7 @@
             <el-card shadow="hover" class="application-card-add" style="--el-card-padding: 8px">
               <div class="card-add-button flex align-center cursor p-8" @click="openCreateDialog">
                 <AppIcon iconName="app-add-application" class="mr-8"></AppIcon>
-                {{ $t('views.application.createApplication') }}
+                创建应用
               </div>
               <el-divider style="margin: 8px 0" />
               <el-upload
@@ -56,8 +56,7 @@
                 class="card-add-button"
               >
                 <div class="flex align-center cursor p-8">
-                  <AppIcon iconName="app-import" class="mr-8"></AppIcon>
-                  {{ $t('views.application.importApplication') }}
+                  <AppIcon iconName="app-import" class="mr-8"></AppIcon>导入应用
                 </div>
               </el-upload>
             </el-card>
@@ -100,24 +99,22 @@
               <template #subTitle>
                 <el-text class="color-secondary" size="small">
                   <auto-tooltip :content="item.username">
-                    {{ $t('common.creator') }}: {{ item.username }}
+                    创建者: {{ item.username }}
                   </auto-tooltip>
                 </el-text>
               </template>
               <div class="status-tag">
-                <el-tag type="warning" v-if="isWorkFlow(item.type)" style="height: 22px">
-                  {{ $t('views.application.workflow') }}
-                </el-tag>
-                <el-tag class="blue-tag" v-else style="height: 22px">
-                  {{ $t('views.application.simple') }}
-                </el-tag>
+                <el-tag type="warning" v-if="isWorkFlow(item.type)" style="height: 22px"
+                  >高级编排</el-tag
+                >
+                <el-tag class="blue-tag" v-else style="height: 22px">简单配置</el-tag>
               </div>
 
               <template #footer>
                 <div class="footer-content">
                   <el-tooltip
                     effect="dark"
-                    :content="$t('views.application.setting.demo')"
+                    :content="$t('views.application.applicationList.card.demo')"
                     placement="top"
                   >
                     <el-button text @click.stop @click="getAccessToken(item.id)">
@@ -125,7 +122,11 @@
                     </el-button>
                   </el-tooltip>
                   <el-divider direction="vertical" />
-                  <el-tooltip effect="dark" :content="$t('common.setting')" placement="top">
+                  <el-tooltip
+                    effect="dark"
+                    :content="$t('views.application.applicationList.card.setting')"
+                    placement="top"
+                  >
                     <el-button text @click.stop="settingApplication(item)">
                       <AppIcon iconName="Setting"></AppIcon>
                     </el-button>
@@ -143,15 +144,14 @@
                             @click="copyApplication(item)"
                           >
                             <AppIcon iconName="app-copy"></AppIcon>
-                            {{ $t('common.copy') }}
-                          </el-dropdown-item>
+                            复制</el-dropdown-item
+                          >
                           <el-dropdown-item @click.stop="exportApplication(item)">
                             <AppIcon iconName="app-export"></AppIcon>
-
-                            {{ $t('common.export') }}
+                            导出
                           </el-dropdown-item>
                           <el-dropdown-item icon="Delete" @click.stop="deleteApplication(item)">{{
-                            $t('common.delete')
+                            $t('views.application.applicationList.card.delete.tooltip')
                           }}</el-dropdown-item>
                         </el-dropdown-menu>
                       </template>
@@ -180,7 +180,6 @@ import { isWorkFlow } from '@/utils/application'
 import { ValidType, ValidCount } from '@/enums/common'
 import { t } from '@/locales'
 import useStore from '@/stores'
-
 const elUploadRef = ref<any>()
 const { application, user, common } = useStore()
 const router = useRouter()
@@ -196,7 +195,6 @@ const paginationConfig = reactive({
   page_size: 30,
   total: 0
 })
-
 interface UserOption {
   label: string
   value: string
@@ -212,16 +210,13 @@ const apiInputParams = ref([])
 
 function copyApplication(row: any) {
   application.asyncGetApplicationDetail(row.id, loading).then((res: any) => {
-    if (res?.data) {
-      CopyApplicationDialogRef.value.open({ ...res.data, model_id: res.data.model })
-    }
+    CopyApplicationDialogRef.value.open({ ...res.data, model_id: res.data.model })
   })
 }
 
 const is_show_copy_button = (row: any) => {
   return user.userInfo ? user.userInfo.id == row.user_id : false
 }
-
 function settingApplication(row: any) {
   if (isWorkFlow(row.type)) {
     router.push({ path: `/application/${row.id}/workflow` })
@@ -229,12 +224,11 @@ function settingApplication(row: any) {
     router.push({ path: `/application/${row.id}/${row.type}/setting` })
   }
 }
-
 const exportApplication = (application: any) => {
   applicationApi.exportApplication(application.id, application.name, loading).catch((e) => {
     if (e.response.status !== 403) {
       e.response.data.text().then((res: string) => {
-        MsgError(`${t('views.application.tip.ExportError')}:${JSON.parse(res).message}`)
+        MsgError(`导出失败:${JSON.parse(res).message}`)
       })
     }
   })
@@ -243,25 +237,10 @@ const importApplication = (file: any) => {
   const formData = new FormData()
   formData.append('file', file.raw, file.name)
   elUploadRef.value.clearFiles()
-  applicationApi
-    .importApplication(formData, loading)
-    .then(async (res: any) => {
-      if (res?.data) {
-        searchHandle()
-      }
-    })
-    .catch((e) => {
-      if (e.code === 400) {
-        MsgConfirm(t('common.tip'), t('views.application.tip.professionalMessage'), {
-          cancelButtonText: t('common.confirm'),
-          confirmButtonText: t('common.professional')
-        }).then(() => {
-          window.open('https://maxkb.cn/pricing.html', '_blank')
-        })
-      }
-    })
+  applicationApi.importApplication(formData, loading).then((ok) => {
+    searchHandle()
+  })
 }
-
 function openCreateDialog() {
   CreateApplicationDialogRef.value.open()
 }
@@ -321,11 +300,11 @@ function getAccessToken(id: string) {
 function deleteApplication(row: any) {
   MsgConfirm(
     // @ts-ignore
-    `${t('views.application.delete.confirmTitle')}${row.name} ?`,
-    t('views.application.delete.confirmMessage'),
+    `${t('views.application.applicationList.card.delete.confirmTitle')}${row.name} ?`,
+    t('views.application.applicationList.card.delete.confirmMessage'),
     {
-      confirmButtonText: t('common.confirm'),
-      cancelButtonText: t('common.cancel'),
+      confirmButtonText: t('views.application.applicationList.card.delete.confirmButton'),
+      cancelButtonText: t('views.application.applicationList.card.delete.cancelButton'),
       confirmButtonClass: 'danger'
     }
   )
@@ -333,7 +312,7 @@ function deleteApplication(row: any) {
       applicationApi.delApplication(row.id, loading).then(() => {
         const index = applicationList.value.findIndex((v) => v.id === row.id)
         applicationList.value.splice(index, 1)
-        MsgSuccess(t('common.deleteSuccess'))
+        MsgSuccess(t('views.application.applicationList.card.delete.successMessage'))
       })
     })
     .catch(() => {})
@@ -357,7 +336,6 @@ function getList() {
     paginationConfig.total = res.data.total
   })
 }
-
 function getUserList() {
   applicationApi.getUserList('APPLICATION', loading).then((res) => {
     if (res.data) {
@@ -391,18 +369,15 @@ onMounted(() => {
   background: var(--el-disabled-bg-color);
   border-radius: 8px;
   box-sizing: border-box;
-
   &:hover {
     border: 1px solid var(--el-card-bg-color);
     background-color: var(--el-card-bg-color);
   }
-
   .card-add-button {
     &:hover {
       border-radius: 4px;
       background: var(--app-text-color-light-1);
     }
-
     :deep(.el-upload) {
       display: block;
       width: 100%;
@@ -410,7 +385,6 @@ onMounted(() => {
     }
   }
 }
-
 .application-card {
   .status-tag {
     position: absolute;
@@ -418,12 +392,10 @@ onMounted(() => {
     top: 15px;
   }
 }
-
 .dropdown-custom-switch {
   padding: 5px 11px;
   font-size: 14px;
   font-weight: 400;
-
   span {
     margin-right: 26px;
   }

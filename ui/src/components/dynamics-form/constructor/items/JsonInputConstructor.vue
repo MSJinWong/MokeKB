@@ -1,16 +1,13 @@
 <template>
   <el-form-item
     class="defaultValueItem"
-    :label="$t('dynamicsForm.default.label')"
+    label="默认值"
     :required="formValue.required"
     prop="default_value"
     :rules="[default_value_rule]"
   >
     <div class="defaultValueCheckbox">
-      <el-checkbox
-        v-model="formValue.show_default_value"
-        :label="$t('dynamicsForm.default.show')"
-      />
+      <el-checkbox v-model="formValue.show_default_value" label="显示默认值" />
     </div>
     <JsonInput ref="jsonInputRef" v-model="formValue.default_value"> </JsonInput>
   </el-form-item>

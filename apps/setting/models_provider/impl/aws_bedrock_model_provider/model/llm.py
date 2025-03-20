@@ -1,10 +1,8 @@
+from typing import List, Dict
 import os
 import re
-from typing import Dict
-
 from botocore.config import Config
 from langchain_community.chat_models import BedrockChat
-
 from setting.models_provider.base_model_provider import MaxKBBaseModel
 
 

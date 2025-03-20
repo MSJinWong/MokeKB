@@ -30,7 +30,6 @@ from embedding.task.embedding import embedding_by_problem as embedding_by_proble
     delete_embedding_by_source, enable_embedding_by_paragraph, disable_embedding_by_paragraph, embedding_by_paragraph, \
     delete_embedding_by_paragraph, delete_embedding_by_paragraph_ids, update_embedding_document_id
 from dataset.task import generate_related_by_paragraph_id_list
-from django.utils.translation import gettext_lazy as _
 
 
 class ParagraphSerializer(serializers.ModelSerializer):
@@ -44,17 +43,17 @@ class ParagraphInstanceSerializer(ApiMixin, serializers.Serializer):
     """
     段落实例对象
     """
-    content = serializers.CharField(required=True, error_messages=ErrMessage.char(_('content')),
+    content = serializers.CharField(required=True, error_messages=ErrMessage.char("段落内容"),
                                     max_length=102400,
                                     min_length=1,
                                     allow_null=True, allow_blank=True)
 
-    title = serializers.CharField(required=False, max_length=256, error_messages=ErrMessage.char(_('section title')),
+    title = serializers.CharField(required=False, max_length=256, error_messages=ErrMessage.char("段落标题"),
                                   allow_null=True, allow_blank=True)
 
     problem_list = ProblemInstanceSerializer(required=False, many=True)
 
-    is_active = serializers.BooleanField(required=False, error_messages=ErrMessage.char(_('Is active')))
+    is_active = serializers.BooleanField(required=False, error_messages=ErrMessage.char("段落是否可用"))
 
     @staticmethod
     def get_request_body_api():
@@ -62,16 +61,16 @@ class ParagraphInstanceSerializer(ApiMixin, serializers.Serializer):
             type=openapi.TYPE_OBJECT,
             required=['content'],
             properties={
-                'content': openapi.Schema(type=openapi.TYPE_STRING, max_length=4096, title=_('section content'),
-                                          description=_('section content')),
+                'content': openapi.Schema(type=openapi.TYPE_STRING, max_length=4096, title="分段内容",
+                                          description="分段内容"),
 
-                'title': openapi.Schema(type=openapi.TYPE_STRING, max_length=256, title=_('section title'),
-                                        description=_('section title')),
+                'title': openapi.Schema(type=openapi.TYPE_STRING, max_length=256, title="分段标题",
+                                        description="分段标题"),
 
-                'is_active': openapi.Schema(type=openapi.TYPE_BOOLEAN, title=_('Is active'), description=_('Is active')),
+                'is_active': openapi.Schema(type=openapi.TYPE_BOOLEAN, title="是否可用", description="是否可用"),
 
-                'problem_list': openapi.Schema(type=openapi.TYPE_ARRAY, title=_('problem list'),
-                                               description=_('problem list'),
+                'problem_list': openapi.Schema(type=openapi.TYPE_ARRAY, title='问题列表',
+                                               description="问题列表",
                                                items=ProblemInstanceSerializer.get_request_body_api())
             }
         )
@@ -79,30 +78,30 @@ class ParagraphInstanceSerializer(ApiMixin, serializers.Serializer):
 
 class EditParagraphSerializers(serializers.Serializer):
     title = serializers.CharField(required=False, max_length=256, error_messages=ErrMessage.char(
-        _('section title')), allow_null=True, allow_blank=True)
+        "分段标题"), allow_null=True, allow_blank=True)
     content = serializers.CharField(required=False, max_length=102400, allow_null=True, allow_blank=True,
                                     error_messages=ErrMessage.char(
-                                        _('section title')))
+                                        "分段内容"))
     problem_list = ProblemInstanceSerializer(required=False, many=True)
 
 
 class ParagraphSerializers(ApiMixin, serializers.Serializer):
     title = serializers.CharField(required=False, max_length=256, error_messages=ErrMessage.char(
-        _('section title')), allow_null=True, allow_blank=True)
+        "分段标题"), allow_null=True, allow_blank=True)
     content = serializers.CharField(required=True, max_length=102400, error_messages=ErrMessage.char(
-        _('section title')))
+        "分段内容"))
 
     class Problem(ApiMixin, serializers.Serializer):
-        dataset_id = serializers.UUIDField(required=True, error_messages=ErrMessage.uuid(_('dataset id')))
+        dataset_id = serializers.UUIDField(required=True, error_messages=ErrMessage.uuid("知识库id"))
 
-        document_id = serializers.UUIDField(required=True, error_messages=ErrMessage.uuid(_('document id')))
+        document_id = serializers.UUIDField(required=True, error_messages=ErrMessage.uuid("文档id"))
 
-        paragraph_id = serializers.UUIDField(required=True, error_messages=ErrMessage.uuid(_('paragraph id')))
+        paragraph_id = serializers.UUIDField(required=True, error_messages=ErrMessage.uuid("段落id"))
 
         def is_valid(self, *, raise_exception=False):
             super().is_valid(raise_exception=True)
             if not QuerySet(Paragraph).filter(id=self.data.get('paragraph_id')).exists():
-                raise AppApiException(500, _('Paragraph id does not exist'))
+                raise AppApiException(500, "段落id不存在")
 
         def list(self, with_valid=False):
             """
@@ -131,7 +130,7 @@ class ParagraphSerializers(ApiMixin, serializers.Serializer):
                 problem.save()
             if QuerySet(ProblemParagraphMapping).filter(dataset_id=self.data.get('dataset_id'), problem_id=problem.id,
                                                         paragraph_id=self.data.get('paragraph_id')).exists():
-                raise AppApiException(500, _('Already associated, please do not associate again'))
+                raise AppApiException(500, "已经关联,请勿重复关联")
             problem_paragraph_mapping = ProblemParagraphMapping(id=uuid.uuid1(),
                                                                 problem_id=problem.id,
                                                                 document_id=self.data.get('document_id'),
@@ -159,17 +158,17 @@ class ParagraphSerializers(ApiMixin, serializers.Serializer):
                                       in_=openapi.IN_PATH,
                                       type=openapi.TYPE_STRING,
                                       required=True,
-                                      description=_('dataset id')),
+                                      description='知识库id'),
                     openapi.Parameter(name='document_id',
                                       in_=openapi.IN_PATH,
                                       type=openapi.TYPE_STRING,
                                       required=True,
-                                      description=_('document id')),
+                                      description='文档id'),
                     openapi.Parameter(name='paragraph_id',
                                       in_=openapi.IN_PATH,
                                       type=openapi.TYPE_STRING,
                                       required=True,
-                                      description=_('paragraph id'))]
+                                      description='段落id')]
 
         @staticmethod
         def get_request_body_api():
@@ -177,7 +176,7 @@ class ParagraphSerializers(ApiMixin, serializers.Serializer):
                                   required=["content"],
                                   properties={
                                       'content': openapi.Schema(
-                                          type=openapi.TYPE_STRING, title=_('content'),)
+                                          type=openapi.TYPE_STRING, title="内容")
                                   })
 
         @staticmethod
@@ -188,30 +187,30 @@ class ParagraphSerializers(ApiMixin, serializers.Serializer):
                 properties={
                     'id': openapi.Schema(type=openapi.TYPE_STRING, title="id",
                                          description="id", default="xx"),
-                    'content': openapi.Schema(type=openapi.TYPE_STRING, title=_('question content'),
-                                              description=_('question content'), default=_('question content')),
-                    'hit_num': openapi.Schema(type=openapi.TYPE_INTEGER, title=_('hit num'), description=_('hit num'),
+                    'content': openapi.Schema(type=openapi.TYPE_STRING, title="问题内容",
+                                              description="问题内容", default='问题内容'),
+                    'hit_num': openapi.Schema(type=openapi.TYPE_INTEGER, title="命中数量", description="命中数量",
                                               default=1),
-                    'dataset_id': openapi.Schema(type=openapi.TYPE_STRING, title=_('dataset id'),
-                                                 description=_('dataset id'), default='xxx'),
-                    'update_time': openapi.Schema(type=openapi.TYPE_STRING, title=_('update time'),
-                                                  description=_('update time'),
+                    'dataset_id': openapi.Schema(type=openapi.TYPE_STRING, title="知识库id",
+                                                 description="知识库id", default='xxx'),
+                    'update_time': openapi.Schema(type=openapi.TYPE_STRING, title="修改时间",
+                                                  description="修改时间",
                                                   default="1970-01-01 00:00:00"),
-                    'create_time': openapi.Schema(type=openapi.TYPE_STRING, title=_('create time'),
-                                                  description=_('create time'),
+                    'create_time': openapi.Schema(type=openapi.TYPE_STRING, title="创建时间",
+                                                  description="创建时间",
                                                   default="1970-01-01 00:00:00"
                                                   )
                 }
             )
 
     class Association(ApiMixin, serializers.Serializer):
-        dataset_id = serializers.UUIDField(required=True, error_messages=ErrMessage.uuid(_('dataset id')))
+        dataset_id = serializers.UUIDField(required=True, error_messages=ErrMessage.uuid("知识库id"))
 
-        problem_id = serializers.UUIDField(required=True, error_messages=ErrMessage.uuid(_('problem id')))
+        problem_id = serializers.UUIDField(required=True, error_messages=ErrMessage.uuid("问题id"))
 
-        document_id = serializers.UUIDField(required=True, error_messages=ErrMessage.uuid(_('document id')))
+        document_id = serializers.UUIDField(required=True, error_messages=ErrMessage.uuid("文档id"))
 
-        paragraph_id = serializers.UUIDField(required=True, error_messages=ErrMessage.uuid(_('paragraph id')))
+        paragraph_id = serializers.UUIDField(required=True, error_messages=ErrMessage.uuid("段落id"))
 
         def is_valid(self, *, raise_exception=True):
             super().is_valid(raise_exception=True)
@@ -219,9 +218,9 @@ class ParagraphSerializers(ApiMixin, serializers.Serializer):
             paragraph_id = self.data.get('paragraph_id')
             problem_id = self.data.get("problem_id")
             if not QuerySet(Paragraph).filter(dataset_id=dataset_id, id=paragraph_id).exists():
-                raise AppApiException(500, _('Paragraph does not exist'))
+                raise AppApiException(500, "段落不存在")
             if not QuerySet(Problem).filter(dataset_id=dataset_id, id=problem_id).exists():
-                raise AppApiException(500, _('Problem does not exist'))
+                raise AppApiException(500, "问题不存在")
 
         def association(self, with_valid=True, with_embedding=True):
             if with_valid:
@@ -263,27 +262,27 @@ class ParagraphSerializers(ApiMixin, serializers.Serializer):
                                       in_=openapi.IN_PATH,
                                       type=openapi.TYPE_STRING,
                                       required=True,
-                                      description=_('dataset id')),
+                                      description='知识库id'),
                     openapi.Parameter(name='document_id',
                                       in_=openapi.IN_PATH,
                                       type=openapi.TYPE_STRING,
                                       required=True,
-                                      description=_('document id'))
+                                      description='文档id')
                 , openapi.Parameter(name='paragraph_id',
                                     in_=openapi.IN_PATH,
                                     type=openapi.TYPE_STRING,
                                     required=True,
-                                    description=_('paragraph id')),
+                                    description='段落id'),
                     openapi.Parameter(name='problem_id',
                                       in_=openapi.IN_PATH,
                                       type=openapi.TYPE_STRING,
                                       required=True,
-                                      description=_('problem id'))
+                                      description='问题id')
                     ]
 
     class Batch(serializers.Serializer):
-        dataset_id = serializers.UUIDField(required=True, error_messages=ErrMessage.uuid(_('dataset id')))
-        document_id = serializers.UUIDField(required=True, error_messages=ErrMessage.uuid(_('document id')))
+        dataset_id = serializers.UUIDField(required=True, error_messages=ErrMessage.uuid("知识库id"))
+        document_id = serializers.UUIDField(required=True, error_messages=ErrMessage.uuid("文档id"))
 
         @transaction.atomic
         def batch_delete(self, instance: Dict, with_valid=True):
@@ -299,13 +298,13 @@ class ParagraphSerializers(ApiMixin, serializers.Serializer):
             return True
 
     class Migrate(ApiMixin, serializers.Serializer):
-        dataset_id = serializers.UUIDField(required=True, error_messages=ErrMessage.uuid(_('dataset id')))
-        document_id = serializers.UUIDField(required=True, error_messages=ErrMessage.uuid(_('document id')))
-        target_dataset_id = serializers.UUIDField(required=True, error_messages=ErrMessage.uuid(_('target dataset id')))
-        target_document_id = serializers.UUIDField(required=True, error_messages=ErrMessage.uuid(_('target document id')))
-        paragraph_id_list = serializers.ListField(required=True, error_messages=ErrMessage.char(_('paragraph id list')),
+        dataset_id = serializers.UUIDField(required=True, error_messages=ErrMessage.uuid("知识库id"))
+        document_id = serializers.UUIDField(required=True, error_messages=ErrMessage.uuid("文档id"))
+        target_dataset_id = serializers.UUIDField(required=True, error_messages=ErrMessage.uuid("目标知识库id"))
+        target_document_id = serializers.UUIDField(required=True, error_messages=ErrMessage.uuid("目标文档id"))
+        paragraph_id_list = serializers.ListField(required=True, error_messages=ErrMessage.char("段落列表"),
                                                   child=serializers.UUIDField(required=True,
-                                                                              error_messages=ErrMessage.uuid(_('paragraph id'))))
+                                                                              error_messages=ErrMessage.uuid("段落id")))
 
         def is_valid(self, *, raise_exception=False):
             super().is_valid(raise_exception=True)
@@ -314,14 +313,12 @@ class ParagraphSerializers(ApiMixin, serializers.Serializer):
             document_id = self.data.get('document_id')
             target_document_id = self.data.get('target_document_id')
             if document_id == target_document_id:
-                raise AppApiException(5000, _('The document to be migrated is consistent with the target document'))
+                raise AppApiException(5000, "需要迁移的文档和目标文档一致")
             if len([document for document in document_list if str(document.id) == self.data.get('document_id')]) < 1:
-                raise AppApiException(5000, _('The document id does not exist [{document_id}]').format(
-                    document_id=self.data.get('document_id')))
+                raise AppApiException(5000, f"文档id不存在【{self.data.get('document_id')}】")
             if len([document for document in document_list if
                     str(document.id) == self.data.get('target_document_id')]) < 1:
-                raise AppApiException(5000, _('The target document id does not exist [{document_id}]').format(
-                    document_id=self.data.get('target_document_id')))
+                raise AppApiException(5000, f"目标文档id不存在【{self.data.get('target_document_id')}】")
 
         @transaction.atomic
         def migrate(self, with_valid=True):
@@ -423,22 +420,22 @@ class ParagraphSerializers(ApiMixin, serializers.Serializer):
                                       in_=openapi.IN_PATH,
                                       type=openapi.TYPE_STRING,
                                       required=True,
-                                      description=_('document id')),
+                                      description='文档id'),
                     openapi.Parameter(name='document_id',
                                       in_=openapi.IN_PATH,
                                       type=openapi.TYPE_STRING,
                                       required=True,
-                                      description=_('document id')),
+                                      description='文档id'),
                     openapi.Parameter(name='target_dataset_id',
                                       in_=openapi.IN_PATH,
                                       type=openapi.TYPE_STRING,
                                       required=True,
-                                      description=_('target dataset id')),
+                                      description='目标知识库id'),
                     openapi.Parameter(name='target_document_id',
                                       in_=openapi.IN_PATH,
                                       type=openapi.TYPE_STRING,
                                       required=True,
-                                      description=_('target document id')),
+                                      description='目标知识库id')
                     ]
 
         @staticmethod
@@ -446,25 +443,25 @@ class ParagraphSerializers(ApiMixin, serializers.Serializer):
             return openapi.Schema(
                 type=openapi.TYPE_ARRAY,
                 items=openapi.Schema(type=openapi.TYPE_STRING),
-                title=_('paragraph id list'),
-                description=_('paragraph id list')
+                title='段落id列表',
+                description="段落id列表"
             )
 
     class Operate(ApiMixin, serializers.Serializer):
         # 段落id
         paragraph_id = serializers.UUIDField(required=True, error_messages=ErrMessage.char(
-            _('paragraph id')))
+            "段落id"))
         # 知识库id
         dataset_id = serializers.UUIDField(required=True, error_messages=ErrMessage.char(
-            _('dataset id')))
+            "知识库id"))
         # 文档id
         document_id = serializers.UUIDField(required=True, error_messages=ErrMessage.char(
-            _('document id')))
+            "文档id"))
 
         def is_valid(self, *, raise_exception=True):
             super().is_valid(raise_exception=True)
             if not QuerySet(Paragraph).filter(id=self.data.get('paragraph_id')).exists():
-                raise AppApiException(500, _('Paragraph id does not exist'))
+                raise AppApiException(500, "段落id不存在")
 
         @staticmethod
         def post_embedding(paragraph, instance, dataset_id):
@@ -500,7 +497,7 @@ class ParagraphSerializers(ApiMixin, serializers.Serializer):
                 # 校验前端 携带过来的id
                 for update_problem in update_problem_list:
                     if not set([str(row.id) for row in problem_list]).__contains__(update_problem.get('id')):
-                        raise AppApiException(500, _('Problem id does not exist'))
+                        raise AppApiException(500, update_problem.get('id') + '问题id不存在')
                 # 对比需要删除的问题
                 delete_problem_list = list(filter(
                     lambda row: not [str(update_row.get('id')) for update_row in update_problem_list].__contains__(
@@ -560,20 +557,20 @@ class ParagraphSerializers(ApiMixin, serializers.Serializer):
         @staticmethod
         def get_request_params_api():
             return [openapi.Parameter(type=openapi.TYPE_STRING, in_=openapi.IN_PATH, name='paragraph_id',
-                                      description=_('paragraph id'))]
+                                      description="段落id")]
 
     class Create(ApiMixin, serializers.Serializer):
         dataset_id = serializers.UUIDField(required=True, error_messages=ErrMessage.char(
-            _('dataset id')))
+            "知识库id"))
 
         document_id = serializers.UUIDField(required=True, error_messages=ErrMessage.char(
-            _('document id')))
+            "文档id"))
 
         def is_valid(self, *, raise_exception=False):
             super().is_valid(raise_exception=True)
             if not QuerySet(Document).filter(id=self.data.get('document_id'),
                                              dataset_id=self.data.get('dataset_id')).exists():
-                raise AppApiException(500, _('The document id is incorrect'))
+                raise AppApiException(500, "文档id不正确")
 
         def save(self, instance: Dict, with_valid=True, with_embedding=True):
             if with_valid:
@@ -635,22 +632,22 @@ class ParagraphSerializers(ApiMixin, serializers.Serializer):
                                       in_=openapi.IN_PATH,
                                       type=openapi.TYPE_STRING,
                                       required=True,
-                                      description=_('dataset id')),
+                                      description='知识库id'),
                     openapi.Parameter(name='document_id', in_=openapi.IN_PATH,
                                       type=openapi.TYPE_STRING,
                                       required=True,
-                                      description=_('document id'))
+                                      description="文档id")
                     ]
 
     class Query(ApiMixin, serializers.Serializer):
         dataset_id = serializers.UUIDField(required=True, error_messages=ErrMessage.char(
-            _('dataset id')))
+            "知识库id"))
 
         document_id = serializers.UUIDField(required=True, error_messages=ErrMessage.char(
-            _('document id')))
+            "文档id"))
 
         title = serializers.CharField(required=False, error_messages=ErrMessage.char(
-            _('section title')))
+            "段落标题"))
 
         content = serializers.CharField(required=False)
 
@@ -663,7 +660,6 @@ class ParagraphSerializers(ApiMixin, serializers.Serializer):
                     **{'title__icontains': self.data.get('title')})
             if 'content' in self.data:
                 query_set = query_set.filter(**{'content__icontains': self.data.get('content')})
-            query_set.order_by('-create_time', 'id')
             return query_set
 
         def list(self):
@@ -679,17 +675,17 @@ class ParagraphSerializers(ApiMixin, serializers.Serializer):
                                       in_=openapi.IN_PATH,
                                       type=openapi.TYPE_STRING,
                                       required=True,
-                                      description=_('document id')),
+                                      description='文档id'),
                     openapi.Parameter(name='title',
                                       in_=openapi.IN_QUERY,
                                       type=openapi.TYPE_STRING,
                                       required=False,
-                                      description=_('title')),
+                                      description='标题'),
                     openapi.Parameter(name='content',
                                       in_=openapi.IN_QUERY,
                                       type=openapi.TYPE_STRING,
                                       required=False,
-                                      description=_('content'))
+                                      description='内容')
                     ]
 
         @staticmethod
@@ -702,35 +698,35 @@ class ParagraphSerializers(ApiMixin, serializers.Serializer):
                 properties={
                     'id': openapi.Schema(type=openapi.TYPE_STRING, title="id",
                                          description="id", default="xx"),
-                    'content': openapi.Schema(type=openapi.TYPE_STRING, title=_('content'),
-                                              description=_('content'), default=_('content')),
-                    'title': openapi.Schema(type=openapi.TYPE_STRING, title=_('title'),
-                                            description=_('title'), default="xxx"),
-                    'hit_num': openapi.Schema(type=openapi.TYPE_INTEGER, title=_('hit num'), description=_('hit num'),
+                    'content': openapi.Schema(type=openapi.TYPE_STRING, title="段落内容",
+                                              description="段落内容", default='段落内容'),
+                    'title': openapi.Schema(type=openapi.TYPE_STRING, title="标题",
+                                            description="标题", default="xxx的描述"),
+                    'hit_num': openapi.Schema(type=openapi.TYPE_INTEGER, title="命中数量", description="命中数量",
                                               default=1),
-                    'star_num': openapi.Schema(type=openapi.TYPE_INTEGER, title=_('Number of likes'),
-                                               description=_('Number of likes'), default=1),
-                    'trample_num': openapi.Schema(type=openapi.TYPE_INTEGER, title=_('Number of dislikes'),
-                                                  description=_('Number of dislikes'), default=1),
-                    'dataset_id': openapi.Schema(type=openapi.TYPE_STRING, title=_('dataset id'),
-                                                 description=_('dataset id'), default='xxx'),
-                    'document_id': openapi.Schema(type=openapi.TYPE_STRING, title=_('document id'),
-                                                  description=_('document id'), default='xxx'),
-                    'is_active': openapi.Schema(type=openapi.TYPE_BOOLEAN, title=_('Is active'),
-                                                description=_('Is active'), default=True),
-                    'update_time': openapi.Schema(type=openapi.TYPE_STRING, title=_('update time'),
-                                                  description=_('update time'),
+                    'star_num': openapi.Schema(type=openapi.TYPE_INTEGER, title="点赞数量",
+                                               description="点赞数量", default=1),
+                    'trample_num': openapi.Schema(type=openapi.TYPE_INTEGER, title="点踩数量",
+                                                  description="点踩数", default=1),
+                    'dataset_id': openapi.Schema(type=openapi.TYPE_STRING, title="知识库id",
+                                                 description="知识库id", default='xxx'),
+                    'document_id': openapi.Schema(type=openapi.TYPE_STRING, title="文档id",
+                                                  description="文档id", default='xxx'),
+                    'is_active': openapi.Schema(type=openapi.TYPE_BOOLEAN, title="是否可用",
+                                                description="是否可用", default=True),
+                    'update_time': openapi.Schema(type=openapi.TYPE_STRING, title="修改时间",
+                                                  description="修改时间",
                                                   default="1970-01-01 00:00:00"),
-                    'create_time': openapi.Schema(type=openapi.TYPE_STRING, title=_('create time'),
-                                                  description=_('create time'),
+                    'create_time': openapi.Schema(type=openapi.TYPE_STRING, title="创建时间",
+                                                  description="创建时间",
                                                   default="1970-01-01 00:00:00"
                                                   )
                 }
             )
 
     class BatchGenerateRelated(ApiMixin, serializers.Serializer):
-        dataset_id = serializers.UUIDField(required=True, error_messages=ErrMessage.uuid(_('dataset id')))
-        document_id = serializers.UUIDField(required=True, error_messages=ErrMessage.uuid(_('document id')))
+        dataset_id = serializers.UUIDField(required=True, error_messages=ErrMessage.uuid("知识库id"))
+        document_id = serializers.UUIDField(required=True, error_messages=ErrMessage.uuid("文档id"))
 
         def batch_generate_related(self, instance: Dict, with_valid=True):
             if with_valid:
@@ -750,7 +746,7 @@ class ParagraphSerializers(ApiMixin, serializers.Serializer):
                 generate_related_by_paragraph_id_list.delay(document_id, paragraph_id_list, model_id,
                                                             prompt)
             except AlreadyQueued as e:
-                raise AppApiException(500, _('The task is being executed, please do not send it again.'))
+                raise AppApiException(500, "任务正在执行中,请勿重复下发")
 
 
 def delete_problems_and_mappings(paragraph_ids):

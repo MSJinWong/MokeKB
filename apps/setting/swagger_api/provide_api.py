@@ -9,7 +9,6 @@
 from drf_yasg import openapi
 
 from common.mixins.api_mixin import ApiMixin
-from django.utils.translation import gettext_lazy as _
 
 
 class ModelQueryApi(ApiMixin):
@@ -19,20 +18,20 @@ class ModelQueryApi(ApiMixin):
                                   in_=openapi.IN_QUERY,
                                   type=openapi.TYPE_STRING,
                                   required=False,
-                                  description=_('name')),
+                                  description='模型名称'),
                 openapi.Parameter(name='model_type', in_=openapi.IN_QUERY,
                                   type=openapi.TYPE_STRING,
                                   required=False,
-                                  description=_('model type')),
+                                  description='模型类型'),
                 openapi.Parameter(name='model_name', in_=openapi.IN_QUERY,
                                   type=openapi.TYPE_STRING,
                                   required=False,
-                                  description=_('model name')),
+                                  description='基础模型名称'),
                 openapi.Parameter(name='provider',
                                   in_=openapi.IN_QUERY,
                                   type=openapi.TYPE_STRING,
                                   required=False,
-                                  description=_('provider')),
+                                  description='供应名称')
                 ]
 
 
@@ -40,25 +39,22 @@ class ModelEditApi(ApiMixin):
     @staticmethod
     def get_request_body_api():
         return openapi.Schema(type=openapi.TYPE_OBJECT,
-                              title=_('parameters required to call the function'),
-                              description=_('parameters required to call the function'),
+                              title="调用函数所需要的参数",
+                              description="调用函数所需要的参数",
                               required=['provide', 'model_info'],
                               properties={
                                   'name': openapi.Schema(type=openapi.TYPE_STRING,
-                                                         title=_('name'),
-                                                         description=_('name')),
+                                                         title="模型名称",
+                                                         description="模型名称"),
                                   'model_type': openapi.Schema(type=openapi.TYPE_STRING,
-                                                               title=_('model type'),
-                                                               description=_('model type')),
+                                                               title="供应商",
+                                                               description="供应商"),
                                   'model_name': openapi.Schema(type=openapi.TYPE_STRING,
-                                                               title=_('model name'),
-                                                               description=_('model name')),
-                                  'provider': openapi.Schema(type=openapi.TYPE_STRING,
-                                                             title=_('provider'),
-                                                             description=_('provider')),
+                                                               title="供应商",
+                                                               description="供应商"),
                                   'credential': openapi.Schema(type=openapi.TYPE_OBJECT,
-                                                               title=_('model certificate information'),
-                                                               description=_('model certificate information'))
+                                                               title="模型证书信息",
+                                                               description="模型证书信息")
                               }
                               )
 
@@ -68,27 +64,27 @@ class ModelCreateApi(ApiMixin):
     @staticmethod
     def get_request_body_api():
         return openapi.Schema(type=openapi.TYPE_OBJECT,
-                              title=_('parameters required to call the function'),
-                              description=_('parameters required to call the function'),
+                              title="调用函数所需要的参数",
+                              description="调用函数所需要的参数",
                               required=['provide', 'model_info'],
                               properties={
                                   'name': openapi.Schema(type=openapi.TYPE_STRING,
-                                                         title=_('name'),
-                                                         description=_('name')),
+                                                         title="模型名称",
+                                                         description="模型名称"),
                                   'provider': openapi.Schema(type=openapi.TYPE_STRING,
-                                                             title=_('provider'),
-                                                             description=_('provider')),
-                                  'permission_type': openapi.Schema(type=openapi.TYPE_STRING, title=_('permission'),
+                                                             title="供应商",
+                                                             description="供应商"),
+                                  'permission_type': openapi.Schema(type=openapi.TYPE_STRING, title="权限",
                                                                     description="PUBLIC|PRIVATE"),
                                   'model_type': openapi.Schema(type=openapi.TYPE_STRING,
-                                                               title=_('model type'),
-                                                               description=_('model type')),
+                                                               title="供应商",
+                                                               description="供应商"),
                                   'model_name': openapi.Schema(type=openapi.TYPE_STRING,
-                                                               title=_('model name'),
-                                                               description=_('model name')),
+                                                               title="供应商",
+                                                               description="供应商"),
                                   'credential': openapi.Schema(type=openapi.TYPE_OBJECT,
-                                                               title=_('model certificate information'),
-                                                               description=_('model certificate information')),
+                                                               title="模型证书信息",
+                                                               description="模型证书信息"),
 
                               }
                               )
@@ -102,7 +98,7 @@ class ProvideApi(ApiMixin):
                                       in_=openapi.IN_QUERY,
                                       type=openapi.TYPE_STRING,
                                       required=True,
-                                      description=_('provider')),
+                                      description='供应名称'),
                     ]
 
         @staticmethod
@@ -111,10 +107,10 @@ class ProvideApi(ApiMixin):
                 type=openapi.TYPE_OBJECT,
                 required=['key', 'value'],
                 properties={
-                    'key': openapi.Schema(type=openapi.TYPE_STRING, title=_('model type description'),
-                                          description=_('model type description'), default=_('large language model')),
-                    'value': openapi.Schema(type=openapi.TYPE_STRING, title=_('model type value'),
-                                            description=_('model type value'), default="LLM"),
+                    'key': openapi.Schema(type=openapi.TYPE_STRING, title="模型类型描述",
+                                          description="模型类型描述", default="大语言模型"),
+                    'value': openapi.Schema(type=openapi.TYPE_STRING, title="模型类型值",
+                                            description="模型类型值", default="LLM"),
 
                 }
             )
@@ -126,12 +122,12 @@ class ProvideApi(ApiMixin):
                                       in_=openapi.IN_QUERY,
                                       type=openapi.TYPE_STRING,
                                       required=True,
-                                      description=_('provider')),
+                                      description='供应名称'),
                     openapi.Parameter(name='model_type',
                                       in_=openapi.IN_QUERY,
                                       type=openapi.TYPE_STRING,
                                       required=True,
-                                      description=_('model type')),
+                                      description='模型类型'),
                     ]
 
         @staticmethod
@@ -140,12 +136,12 @@ class ProvideApi(ApiMixin):
                 type=openapi.TYPE_OBJECT,
                 required=['name', 'desc', 'model_type'],
                 properties={
-                    'name': openapi.Schema(type=openapi.TYPE_STRING, title=_('name'),
-                                           description=_('name'), default=_('name')),
-                    'desc': openapi.Schema(type=openapi.TYPE_STRING, title=_('model description'),
-                                           description=_('model description')),
-                    'model_type': openapi.Schema(type=openapi.TYPE_STRING, title=_('model type value'),
-                                                 description=_('model type value'), default="LLM"),
+                    'name': openapi.Schema(type=openapi.TYPE_STRING, title="模型名称",
+                                           description="模型名称", default="模型名称"),
+                    'desc': openapi.Schema(type=openapi.TYPE_STRING, title="模型描述",
+                                           description="模型描述", default="xxx模型"),
+                    'model_type': openapi.Schema(type=openapi.TYPE_STRING, title="模型类型值",
+                                                 description="模型类型值", default="LLM"),
 
                 }
             )
@@ -157,17 +153,17 @@ class ProvideApi(ApiMixin):
                                       in_=openapi.IN_QUERY,
                                       type=openapi.TYPE_STRING,
                                       required=True,
-                                      description=_('provider')),
+                                      description='供应名称'),
                     openapi.Parameter(name='model_type',
                                       in_=openapi.IN_QUERY,
                                       type=openapi.TYPE_STRING,
                                       required=True,
-                                      description=_('model type')),
+                                      description='模型类型'),
                     openapi.Parameter(name='model_name',
                                       in_=openapi.IN_QUERY,
                                       type=openapi.TYPE_STRING,
                                       required=True,
-                                      description=_('model name')),
+                                      description='模型名称'),
                     ]
 
     @staticmethod
@@ -176,17 +172,17 @@ class ProvideApi(ApiMixin):
                                   in_=openapi.IN_PATH,
                                   type=openapi.TYPE_STRING,
                                   required=True,
-                                  description=_('provider')),
+                                  description='供应商'),
                 openapi.Parameter(name='method',
                                   in_=openapi.IN_PATH,
                                   type=openapi.TYPE_STRING,
                                   required=True,
-                                  description=_('function that needs to be executed')),
+                                  description='需要执行的函数'),
                 ]
 
     @staticmethod
     def get_request_body_api():
         return openapi.Schema(type=openapi.TYPE_OBJECT,
-                              title=_('parameters required to call the function'),
-                              description=_('parameters required to call the function'),
+                              title="调用函数所需要的参数",
+                              description="调用函数所需要的参数",
                               )

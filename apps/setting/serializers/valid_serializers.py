@@ -18,7 +18,6 @@ from common.models.db_model_manage import DBModelManage
 from common.util.field_message import ErrMessage
 from dataset.models import DataSet
 from users.models import User
-from django.utils.translation import gettext_lazy as _
 
 model_message_dict = {
     'dataset': {'model': DataSet, 'count': 50000,
@@ -31,11 +30,11 @@ model_message_dict = {
 
 
 class ValidSerializer(serializers.Serializer):
-    valid_type = serializers.CharField(required=True, error_messages=ErrMessage.char(_('type')), validators=[
+    valid_type = serializers.CharField(required=True, error_messages=ErrMessage.char("类型"), validators=[
         validators.RegexValidator(regex=re.compile("^application|dataset|user$"),
                                   message="类型只支持:application|dataset|user", code=500)
     ])
-    valid_count = serializers.IntegerField(required=True, error_messages=ErrMessage.integer(_('check quantity')))
+    valid_count = serializers.IntegerField(required=True, error_messages=ErrMessage.integer("校验数量"))
 
     def valid(self, is_valid=True):
         if is_valid:

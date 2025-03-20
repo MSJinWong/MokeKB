@@ -1,36 +1,25 @@
 <template>
   <div class="flex-between mb-16">
-    <h5 class="lighter">{{ inputFieldConfig.title }}</h5>
-    <div>
-      <el-button type="primary" link @click="openChangeTitleDialog">
-        <el-icon>
-          <Setting />
-        </el-icon>
-      </el-button>
-      <span class="ml-4">
-        <el-button link type="primary" @click="openAddDialog()">
-          <el-icon class="mr-4">
-            <Plus />
-          </el-icon>
-          {{ $t('common.add') }}
-        </el-button>
-      </span>
-    </div>
+    <h5 class="lighter">{{ '用户输入' }}</h5>
+    <el-button link type="primary" @click="openAddDialog()">
+      <el-icon class="mr-4">
+        <Plus />
+      </el-icon>
+      添加
+    </el-button>
   </div>
   <el-table
     v-if="props.nodeModel.properties.user_input_field_list?.length > 0"
     :data="props.nodeModel.properties.user_input_field_list"
     class="mb-16"
-    ref="tableRef"
-    row-key="field"
   >
-    <el-table-column prop="field" :label="$t('dynamicsForm.paramForm.field.label')" width="95">
+    <el-table-column prop="field" label="参数">
       <template #default="{ row }">
         <span :title="row.field" class="ellipsis-1">{{ row.field }}</span>
       </template>
     </el-table-column>
 
-    <el-table-column prop="label" :label="$t('dynamicsForm.paramForm.name.label')">
+    <el-table-column prop="label" label="显示名称">
       <template #default="{ row }">
         <span v-if="row.label && row.label.input_type === 'TooltipLabel'">
           <span :title="row.label.label" class="ellipsis-1">
@@ -44,57 +33,42 @@
         >
       </template>
     </el-table-column>
-    <el-table-column :label="$t('dynamicsForm.paramForm.input_type.label')" width="95">
+    <el-table-column label="组件类型">
       <template #default="{ row }">
-        <el-tag type="info" class="info-tag" v-if="row.input_type === 'TextInput'">{{
-          $t('dynamicsForm.input_type_list.TextInput')
-        }}</el-tag>
-        <el-tag type="info" class="info-tag" v-if="row.input_type === 'PasswordInput'">{{
-          $t('dynamicsForm.input_type_list.PasswordInput')
-        }}</el-tag>
-        <el-tag type="info" class="info-tag" v-if="row.input_type === 'Slider'">{{
-          $t('dynamicsForm.input_type_list.Slider')
-        }}</el-tag>
-        <el-tag type="info" class="info-tag" v-if="row.input_type === 'SwitchInput'">{{
-          $t('dynamicsForm.input_type_list.SwitchInput')
-        }}</el-tag>
-        <el-tag type="info" class="info-tag" v-if="row.input_type === 'SingleSelect'">{{
-          $t('dynamicsForm.input_type_list.SingleSelect')
-        }}</el-tag>
-        <el-tag type="info" class="info-tag" v-if="row.input_type === 'MultiSelect'">{{
-          $t('dynamicsForm.input_type_list.MultiSelect')
-        }}</el-tag>
-        <el-tag type="info" class="info-tag" v-if="row.input_type === 'RadioCard'">{{
-          $t('dynamicsForm.input_type_list.RadioCard')
-        }}</el-tag>
-        <el-tag type="info" class="info-tag" v-if="row.input_type === 'DatePicker'">{{
-          $t('dynamicsForm.input_type_list.DatePicker')
-        }}</el-tag>
+        <el-tag type="info" class="info-tag" v-if="row.input_type === 'TextInput'">文本框</el-tag>
+        <el-tag type="info" class="info-tag" v-if="row.input_type === 'Slider'">滑块</el-tag>
+        <el-tag type="info" class="info-tag" v-if="row.input_type === 'SwitchInput'">开关</el-tag>
+        <el-tag type="info" class="info-tag" v-if="row.input_type === 'SingleSelect'"
+          >单选框</el-tag
+        >
+        <el-tag type="info" class="info-tag" v-if="row.input_type === 'MultiSelect'">多选框</el-tag>
+        <el-tag type="info" class="info-tag" v-if="row.input_type === 'RadioCard'">选项卡</el-tag>
+        <el-tag type="info" class="info-tag" v-if="row.input_type === 'DatePicker'">日期</el-tag>
       </template>
     </el-table-column>
 
-    <el-table-column prop="default_value" :label="$t('dynamicsForm.default.label')">
+    <el-table-column prop="default_value" label="默认值">
       <template #default="{ row }">
         <span :title="row.default_value" class="ellipsis-1">{{ getDefaultValue(row) }}</span>
       </template>
     </el-table-column>
-    <el-table-column :label="$t('common.required')">
+    <el-table-column label="必填">
       <template #default="{ row }">
         <div @click.stop>
           <el-switch disabled size="small" v-model="row.required" />
         </div>
       </template>
     </el-table-column>
-    <el-table-column :label="$t('common.operation')" align="left" width="90">
+    <el-table-column label="操作" align="left" width="80">
       <template #default="{ row, $index }">
         <span class="mr-4">
-          <el-tooltip effect="dark" :content="$t('common.modify')" placement="top">
+          <el-tooltip effect="dark" content="修改" placement="top">
             <el-button type="primary" text @click.stop="openAddDialog(row, $index)">
               <el-icon><EditPen /></el-icon>
             </el-button>
           </el-tooltip>
         </span>
-        <el-tooltip effect="dark" :content="$t('common.delete')" placement="top">
+        <el-tooltip effect="dark" content="删除" placement="top">
           <el-button type="primary" text @click="deleteField($index)">
             <el-icon>
               <Delete />
@@ -106,43 +80,32 @@
   </el-table>
 
   <UserFieldFormDialog ref="UserFieldFormDialogRef" @refresh="refreshFieldList" />
-  <UserInputTitleDialog ref="UserInputTitleDialogRef" @refresh="refreshFieldTitle" />
 </template>
 
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { set } from 'lodash'
-import Sortable from 'sortablejs'
 import UserFieldFormDialog from './UserFieldFormDialog.vue'
 import { MsgError } from '@/utils/message'
-import { t } from '@/locales'
-import UserInputTitleDialog from '@/workflow/nodes/base-node/component/UserInputTitleDialog.vue'
+
 const props = defineProps<{ nodeModel: any }>()
 
-const tableRef = ref()
 const UserFieldFormDialogRef = ref()
-const UserInputTitleDialogRef = ref()
 const inputFieldList = ref<any[]>([])
-const inputFieldConfig = ref({ title: t('chat.userInput') })
 
 function openAddDialog(data?: any, index?: any) {
   UserFieldFormDialogRef.value.open(data, index)
 }
 
-function openChangeTitleDialog() {
-  UserInputTitleDialogRef.value.open(inputFieldConfig.value)
-}
-
 function deleteField(index: any) {
   inputFieldList.value.splice(index, 1)
   props.nodeModel.graphModel.eventCenter.emit('refreshFieldList')
-  onDragHandle()
 }
 
 function refreshFieldList(data: any, index: any) {
   for (let i = 0; i < inputFieldList.value.length; i++) {
     if (inputFieldList.value[i].field === data.field && index !== i) {
-      MsgError(t('views.applicationWorkflow.tip.paramErrorMessage') + data.field)
+      MsgError('参数已存在: ' + data.field)
       return
     }
   }
@@ -150,7 +113,7 @@ function refreshFieldList(data: any, index: any) {
   let arr = props.nodeModel.properties.api_input_field_list
   for (let i = 0; i < arr.length; i++) {
     if (arr[i].variable === data.field) {
-      MsgError(t('views.applicationWorkflow.tip.paramErrorMessage') + data.field)
+      MsgError('参数已存在: ' + data.field)
       return
     }
   }
@@ -161,20 +124,9 @@ function refreshFieldList(data: any, index: any) {
   }
   UserFieldFormDialogRef.value.close()
   props.nodeModel.graphModel.eventCenter.emit('refreshFieldList')
-  onDragHandle()
-}
-
-function refreshFieldTitle(data: any) {
-  inputFieldConfig.value = data
-  UserInputTitleDialogRef.value.close()
-
-  // console.log('inputFieldConfig', inputFieldConfig.value)
 }
 
 const getDefaultValue = (row: any) => {
-  if(row.input_type === 'PasswordInput') {
-    return '******'
-  }
   if (row.default_value) {
     const default_value = row.option_list
       ?.filter((v: any) => row.default_value.indexOf(v.value) > -1)
@@ -188,29 +140,6 @@ const getDefaultValue = (row: any) => {
   if (row.default_value !== undefined) {
     return row.default_value
   }
-}
-
-function onDragHandle() {
-  if (!tableRef.value) return
-
-  // 获取表格的 tbody DOM 元素
-  const wrapper = tableRef.value.$el as HTMLElement
-  const tbody = wrapper.querySelector('.el-table__body-wrapper tbody')
-  if (!tbody) return
-  // 初始化 Sortable
-  Sortable.create(tbody as HTMLElement, {
-    animation: 150,
-    ghostClass: 'ghost-row',
-    onEnd: (evt) => {
-      if (evt.oldIndex === undefined || evt.newIndex === undefined) return
-      // 更新数据顺序
-      const items = [...inputFieldList.value]
-      const [movedItem] = items.splice(evt.oldIndex, 1)
-      items.splice(evt.newIndex, 0, movedItem)
-      inputFieldList.value = items
-      props.nodeModel.graphModel.eventCenter.emit('refreshFieldList')
-    }
-  })
 }
 
 onMounted(() => {
@@ -245,11 +174,6 @@ onMounted(() => {
     }
   })
   set(props.nodeModel.properties, 'user_input_field_list', inputFieldList)
-  if (props.nodeModel.properties.user_input_config) {
-    inputFieldConfig.value = props.nodeModel.properties.user_input_config
-  }
-  set(props.nodeModel.properties, 'user_input_config', inputFieldConfig)
-  onDragHandle()
 })
 </script>
 

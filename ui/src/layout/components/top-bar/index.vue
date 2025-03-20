@@ -22,7 +22,7 @@
       </el-button> -->
       <!-- <el-tooltip
         effect="dark"
-        :content="$t('layout.github')"
+        :content="$t('layout.topbar.github')"
         placement="top"
         v-if="user.themeInfo?.showProject"
       >
@@ -35,7 +35,7 @@
       </el-tooltip>
       <el-tooltip
         effect="dark"
-        :content="$t('layout.wiki')"
+        :content="$t('layout.topbar.wiki')"
         placement="top"
         v-if="user.themeInfo?.showUserManual"
       >
@@ -48,7 +48,7 @@
       </el-tooltip> -->
       <!-- <el-tooltip
         effect="dark"
-        :content="$t('layout.forum')"
+        :content="$t('layout.topbar.forum')"
         placement="top"
         v-if="user.themeInfo?.showForum"
       >
@@ -77,7 +77,7 @@
           style="font-size: 20px"
         >
         </AppIcon>
-      </el-dropdown> -->
+      </el-dropdown>
       <Avatar></Avatar>
     </div>
   </div>
@@ -86,17 +86,17 @@
 import TopMenu from './top-menu/index.vue'
 import Avatar from './avatar/index.vue'
 import { useRouter } from 'vue-router'
-// import { langList } from '@/locales/index'
-// import { useLocale } from '@/locales/useLocale'
+import { langList } from '@/locales/index'
+import { useLocale } from '@/locales/useLocale'
 
 import useStore from '@/stores'
 const { user } = useStore()
 const router = useRouter()
 
-// const { changeLocale } = useLocale()
-// const changeLang = (lang: string) => {
-//   changeLocale(lang)
-// }
+const { changeLocale } = useLocale()
+const changeLang = (lang: string) => {
+  changeLocale(lang)
+}
 function toUrl(url: string) {
   window.open(url, '_blank')
 }

@@ -4,6 +4,7 @@
   </el-tag>
 </template>
 <script setup lang="ts">
+import { ref, computed, useSlots } from 'vue'
 defineOptions({ name: 'TagEllipsis' })
 </script>
 <style lang="scss" scoped>

@@ -7,12 +7,12 @@
   <div>
     <!-- 语音播放 -->
     <span v-if="tts">
-      <el-tooltip effect="dark" :content="$t('chat.operation.play')" placement="top" v-if="!audioPlayerStatus">
+      <el-tooltip effect="dark" content="点击播放" placement="top" v-if="!audioPlayerStatus">
         <el-button text :disabled="!data?.write_ed" @click="playAnswerText(data?.answer_text)">
           <AppIcon iconName="app-video-play"></AppIcon>
         </el-button>
       </el-tooltip>
-      <el-tooltip v-else effect="dark" :content="$t('chat.operation.pause')" placement="top">
+      <el-tooltip v-else effect="dark" content="停止" placement="top">
         <el-button type="primary" text :disabled="!data?.write_ed" @click="pausePlayAnswerText()">
           <AppIcon iconName="app-video-pause"></AppIcon>
         </el-button>
@@ -20,21 +20,21 @@
       <el-divider direction="vertical" />
     </span>
     <span v-if="type == 'ai-chat' || type == 'log'">
-      <el-tooltip effect="dark" :content="$t('chat.operation.regeneration')" placement="top">
+      <el-tooltip effect="dark" content="换个答案" placement="top">
         <el-button :disabled="chat_loading" text @click="regeneration">
           <el-icon><RefreshRight /></el-icon>
         </el-button>
       </el-tooltip>
       <el-divider direction="vertical" />
-      <el-tooltip effect="dark" :content="$t('common.copy')" placement="top">
-        <el-button text @click="copyClick(data?.answer_text.trim())">
+      <el-tooltip effect="dark" content="复制" placement="top">
+        <el-button text @click="copyClick(data?.answer_text)">
           <AppIcon iconName="app-copy"></AppIcon>
         </el-button>
       </el-tooltip>
       <el-divider direction="vertical" />
       <el-tooltip
         effect="dark"
-        :content="$t('chat.operation.like')"
+        content="赞同"
         placement="top"
         v-if="buttonData?.vote_status === '-1'"
       >
@@ -44,7 +44,7 @@
       </el-tooltip>
       <el-tooltip
         effect="dark"
-        :content="$t('chat.operation.cancelLike')"
+        content="取消赞同"
         placement="top"
         v-if="buttonData?.vote_status === '0'"
       >
@@ -55,7 +55,7 @@
       <el-divider direction="vertical" v-if="buttonData?.vote_status === '-1'" />
       <el-tooltip
         effect="dark"
-        :content="$t('chat.operation.oppose')"
+        content="反对"
         placement="top"
         v-if="buttonData?.vote_status === '-1'"
       >
@@ -65,7 +65,7 @@
       </el-tooltip>
       <el-tooltip
         effect="dark"
-        :content="$t('chat.operation.cancelOppose')"
+        content="取消反对"
         placement="top"
         v-if="buttonData?.vote_status === '1'"
       >
@@ -76,17 +76,16 @@
     </span>
   </div>
   <!-- 先渲染，不然不能播放   -->
-  <audio ref="audioPlayer" v-for="item in audioList" :key="item" controls hidden="hidden"></audio>
+  <audio ref="audioPlayer" controls hidden="hidden"></audio>
 </template>
 <script setup lang="ts">
-import { nextTick, onMounted, ref } from 'vue'
+import { ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { copyClick } from '@/utils/clipboard'
 import applicationApi from '@/api/application'
 import { datetimeFormat } from '@/utils/time'
 import { MsgError } from '@/utils/message'
-import { t } from '@/locales'
-import bus from '@/bus'
+
 const route = useRoute()
 const {
   params: { id }
@@ -101,7 +100,6 @@ const props = withDefaults(
     applicationId: string
     tts: boolean
     tts_type: string
-    tts_autoplay: boolean
   }>(),
   {
     data: () => ({}),
@@ -111,13 +109,11 @@ const props = withDefaults(
 
 const emit = defineEmits(['update:data', 'regeneration'])
 
-const audioPlayer = ref<HTMLAudioElement[] | null>([])
+const audioPlayer = ref<HTMLAudioElement | null>(null)
 const audioPlayerStatus = ref(false)
 const buttonData = ref(props.data)
 const loading = ref(false)
 const utterance = ref<SpeechSynthesisUtterance | null>(null)
-const audioList = ref<string[]>([])
-const currentAudioIndex = ref(0)
 
 function regeneration() {
   emit('regeneration')
@@ -165,7 +161,7 @@ function removeFormRander(text: string) {
 
 const playAnswerText = (text: string) => {
   if (!text) {
-    text = t('chat.tip.answerMessage')
+    text = '抱歉，没有查找到相关内容，请重新描述您的问题或提供更多信息。'
   }
   // 移除表单渲染器
   text = removeFormRander(text)
@@ -173,44 +169,19 @@ const playAnswerText = (text: string) => {
   text = markdownToPlainText(text)
   // console.log(text)
   audioPlayerStatus.value = true
-  // 分割成多份
-  audioList.value = text.split(/(<audio[^>]*><\/audio>)/).filter((item) => item.trim().length > 0)
-  nextTick(()=>{
-    // console.log(audioList.value, audioPlayer.value)
-    playAnswerTextPart()
-  })
-}
-
-const playAnswerTextPart = () => {
-  // console.log(audioList.value, currentAudioIndex.value)
-  if (currentAudioIndex.value === audioList.value.length) {
-    audioPlayerStatus.value = false
-    currentAudioIndex.value = 0
-    return
-  }
-  if (audioList.value[currentAudioIndex.value].includes('<audio')) {
-    if (audioPlayer.value) {
-      audioPlayer.value[currentAudioIndex.value].src = audioList.value[currentAudioIndex.value].match(/src="([^"]*)"/)?.[1] || ''
-      audioPlayer.value[currentAudioIndex.value].play() // 自动播放音频
-      audioPlayer.value[currentAudioIndex.value].onended = () => {
-        currentAudioIndex.value += 1
-        playAnswerTextPart()
-      }
-    }
-  } else if (props.tts_type === 'BROWSER') {
-    if (audioList.value[currentAudioIndex.value] !== utterance.value?.text) {
+  if (props.tts_type === 'BROWSER') {
+    if (text !== utterance.value?.text) {
       window.speechSynthesis.cancel()
     }
-    if (window.speechSynthesis.paused && audioList.value[currentAudioIndex.value] === utterance.value?.text) {
+    if (window.speechSynthesis.paused) {
       window.speechSynthesis.resume()
       return
     }
     // 创建一个新的 SpeechSynthesisUtterance 实例
-    utterance.value = new SpeechSynthesisUtterance(audioList.value[currentAudioIndex.value])
+    utterance.value = new SpeechSynthesisUtterance(text)
     utterance.value.onend = () => {
+      audioPlayerStatus.value = false
       utterance.value = null
-      currentAudioIndex.value += 1
-      playAnswerTextPart()
     }
     utterance.value.onerror = () => {
       audioPlayerStatus.value = false
@@ -218,14 +189,15 @@ const playAnswerTextPart = () => {
     }
     // 调用浏览器的朗读功能
     window.speechSynthesis.speak(utterance.value)
-  } else if (props.tts_type === 'TTS') {
+  }
+  if (props.tts_type === 'TTS') {
     // 恢复上次暂停的播放
-    if (audioPlayer.value && audioPlayer.value[currentAudioIndex.value]?.src) {
-      audioPlayer.value[currentAudioIndex.value].play()
+    if (audioPlayer.value?.src) {
+      audioPlayer.value?.play()
       return
     }
     applicationApi
-      .postTextToSpeech((props.applicationId as string) || (id as string), { text: audioList.value[currentAudioIndex.value] }, loading)
+      .postTextToSpeech((props.applicationId as string) || (id as string), { text: text }, loading)
       .then(async (res: any) => {
         if (res.type === 'application/json') {
           const text = await res.text()
@@ -246,12 +218,11 @@ const playAnswerTextPart = () => {
         // link.click()
 
         // 检查 audioPlayer 是否已经引用了 DOM 元素
-        if (audioPlayer.value) {
-          audioPlayer.value[currentAudioIndex.value].src = url
-          audioPlayer.value[currentAudioIndex.value].play() // 自动播放音频
-          audioPlayer.value[currentAudioIndex.value].onended = () => {
-            currentAudioIndex.value += 1
-            playAnswerTextPart()
+        if (audioPlayer.value instanceof HTMLAudioElement) {
+          audioPlayer.value.src = url
+          audioPlayer.value.play() // 自动播放音频
+          audioPlayer.value.onended = () => {
+            audioPlayerStatus.value = false
           }
         } else {
           console.error('audioPlayer.value is not an instance of HTMLAudioElement')
@@ -266,27 +237,11 @@ const playAnswerTextPart = () => {
 const pausePlayAnswerText = () => {
   audioPlayerStatus.value = false
   if (props.tts_type === 'TTS') {
-    if (audioPlayer.value) {
-      audioPlayer.value?.forEach((item) => {
-        item.pause()
-      })
-    }
+    audioPlayer.value?.pause()
   }
   if (props.tts_type === 'BROWSER') {
     window.speechSynthesis.pause()
   }
 }
-
-onMounted(() => {
-  bus.on('pause-autoplay', () => {
-    pausePlayAnswerText()
-    // console.log(1234)
-  })
-  bus.emit('pause-autoplay')
-  // 第一次回答后自动播放， 打开历史记录不自动播放
-  if (props.tts && props.tts_autoplay && buttonData.value.write_ed && !buttonData.value.update_time) {
-    playAnswerText(buttonData.value.answer_text)
-  }
-})
 </script>
 <style lang="scss" scoped></style>

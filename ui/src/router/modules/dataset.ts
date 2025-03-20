@@ -2,7 +2,7 @@ import Layout from '@/layout/layout-template/DetailLayout.vue'
 const datasetRouter = {
   path: '/dataset',
   name: 'dataset',
-  meta: { title:  'views.dataset.title', permission: 'DATASET:READ' },
+  meta: { title: '知识库', permission: 'DATASET:READ' },
   component: () => import('@/layout/layout-template/AppLayout.vue'),
   redirect: '/dataset',
   children: [
@@ -22,7 +22,7 @@ const datasetRouter = {
     {
       path: '/dataset/:id',
       name: 'DatasetDetail',
-      meta: { title: 'common.fileUpload.document', activeMenu: '/dataset' },
+      meta: { title: '文档', activeMenu: '/dataset' },
       component: Layout,
       hidden: true,
       children: [
@@ -32,7 +32,7 @@ const datasetRouter = {
           meta: {
             icon: 'app-document',
             iconActive: 'app-document-active',
-            title: 'common.fileUpload.document',
+            title: '文档',
             active: 'document',
             parentPath: '/dataset/:id',
             parentName: 'DatasetDetail'
@@ -45,7 +45,7 @@ const datasetRouter = {
           meta: {
             icon: 'app-problems',
             iconActive: 'QuestionFilled',
-            title: 'views.problem.title',
+            title: '问题',
             active: 'problem',
             parentPath: '/dataset/:id',
             parentName: 'DatasetDetail'
@@ -57,7 +57,7 @@ const datasetRouter = {
           name: 'DatasetHitTest',
           meta: {
             icon: 'app-hit-test',
-            title: 'views.application.hitTest.title',
+            title: '命中测试',
             active: 'hit-test',
             parentPath: '/dataset/:id',
             parentName: 'DatasetDetail'
@@ -70,7 +70,7 @@ const datasetRouter = {
           meta: {
             icon: 'app-setting',
             iconActive: 'app-setting-active',
-            title: 'common.setting',
+            title: '设置',
             active: 'setting',
             parentPath: '/dataset/:id',
             parentName: 'DatasetDetail'

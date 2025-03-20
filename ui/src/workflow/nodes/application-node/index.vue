@@ -1,6 +1,6 @@
 <template>
   <NodeContainer :nodeModel="nodeModel">
-    <h5 class="title-decoration-1 mb-8">{{ $t('views.applicationWorkflow.nodeSetting') }}</h5>
+    <h5 class="title-decoration-1 mb-8">节点设置</h5>
     <el-card shadow="never" class="card-never">
       <el-form
         @submit.prevent
@@ -11,12 +11,10 @@
         ref="applicationNodeFormRef"
       >
         <el-form-item
-          :label="$t('views.applicationWorkflow.nodes.startNode.question')"
+          label="用户问题"
           prop="question_reference_address"
           :rules="{
-            message: $t(
-              'views.applicationWorkflow.nodes.searchDatasetNode.searchQuestion.requiredMessage'
-            ),
+            message: '请选择检索问题',
             trigger: 'blur',
             required: true
           }"
@@ -25,19 +23,17 @@
             ref="applicationNodeFormRef"
             :nodeModel="nodeModel"
             class="w-full"
-            :placeholder="
-              $t('views.applicationWorkflow.nodes.searchDatasetNode.searchQuestion.placeholder')
-            "
+            placeholder="请选择检索问题"
             v-model="form_data.question_reference_address"
           />
         </el-form-item>
 
         <el-form-item
           v-if="form_data.hasOwnProperty('document_list') || 'document_list' in form_data"
-          :label="$t('views.problem.relateParagraph.selectDocument')"
+          label="选择文档"
           prop="document_list"
           :rules="{
-            message: $t('views.log.documentPlaceholder'),
+            message: '请选择文档',
             trigger: 'blur',
             required: false
           }"
@@ -46,19 +42,17 @@
             ref="nodeCascaderRef"
             :nodeModel="nodeModel"
             class="w-full"
-            :placeholder="$t('views.log.documentPlaceholder')"
+            placeholder="请选择文档"
             v-model="form_data.document_list"
           />
         </el-form-item>
 
         <el-form-item
           v-if="form_data.hasOwnProperty('image_list') || 'image_list' in form_data"
-          :label="$t('views.applicationWorkflow.nodes.imageUnderstandNode.image.label')"
+          label="选择图片"
           prop="image_list"
           :rules="{
-            message: $t(
-              'views.applicationWorkflow.nodes.imageUnderstandNode.image.requiredMessage'
-            ),
+            message: '请选择图片',
             trigger: 'blur',
             required: false
           }"
@@ -67,19 +61,17 @@
             ref="nodeCascaderRef"
             :nodeModel="nodeModel"
             class="w-full"
-            :placeholder="
-              $t('views.applicationWorkflow.nodes.imageUnderstandNode.image.requiredMessage')
-            "
+            placeholder="请选择图片"
             v-model="form_data.image_list"
           />
         </el-form-item>
 
         <el-form-item
           v-if="form_data.hasOwnProperty('audio_list') || 'audio_list' in form_data"
-          :label="$t('views.applicationWorkflow.nodes.speechToTextNode.audio.label')"
+          label="选择语音文件"
           prop="audio_list"
           :rules="{
-            message: $t('views.applicationWorkflow.nodes.speechToTextNode.audio.placeholder'),
+            message: '请选择语音文件',
             trigger: 'blur',
             required: false
           }"
@@ -88,7 +80,7 @@
             ref="nodeCascaderRef"
             :nodeModel="nodeModel"
             class="w-full"
-            :placeholder="$t('views.applicationWorkflow.nodes.speechToTextNode.audio.placeholder')"
+            placeholder="请选择语音文件"
             v-model="form_data.audio_list"
           />
         </el-form-item>
@@ -97,20 +89,14 @@
             :label="field.variable"
             :prop="'api_input_field_list.' + index + '.value'"
             :rules="[
-              {
-                required: field.is_required,
-                message: `${$t('common.inputPlaceholder')}${field.variable}`,
-                trigger: 'blur'
-              }
+              { required: field.is_required, message: `请输入${field.variable}`, trigger: 'blur' }
             ]"
           >
             <NodeCascader
               ref="nodeCascaderRef"
               :nodeModel="nodeModel"
               class="w-full"
-              :placeholder="
-                $t('views.applicationWorkflow.nodes.searchDatasetNode.searchQuestion.placeholder')
-              "
+              placeholder="请选择检索问题"
               v-model="form_data.api_input_field_list[index].value"
             />
           </el-form-item>
@@ -121,39 +107,28 @@
             :label="field.label"
             :prop="'user_input_field_list.' + index + '.value'"
             :rules="[
-              {
-                required: field.required,
-                message: `${$t('common.inputPlaceholder')}${field.label}`,
-                trigger: 'blur'
-              }
+              { required: field.required, message: `请输入${field.label}`, trigger: 'blur' }
             ]"
           >
             <NodeCascader
               ref="nodeCascaderRef"
               :nodeModel="nodeModel"
               class="w-full"
-              :placeholder="
-                $t('views.applicationWorkflow.nodes.searchDatasetNode.searchQuestion.placeholder')
-              "
+              placeholder="请选择检索问题"
               v-model="form_data.user_input_field_list[index].value"
             />
           </el-form-item>
         </div>
-        <el-form-item
-          :label="$t('views.applicationWorkflow.nodes.aiChatNode.returnContent.label')"
-          @click.prevent
-        >
+        <el-form-item label="返回内容" @click.prevent>
           <template #label>
             <div class="flex align-center">
               <div class="mr-4">
-                <span
-                  >{{ $t('views.applicationWorkflow.nodes.aiChatNode.returnContent.label')
-                  }}<span class="danger">*</span></span
-                >
+                <span>返回内容<span class="danger">*</span></span>
               </div>
               <el-tooltip effect="dark" placement="right" popper-class="max-w-200">
                 <template #content>
-                  {{ $t('views.applicationWorkflow.nodes.aiChatNode.returnContent.tooltip') }}
+                  关闭后该节点的内容则不输出给用户。
+                  如果你想让用户看到该节点的输出内容，请打开开关。
                 </template>
                 <AppIcon iconName="app-warning" class="app-warning-icon"></AppIcon>
               </el-tooltip>
@@ -273,9 +248,9 @@ const update_field = () => {
           'user_input_field_list',
           merge_user_input_field_list
         )
-        const fileEnable = nodeData.file_upload_enable
         const fileUploadSetting = nodeData.file_upload_setting
-        if (fileEnable) {
+        // 如果是true，说明有文件上传
+        if (fileUploadSetting) {
           handleFileUpload('document', fileUploadSetting.document)
           handleFileUpload('image', fileUploadSetting.image)
           handleFileUpload('audio', fileUploadSetting.audio)

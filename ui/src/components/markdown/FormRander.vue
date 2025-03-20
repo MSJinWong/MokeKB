@@ -14,7 +14,7 @@
       :type="is_submit ? 'info' : 'primary'"
       :disabled="is_submit || disabled"
       @click="submit"
-      >{{$t('common.submit')}}</el-button
+      >提交</el-button
     >
   </div>
 </template>

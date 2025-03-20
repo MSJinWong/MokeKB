@@ -9,7 +9,6 @@
 from drf_yasg import openapi
 
 from common.mixins.api_mixin import ApiMixin
-from django.utils.translation import gettext_lazy as _
 
 
 class PyLintApi(ApiMixin):
@@ -19,7 +18,6 @@ class PyLintApi(ApiMixin):
             type=openapi.TYPE_OBJECT,
             required=['code'],
             properties={
-                'code': openapi.Schema(type=openapi.TYPE_STRING, title=_('function content'),
-                                       description=_('function content'))
+                'code': openapi.Schema(type=openapi.TYPE_STRING, title="函数内容", description="函数内容")
             }
         )

@@ -1,39 +1,37 @@
 <template>
   <div class="flex-between mb-16">
-    <h5 class="lighter">{{ $t('views.template.templateForm.title.apiParamPassing') }}</h5>
+    <h5 class="lighter">{{ '接口传参' }}</h5>
     <el-button link type="primary" @click="openAddDialog()">
       <el-icon class="mr-4">
         <Plus />
       </el-icon>
-      {{ $t('common.add') }}
+      添加
     </el-button>
   </div>
   <el-table
     v-if="props.nodeModel.properties.api_input_field_list?.length > 0"
     :data="props.nodeModel.properties.api_input_field_list"
     class="mb-16"
-    ref="tableRef"
-    row-key="field"
   >
-    <el-table-column prop="variable" :label="$t('dynamicsForm.paramForm.field.label')" />
-    <el-table-column prop="default_value" :label="$t('dynamicsForm.default.label')" />
-    <el-table-column :label="$t('common.required')">
+    <el-table-column prop="variable" label="参数" />
+    <el-table-column prop="default_value" label="默认值" />
+    <el-table-column label="必填">
       <template #default="{ row }">
         <div @click.stop>
           <el-switch disabled size="small" v-model="row.is_required" />
         </div>
       </template>
     </el-table-column>
-    <el-table-column :label="$t('common.operation')" align="left" width="90">
+    <el-table-column label="操作" align="left" width="80">
       <template #default="{ row, $index }">
-        <span class="mr-4">
-          <el-tooltip effect="dark" :content="$t('common.modify')" placement="top">
-            <el-button type="primary" text @click.stop="openAddDialog(row, $index)">
-              <el-icon><EditPen /></el-icon>
-            </el-button>
-          </el-tooltip>
-        </span>
-        <el-tooltip effect="dark" :content="$t('common.delete')" placement="top">
+            <span class="mr-4">
+              <el-tooltip effect="dark" content="修改" placement="top">
+                <el-button type="primary" text @click.stop="openAddDialog(row, $index)">
+                  <el-icon><EditPen /></el-icon>
+                </el-button>
+              </el-tooltip>
+            </span>
+        <el-tooltip effect="dark" content="删除" placement="top">
           <el-button type="primary" text @click="deleteField($index)">
             <el-icon>
               <Delete />
@@ -45,18 +43,18 @@
   </el-table>
 
   <ApiFieldFormDialog ref="ApiFieldFormDialogRef" @refresh="refreshFieldList" />
+
 </template>
 
 <script setup lang="ts">
+
 import { onMounted, ref } from 'vue'
 import { set } from 'lodash'
-import Sortable from 'sortablejs'
 import ApiFieldFormDialog from './ApiFieldFormDialog.vue'
 import { MsgError } from '@/utils/message'
-import { t } from '@/locales'
 
 const props = defineProps<{ nodeModel: any }>()
-const tableRef = ref()
+
 const currentIndex = ref(null)
 const ApiFieldFormDialogRef = ref()
 const inputFieldList = ref<any[]>([])
@@ -71,13 +69,13 @@ function openAddDialog(data?: any, index?: any) {
 function deleteField(index: any) {
   inputFieldList.value.splice(index, 1)
   props.nodeModel.graphModel.eventCenter.emit('refreshFieldList')
-  onDragHandle()
 }
+
 
 function refreshFieldList(data: any) {
   for (let i = 0; i < inputFieldList.value.length; i++) {
     if (inputFieldList.value[i].variable === data.variable && currentIndex.value !== i) {
-      MsgError(t('views.applicationWorkflow.tip.paramErrorMessage') + data.variable)
+      MsgError('参数已存在: ' + data.variable)
       return
     }
   }
@@ -85,7 +83,7 @@ function refreshFieldList(data: any) {
   let arr = props.nodeModel.properties.user_input_field_list
   for (let i = 0; i < arr.length; i++) {
     if (arr[i].field === data.variable) {
-      MsgError(t('views.applicationWorkflow.tip.paramErrorMessage') + data.variable)
+      MsgError('参数已存在: ' + data.variable)
       return
     }
   }
@@ -97,30 +95,6 @@ function refreshFieldList(data: any) {
   currentIndex.value = null
   ApiFieldFormDialogRef.value.close()
   props.nodeModel.graphModel.eventCenter.emit('refreshFieldList')
-  onDragHandle()
-}
-
-function onDragHandle() {
-  if (!tableRef.value) return
-
-  // 获取表格的 tbody DOM 元素
-  const wrapper = tableRef.value.$el as HTMLElement
-  const tbody = wrapper.querySelector('.el-table__body-wrapper tbody')
-  if (!tbody) return
-  // 初始化 Sortable
-  Sortable.create(tbody as HTMLElement, {
-    animation: 150,
-    ghostClass: 'ghost-row',
-    onEnd: (evt) => {
-      if (evt.oldIndex === undefined || evt.newIndex === undefined) return
-      // 更新数据顺序
-      const items = [...inputFieldList.value]
-      const [movedItem] = items.splice(evt.oldIndex, 1)
-      items.splice(evt.newIndex, 0, movedItem)
-      inputFieldList.value = items
-      props.nodeModel.graphModel.eventCenter.emit('refreshFieldList')
-    }
-  })
 }
 
 onMounted(() => {
@@ -139,6 +113,10 @@ onMounted(() => {
   }
   set(props.nodeModel.properties, 'api_input_field_list', inputFieldList)
 })
+
 </script>
 
-<style scoped lang="scss"></style>
+
+<style scoped lang="scss">
+
+</style>

@@ -15,7 +15,6 @@ from rest_framework import permissions
 
 from common.auth import AnonymousAuthentication
 from smartdoc.const import CONFIG
-from django.utils.translation import gettext_lazy as _
 
 
 def init_app_doc(application_urlpatterns):
@@ -23,7 +22,7 @@ def init_app_doc(application_urlpatterns):
         openapi.Info(
             title="Python API",
             default_version='v1',
-            description=_('Intelligent customer service platform'),
+            description="智能客服平台",
         ),
         public=True,
         permission_classes=[permissions.AllowAny],
@@ -42,7 +41,7 @@ def init_chat_doc(application_urlpatterns, patterns):
         openapi.Info(
             title="Python API",
             default_version='/chat',
-            description=_('Intelligent customer service platform'),
+            description="智能客服平台",
         ),
         public=True,
         permission_classes=[permissions.AllowAny],

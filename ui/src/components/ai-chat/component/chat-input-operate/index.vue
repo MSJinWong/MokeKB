@@ -14,22 +14,9 @@
             uploadVideoList.length
           "
         >
-          <el-row :gutter="10">
-            <el-col
-              v-for="(item, index) in uploadDocumentList"
-              :key="index"
-              :xs="24"
-              :sm="props.type === 'debug-ai-chat' ? 24 : 12"
-              :md="props.type === 'debug-ai-chat' ? 24 : 12"
-              :lg="props.type === 'debug-ai-chat' ? 24 : 12"
-              :xl="props.type === 'debug-ai-chat' ? 24 : 12"
-              class="mb-8"
-            >
-              <el-card
-                shadow="never"
-                style="--el-card-padding: 8px; max-width: 100%"
-                class="file cursor"
-              >
+          <el-space wrap>
+            <template v-for="(item, index) in uploadDocumentList" :key="index">
+              <el-card shadow="never" style="--el-card-padding: 8px" class="file cursor">
                 <div
                   class="flex align-center"
                   @mouseenter.stop="mouseenter(item)"
@@ -45,47 +32,12 @@
                     </el-icon>
                   </div>
                   <img :src="getImgUrl(item && item?.name)" alt="" width="24" />
-                  <div class="ml-4 ellipsis-1" :title="item && item?.name">
+                  <div class="ml-4 ellipsis" style="max-width: 160px" :title="item && item?.name">
                     {{ item && item?.name }}
                   </div>
                 </div>
               </el-card>
-            </el-col>
-
-            <el-col
-              :xs="24"
-              :sm="props.type === 'debug-ai-chat' ? 24 : 12"
-              :md="props.type === 'debug-ai-chat' ? 24 : 12"
-              :lg="props.type === 'debug-ai-chat' ? 24 : 12"
-              :xl="props.type === 'debug-ai-chat' ? 24 : 12"
-              class="mb-8"
-              v-for="(item, index) in uploadAudioList"
-              :key="index"
-            >
-              <el-card shadow="never" style="--el-card-padding: 8px" class="file cursor">
-                <div
-                  class="flex align-center"
-                  @mouseenter.stop="mouseenter(item)"
-                  @mouseleave.stop="mouseleave()"
-                >
-                  <div
-                    @click="deleteFile(index, 'audio')"
-                    class="delete-icon color-secondary"
-                    v-if="showDelete === item.url"
-                  >
-                    <el-icon>
-                      <CircleCloseFilled />
-                    </el-icon>
-                  </div>
-                  <img :src="getImgUrl(item && item?.name)" alt="" width="24" />
-                  <div class="ml-4 ellipsis-1" :title="item && item?.name">
-                    {{ item && item?.name }}
-                  </div>
-                </div>
-              </el-card>
-            </el-col>
-          </el-row>
-          <el-space wrap>
+            </template>
             <template v-for="(item, index) in uploadImageList" :key="index">
               <div
                 class="file cursor border border-r-4"
@@ -111,6 +63,29 @@
                 />
               </div>
             </template>
+            <template v-for="(item, index) in uploadAudioList" :key="index">
+              <el-card shadow="never" style="--el-card-padding: 8px" class="file cursor">
+                <div
+                  class="flex align-center"
+                  @mouseenter.stop="mouseenter(item)"
+                  @mouseleave.stop="mouseleave()"
+                >
+                  <div
+                    @click="deleteFile(index, 'audio')"
+                    class="delete-icon color-secondary"
+                    v-if="showDelete === item.url"
+                  >
+                    <el-icon>
+                      <CircleCloseFilled />
+                    </el-icon>
+                  </div>
+                  <img :src="getImgUrl(item && item?.name)" alt="" width="24" />
+                  <div class="ml-4 ellipsis" style="max-width: 160px" :title="item && item?.name">
+                    {{ item && item?.name }}
+                  </div>
+                </div>
+              </el-card>
+            </template>
           </el-space>
         </div>
       </el-scrollbar>
@@ -120,10 +95,10 @@
           v-model="inputValue"
           :placeholder="
             startRecorderTime
-              ? `${$t('chat.inputPlaceholder.speaking')}...`
+              ? '说话中...'
               : recorderLoading
-                ? `${$t('chat.inputPlaceholder.recorderLoading')}...`
-                : $t('chat.inputPlaceholder.default')
+                ? '转文字中...'
+                : '请输入问题，Ctrl+Enter 换行，Enter发送'
           "
           :autosize="{ minRows: 1, maxRows: isMobile ? 4 : 10 }"
           type="textarea"
@@ -144,12 +119,12 @@
               <el-tooltip effect="dark" placement="top" popper-class="upload-tooltip-width">
                 <template #content>
                   <div class="break-all pre-wrap">
-                    {{ $t('chat.uploadFile.label') }}：{{ $t('chat.uploadFile.most')
-                    }}{{ props.applicationDetails.file_upload_setting.maxFiles
-                    }}{{ $t('chat.uploadFile.limit') }}
-                    {{ props.applicationDetails.file_upload_setting.fileLimit }}MB<br />{{
-                      $t('chat.uploadFile.fileType')
-                    }}：{{ getAcceptList().replace(/\./g, '').replace(/,/g, '、').toUpperCase() }}
+                    上传文件：最多{{
+                      props.applicationDetails.file_upload_setting.maxFiles
+                    }}个，每个文件限制
+                    {{ props.applicationDetails.file_upload_setting.fileLimit }}MB<br />文件类型：{{
+                      getAcceptList().replace(/\./g, '').replace(/,/g, '、').toUpperCase()
+                    }}
                   </div>
                 </template>
                 <el-button text :disabled="checkMaxFilesLimit()" class="mt-4">
@@ -181,11 +156,11 @@
             v-if="!startRecorderTime && !recorderLoading"
             text
             class="sent-button"
-            :disabled="isDisabledChat || loading"
+            :disabled="isDisabledChart || loading"
             @click="sendChatHandle"
           >
-            <img v-show="isDisabledChat || loading" src="@/assets/icon_send.svg" alt="" />
-            <SendIcon v-show="!isDisabledChat && !loading" />
+            <img v-show="isDisabledChart || loading" src="@/assets/icon_send.svg" alt="" />
+            <SendIcon v-show="!isDisabledChart && !loading" />
           </el-button>
         </div>
       </div>
@@ -200,22 +175,24 @@
   </div>
 </template>
 <script setup lang="ts">
-import { ref, computed, onMounted, nextTick } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import Recorder from 'recorder-core'
 import applicationApi from '@/api/application'
 import { MsgAlert } from '@/utils/message'
 import { type chatType } from '@/api/type/application'
 import { useRoute, useRouter } from 'vue-router'
 import { getImgUrl } from '@/utils/utils'
-import bus from '@/bus'
 import 'recorder-core/src/engine/mp3'
+
 import 'recorder-core/src/engine/mp3-engine'
 import { MsgWarning } from '@/utils/message'
-import { t } from '@/locales'
+import useStore from '@/stores'
 const router = useRouter()
 const route = useRoute()
+const { application } = useStore()
 const {
-  query: { mode, question }
+  query: { mode, question },
+  params: { accessToken }
 } = route as any
 const quickInputRef = ref()
 const props = withDefaults(
@@ -260,7 +237,7 @@ const localLoading = computed({
 const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp']
 const documentExtensions = ['pdf', 'docx', 'txt', 'xls', 'xlsx', 'md', 'html', 'csv']
 const videoExtensions = ['mp4', 'avi', 'mov', 'mkv', 'flv']
-const audioExtensions = ['mp3', 'wav', 'ogg', 'aac', 'm4a']
+const audioExtensions = ['mp3', 'wav', 'ogg', 'aac']
 
 const getAcceptList = () => {
   const { image, document, audio, video } = props.applicationDetails.file_upload_setting
@@ -277,9 +254,9 @@ const getAcceptList = () => {
   if (video) {
     accepts = [...accepts, ...videoExtensions]
   }
-
+  // console.log(accepts)
   if (accepts.length === 0) {
-    return `.${t('chat.uploadFile.tipMessage')}`
+    return '.请在文件上传配置中选择文件类型'
   }
   return accepts.map((ext: any) => '.' + ext).join(',')
 }
@@ -303,13 +280,13 @@ const uploadFile = async (file: any, fileList: any) => {
     uploadAudioList.value.length +
     uploadVideoList.value.length
   if (file_limit_once >= maxFiles) {
-    MsgWarning(t('chat.uploadFile.limitMessage1') + maxFiles + t('chat.uploadFile.limitMessage2'))
+    MsgWarning('最多上传' + maxFiles + '个文件')
     fileList.splice(0, fileList.length)
     return
   }
   if (fileList.filter((f: any) => f.size > fileLimit * 1024 * 1024).length > 0) {
     // MB
-    MsgWarning(t('chat.uploadFile.sizeLimit') + fileLimit + 'MB')
+    MsgWarning('单个文件大小不能超过' + fileLimit + 'MB')
     fileList.splice(0, fileList.length)
     return
   }
@@ -378,7 +355,7 @@ const uploadFile = async (file: any, fileList: any) => {
         }
       })
       if (!inputValue.value && uploadImageList.value.length > 0) {
-        inputValue.value = t('chat.uploadFile.imageMessage')
+        inputValue.value = '请解析图片内容'
       }
     })
 }
@@ -395,7 +372,7 @@ const showDelete = ref('')
 
 // 定义响应式引用
 const mediaRecorder = ref<any>(null)
-const isDisabledChat = computed(
+const isDisabledChart = computed(
   () => !(inputValue.value.trim() && (props.appId || props.applicationDetails?.name))
 )
 
@@ -418,11 +395,15 @@ const startRecording = async () => {
       },
       (err: any) => {
         MsgAlert(
-          t('common.tip'),
-          `${t('chat.tip.recorderTip')}
+          `提示`,
+          `<p>该功能需要使用麦克风，浏览器禁止不安全页面录音，解决方案如下：<br/>
+1、可开启 https 解决；<br/>
+2、若无 https 配置则需要修改浏览器安全配置，Chrome 设置如下：<br/>
+(1) 地址栏输入chrome://flags/#unsafely-treat-insecure-origin-as-secure；<br/>
+(2) 将 http 站点配置在文本框中，例如: http://127.0.0.1:8080。</p>
     <img src="${new URL(`@/assets/tipIMG.jpg`, import.meta.url).href}" style="width: 100%;" />`,
           {
-            confirmButtonText: t('chat.tip.confirm'),
+            confirmButtonText: '我知道了',
             dangerouslyUseHTMLString: true,
             customClass: 'record-tip-confirm'
           }
@@ -431,11 +412,15 @@ const startRecording = async () => {
     )
   } catch (error) {
     MsgAlert(
-      t('common.tip'),
-      `${t('chat.tip.recorderTip')}
+      `提示`,
+      `<p>该功能需要使用麦克风，浏览器禁止不安全页面录音，解决方案如下：<br/>
+1、可开启 https 解决；<br/>
+2、若无 https 配置则需要修改浏览器安全配置，Chrome 设置如下：<br/>
+(1) 地址栏输入chrome://flags/#unsafely-treat-insecure-origin-as-secure；<br/>
+(2) 将 http 站点配置在文本框中，例如: http://127.0.0.1:8080。</p>
     <img src="${new URL(`@/assets/tipIMG.jpg`, import.meta.url).href}" style="width: 100%;" />`,
       {
-        confirmButtonText: t('chat.tip.confirm'),
+        confirmButtonText: '我知道了',
         dangerouslyUseHTMLString: true,
         customClass: 'record-tip-confirm'
       }
@@ -459,7 +444,7 @@ const stopRecording = () => {
         uploadRecording(blob) // 上传录音文件
       },
       (err: any) => {
-        console.error(`${t('chat.tip.recorderError')}:`, err)
+        console.error('录音失败:', err)
       }
     )
   }
@@ -477,20 +462,11 @@ const uploadRecording = async (audioBlob: Blob) => {
         recorderLoading.value = false
         mediaRecorder.value.close()
         inputValue.value = typeof response.data === 'string' ? response.data : ''
-        // 自动发送
-        if (props.applicationDetails.stt_autosend) {
-          nextTick(() => {
-            autoSendMessage()
-          })
-        }
-      })
-      .catch((error) => {
-        recorderLoading.value = false
-        console.error(`${t('chat.uploadFile.errorMessage')}:`, error)
+        // chatMessage(null, res.data)
       })
   } catch (error) {
     recorderLoading.value = false
-    console.error(`${t('chat.uploadFile.errorMessage')}:`, error)
+    console.error('上传失败:', error)
   }
 }
 const handleTimeChange = () => {
@@ -510,44 +486,30 @@ const handleTimeChange = () => {
   }, 1000)
 }
 
-function autoSendMessage() {
-  props.sendMessage(inputValue.value, {
-    image_list: uploadImageList.value,
-    document_list: uploadDocumentList.value,
-    audio_list: uploadAudioList.value,
-    video_list: uploadVideoList.value
-  })
-  inputValue.value = ''
-  uploadImageList.value = []
-  uploadDocumentList.value = []
-  uploadAudioList.value = []
-  uploadVideoList.value = []
-  quickInputRef.value.textareaStyle.height = '45px'
-}
-
 function sendChatHandle(event?: any) {
   if (!event?.ctrlKey) {
     // 如果没有按下组合键ctrl，则会阻止默认事件
     event?.preventDefault()
-    if (!isDisabledChat.value && !props.loading && !event?.isComposing) {
+    if (!isDisabledChart.value && !props.loading && !event?.isComposing) {
       if (inputValue.value.trim()) {
-        autoSendMessage()
+        props.sendMessage(inputValue.value, {
+          image_list: uploadImageList.value,
+          document_list: uploadDocumentList.value,
+          audio_list: uploadAudioList.value,
+          video_list: uploadVideoList.value
+        })
+        inputValue.value = ''
+        uploadImageList.value = []
+        uploadDocumentList.value = []
+        uploadAudioList.value = []
+        uploadVideoList.value = []
+        quickInputRef.value.textareaStyle.height = '45px'
       }
     }
   } else {
     // 如果同时按下ctrl+回车键，则会换行
-    insertNewlineAtCursor()
+    inputValue.value += '\n'
   }
-}
-const insertNewlineAtCursor = () => {
-  const textarea = document.querySelector('.el-textarea__inner') as HTMLTextAreaElement
-  const startPos = textarea.selectionStart
-  const endPos = textarea.selectionEnd
-  // 在光标处插入换行符
-  inputValue.value = inputValue.value.slice(0, startPos) + '\n' + inputValue.value.slice(endPos)
-  nextTick(() => {
-    textarea.setSelectionRange(startPos + 1, startPos + 1) // 光标定位到换行后位置
-  })
 }
 
 function deleteFile(index: number, val: string) {
@@ -571,9 +533,6 @@ function mouseleave() {
 }
 
 onMounted(() => {
-  bus.on('chat-input', (message: string) => {
-    inputValue.value = message
-  })
   if (question) {
     inputValue.value = decodeURIComponent(question.trim())
     sendChatHandle()

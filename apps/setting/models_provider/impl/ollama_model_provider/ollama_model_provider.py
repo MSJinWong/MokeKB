@@ -12,101 +12,82 @@ from typing import Dict, Iterator
 from urllib.parse import urlparse, ParseResult
 
 import requests
+from langchain.chat_models.base import BaseChatModel
+
+from common import forms
+from common.exception.app_exception import AppApiException
+from common.forms import BaseForm
 from common.util.file_util import get_file_content
 from setting.models_provider.base_model_provider import IModelProvider, ModelProvideInfo, ModelInfo, ModelTypeConst, \
     BaseModelCredential, DownModelChunk, DownModelChunkStatus, ValidCode, ModelInfoManage
 from setting.models_provider.impl.ollama_model_provider.credential.embedding import OllamaEmbeddingModelCredential
 from setting.models_provider.impl.ollama_model_provider.credential.image import OllamaImageModelCredential
 from setting.models_provider.impl.ollama_model_provider.credential.llm import OllamaLLMModelCredential
-from setting.models_provider.impl.ollama_model_provider.credential.reranker import OllamaReRankModelCredential
 from setting.models_provider.impl.ollama_model_provider.model.embedding import OllamaEmbedding
 from setting.models_provider.impl.ollama_model_provider.model.image import OllamaImage
 from setting.models_provider.impl.ollama_model_provider.model.llm import OllamaChatModel
-from setting.models_provider.impl.ollama_model_provider.model.reranker import OllamaReranker
 from smartdoc.conf import PROJECT_DIR
-from django.utils.translation import gettext as _
 
 ""
 
 ollama_llm_model_credential = OllamaLLMModelCredential()
 model_info_list = [
     ModelInfo(
-        'deepseek-r1:1.5b',
-        '',
-        ModelTypeConst.LLM, ollama_llm_model_credential, OllamaChatModel),
-    ModelInfo(
-        'deepseek-r1:7b',
-        '',
-        ModelTypeConst.LLM, ollama_llm_model_credential, OllamaChatModel),
-    ModelInfo(
-        'deepseek-r1:8b',
-        '',
-        ModelTypeConst.LLM, ollama_llm_model_credential, OllamaChatModel),
-    ModelInfo(
-        'deepseek-r1:14b',
-        '',
-        ModelTypeConst.LLM, ollama_llm_model_credential, OllamaChatModel),
-    ModelInfo(
-        'deepseek-r1:32b',
-        '',
-        ModelTypeConst.LLM, ollama_llm_model_credential, OllamaChatModel),
-
-    ModelInfo(
         'llama2',
-        _('Llama 2 is a set of pretrained and fine-tuned generative text models ranging in size from 7 billion to 70 billion. This is a repository of 7B pretrained models. Links to other models can be found in the index at the bottom.'),
+        'Llama 2 是一组经过预训练和微调的生成文本模型，其规模从 70 亿到 700 亿个不等。这是 7B 预训练模型的存储库。其他模型的链接可以在底部的索引中找到。',
         ModelTypeConst.LLM, ollama_llm_model_credential, OllamaChatModel),
     ModelInfo(
         'llama2:13b',
-        _('Llama 2 is a set of pretrained and fine-tuned generative text models ranging in size from 7 billion to 70 billion. This is a repository of 13B pretrained models. Links to other models can be found in the index at the bottom.'),
+        'Llama 2 是一组经过预训练和微调的生成文本模型，其规模从 70 亿到 700 亿个不等。这是 13B 预训练模型的存储库。其他模型的链接可以在底部的索引中找到。',
         ModelTypeConst.LLM, ollama_llm_model_credential, OllamaChatModel),
     ModelInfo(
         'llama2:70b',
-        _('Llama 2 is a set of pretrained and fine-tuned generative text models ranging in size from 7 billion to 70 billion. This is a repository of 70B pretrained models. Links to other models can be found in the index at the bottom.'),
+        'Llama 2 是一组经过预训练和微调的生成文本模型，其规模从 70 亿到 700 亿个不等。这是 70B 预训练模型的存储库。其他模型的链接可以在底部的索引中找到。',
         ModelTypeConst.LLM, ollama_llm_model_credential, OllamaChatModel),
     ModelInfo(
         'llama2-chinese:13b',
-        _('Since the Chinese alignment of Llama2 itself is weak, we use the Chinese instruction set to fine-tune meta-llama/Llama-2-13b-chat-hf with LoRA so that it has strong Chinese conversation capabilities.'),
+        '由于Llama2本身的中文对齐较弱，我们采用中文指令集，对meta-llama/Llama-2-13b-chat-hf进行LoRA微调，使其具备较强的中文对话能力。',
         ModelTypeConst.LLM, ollama_llm_model_credential, OllamaChatModel),
     ModelInfo(
         'llama3:8b',
-        _('Meta Llama 3: The most capable public product LLM to date. 8 billion parameters.'),
+        'Meta Llama 3：迄今为止最有能力的公开产品LLM。80亿参数。',
         ModelTypeConst.LLM, ollama_llm_model_credential, OllamaChatModel),
     ModelInfo(
         'llama3:70b',
-        _('Meta Llama 3: The most capable public product LLM to date. 70 billion parameters.'),
+        'Meta Llama 3：迄今为止最有能力的公开产品LLM。700亿参数。',
         ModelTypeConst.LLM, ollama_llm_model_credential, OllamaChatModel),
     ModelInfo(
         'qwen:0.5b',
-        _("Compared with previous versions, qwen 1.5 0.5b has significantly enhanced the model's alignment with human preferences and its multi-language processing capabilities. Models of all sizes support a context length of 32768 tokens. 500 million parameters."),
+        'qwen 1.5 0.5b 相较于以往版本，模型与人类偏好的对齐程度以及多语言处理能力上有显著增强。所有规模的模型都支持32768个tokens的上下文长度。5亿参数。',
         ModelTypeConst.LLM, ollama_llm_model_credential, OllamaChatModel),
     ModelInfo(
         'qwen:1.8b',
-        _("Compared with previous versions, qwen 1.5 1.8b has significantly enhanced the model's alignment with human preferences and its multi-language processing capabilities. Models of all sizes support a context length of 32768 tokens. 1.8 billion parameters."),
+        'qwen 1.5 1.8b 相较于以往版本，模型与人类偏好的对齐程度以及多语言处理能力上有显著增强。所有规模的模型都支持32768个tokens的上下文长度。18亿参数。',
         ModelTypeConst.LLM, ollama_llm_model_credential, OllamaChatModel),
     ModelInfo(
         'qwen:4b',
-        _("Compared with previous versions, qwen 1.5 4b has significantly enhanced the model's alignment with human preferences and its multi-language processing capabilities. Models of all sizes support a context length of 32768 tokens. 4 billion parameters."),
+        'qwen 1.5 4b 相较于以往版本，模型与人类偏好的对齐程度以及多语言处理能力上有显著增强。所有规模的模型都支持32768个tokens的上下文长度。40亿参数。',
         ModelTypeConst.LLM, ollama_llm_model_credential, OllamaChatModel),
 
     ModelInfo(
         'qwen:7b',
-        _("Compared with previous versions, qwen 1.5 7b has significantly enhanced the model's alignment with human preferences and its multi-language processing capabilities. Models of all sizes support a context length of 32768 tokens. 7 billion parameters."),
+        'qwen 1.5 7b 相较于以往版本，模型与人类偏好的对齐程度以及多语1言处理能力上有显著增强。所有规模的模型都支持32768个tokens的上下文长度。70亿参数。',
         ModelTypeConst.LLM, ollama_llm_model_credential, OllamaChatModel),
     ModelInfo(
         'qwen:14b',
-        _("Compared with previous versions, qwen 1.5 14b has significantly enhanced the model's alignment with human preferences and its multi-language processing capabilities. Models of all sizes support a context length of 32768 tokens. 14 billion parameters."),
+        'qwen 1.5 14b 相较于以往版本，模型与人类偏好的对齐程度以及多语言处理能力上有显著增强。所有规模的模型都支持32768个tokens的上下文长度。140亿参数。',
         ModelTypeConst.LLM, ollama_llm_model_credential, OllamaChatModel),
     ModelInfo(
         'qwen:32b',
-        _("Compared with previous versions, qwen 1.5 32b has significantly enhanced the model's alignment with human preferences and its multi-language processing capabilities. Models of all sizes support a context length of 32768 tokens. 32 billion parameters."),
+        'qwen 1.5 32b 相较于以往版本，模型与人类偏好的对齐程度以及多语言处理能力上有显著增强。所有规模的模型都支持32768个tokens的上下文长度。320亿参数。',
         ModelTypeConst.LLM, ollama_llm_model_credential, OllamaChatModel),
     ModelInfo(
         'qwen:72b',
-        _("Compared with previous versions, qwen 1.5 72b has significantly enhanced the model's alignment with human preferences and its multi-language processing capabilities. Models of all sizes support a context length of 32768 tokens. 72 billion parameters."),
+        'qwen 1.5 72b 相较于以往版本，模型与人类偏好的对齐程度以及多语言处理能力上有显著增强。所有规模的模型都支持32768个tokens的上下文长度。720亿参数。',
         ModelTypeConst.LLM, ollama_llm_model_credential, OllamaChatModel),
     ModelInfo(
         'qwen:110b',
-        _("Compared with previous versions, qwen 1.5 110b has significantly enhanced the model's alignment with human preferences and its multi-language processing capabilities. Models of all sizes support a context length of 32768 tokens. 110 billion parameters."),
+        'qwen 1.5 110b 相较于以往版本，模型与人类偏好的对齐程度以及多语言处理能力上有显著增强。所有规模的模型都支持32768个tokens的上下文长度。1100亿参数。',
         ModelTypeConst.LLM, ollama_llm_model_credential, OllamaChatModel),
     ModelInfo(
         'qwen2:72b-instruct',
@@ -150,23 +131,16 @@ model_info_list = [
         ModelTypeConst.LLM, ollama_llm_model_credential, OllamaChatModel),
     ModelInfo(
         'phi3',
-        _("Phi-3 Mini is Microsoft's 3.8B parameter, lightweight, state-of-the-art open model."),
+        'Phi-3 Mini是Microsoft的3.8B参数，轻量级，最先进的开放模型。',
         ModelTypeConst.LLM, ollama_llm_model_credential, OllamaChatModel),
 ]
 ollama_embedding_model_credential = OllamaEmbeddingModelCredential()
 ollama_image_model_credential = OllamaImageModelCredential()
-ollama_reranker_model_credential = OllamaReRankModelCredential()
 embedding_model_info = [
     ModelInfo(
         'nomic-embed-text',
-        _('A high-performance open embedding model with a large token context window.'),
+        '一个具有大令牌上下文窗口的高性能开放嵌入模型。',
         ModelTypeConst.EMBEDDING, ollama_embedding_model_credential, OllamaEmbedding),
-]
-reranker_model_info = [
-    ModelInfo(
-        'linux6200/bge-reranker-v2-m3',
-        '',
-        ModelTypeConst.RERANKER, ollama_reranker_model_credential, OllamaReranker),
 ]
 
 image_model_info = [
@@ -190,16 +164,14 @@ model_info_manage = (
     .append_model_info_list(embedding_model_info)
     .append_default_model_info(ModelInfo(
         'phi3',
-        _('Phi-3 Mini is Microsoft\'s 3.8B parameter, lightweight, state-of-the-art open model.'),
+        'Phi-3 Mini是Microsoft的3.8B参数，轻量级，最先进的开放模型。',
         ModelTypeConst.LLM, ollama_llm_model_credential, OllamaChatModel))
     .append_default_model_info(ModelInfo(
         'nomic-embed-text',
-        _('A high-performance open embedding model with a large token context window.'),
+        '一个具有大令牌上下文窗口的高性能开放嵌入模型。',
         ModelTypeConst.EMBEDDING, ollama_embedding_model_credential, OllamaEmbedding), )
     .append_model_info_list(image_model_info)
     .append_default_model_info(image_model_info[0])
-    .append_model_info_list(reranker_model_info)
-    .append_default_model_info(reranker_model_info[0])
     .build()
 )
 

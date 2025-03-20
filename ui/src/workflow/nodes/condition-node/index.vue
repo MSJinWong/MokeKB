@@ -18,25 +18,17 @@
           <div class="flex-between lighter">
             {{ item.type }}
             <div class="info" v-if="item.conditions.length > 1">
-              <span>{{ $t('views.applicationWorkflow.nodes.conditionNode.conditions.info') }}</span>
+              <span>符合以下</span>
               <el-select
                 :teleported="false"
                 v-model="item.condition"
                 size="small"
                 style="width: 60px; margin: 0 8px"
               >
-                <el-option
-                  :label="$t('views.applicationWorkflow.condition.AND')"
-                  value="and"
-                />
-                <el-option
-                  :label="$t('views.applicationWorkflow.condition.OR')"
-                  value="or"
-                />
+                <el-option label="所有" value="and" />
+                <el-option label="任一" value="or" />
               </el-select>
-              <span>{{
-                $t('views.applicationWorkflow.nodes.conditionNode.conditions.label')
-              }}</span>
+              <span>条件</span>
             </div>
           </div>
           <div v-if="index !== form_data.branch.length - 1" class="mt-8">
@@ -48,7 +40,7 @@
                     :rules="{
                       type: 'array',
                       required: true,
-                      message: $t('views.applicationWorkflow.variable.placeholder'),
+                      message: '请选择变量',
                       trigger: 'change'
                     }"
                   >
@@ -56,9 +48,7 @@
                       ref="nodeCascaderRef"
                       :nodeModel="nodeModel"
                       class="w-full"
-                      :placeholder="
-                        $t('views.applicationWorkflow.variable.placeholder')
-                      "
+                      placeholder="请选择变量"
                       v-model="condition.field"
                     />
                   </el-form-item>
@@ -68,9 +58,7 @@
                     :prop="'branch.' + index + '.conditions.' + cIndex + '.compare'"
                     :rules="{
                       required: true,
-                      message: $t(
-                        'views.applicationWorkflow.nodes.conditionNode.conditions.requiredMessage'
-                      ),
+                      message: '请选择条件',
                       trigger: 'change'
                     }"
                   >
@@ -78,11 +66,7 @@
                       @wheel="wheel"
                       :teleported="false"
                       v-model="condition.compare"
-                      :placeholder="
-                        $t(
-                          'views.applicationWorkflow.nodes.conditionNode.conditions.requiredMessage'
-                        )
-                      "
+                      placeholder="请选择条件"
                       clearable
                       @change="changeCondition($event, index, cIndex)"
                     >
@@ -98,16 +82,11 @@
                     :prop="'branch.' + index + '.conditions.' + cIndex + '.value'"
                     :rules="{
                       required: true,
-                      message: $t('views.applicationWorkflow.nodes.conditionNode.valueMessage'),
+                      message: '请输入值',
                       trigger: 'blur'
                     }"
                   >
-                    <el-input
-                      v-model="condition.value"
-                      :placeholder="
-                        $t('views.applicationWorkflow.nodes.conditionNode.valueMessage')
-                      "
-                    />
+                    <el-input v-model="condition.value" placeholder="请输入值" />
                   </el-form-item>
                 </el-col>
                 <el-col :span="1">
@@ -131,13 +110,12 @@
             @click="addCondition(index)"
             v-if="index !== form_data.branch.length - 1"
           >
-            <el-icon class="mr-4"><Plus /></el-icon>
-            {{ $t('views.applicationWorkflow.nodes.conditionNode.addCondition') }}
+            <el-icon class="mr-4"><Plus /></el-icon> 添加条件
           </el-button>
         </el-card>
       </template>
       <el-button link type="primary" @click="addBranch">
-        <el-icon class="mr-4"><Plus /></el-icon> {{ $t('views.applicationWorkflow.nodes.conditionNode.addBranch') }}
+        <el-icon class="mr-4"><Plus /></el-icon> 添加分支
       </el-button>
     </el-form>
   </NodeContainer>

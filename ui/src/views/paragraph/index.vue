@@ -4,20 +4,17 @@
       <div style="width: 78%">
         <h3 style="display: inline-block">{{ documentDetail?.name }}</h3>
         <el-text type="info" v-if="documentDetail?.type === '1'"
-          >（{{ $t('views.document.form.source_url.label') }}：<el-link
-            :href="documentDetail?.meta?.source_url"
-            target="_blank"
-          >
+          >（文档地址：<el-link :href="documentDetail?.meta?.source_url" target="_blank">
             <span class="break-all">{{ documentDetail?.meta?.source_url }} </span></el-link
           >）
         </el-text>
       </div>
       <div class="header-button">
         <el-button @click="batchSelectedHandle(true)" v-if="isBatch === false">
-          {{ $t('views.paragraph.setting.batchSelected') }}
+          批量选择
         </el-button>
         <el-button @click="batchSelectedHandle(false)" v-if="isBatch === true">
-          {{ $t('views.paragraph.setting.cancelSelected') }}
+          取消选择
         </el-button>
         <el-button
           @click="addParagraph"
@@ -25,7 +22,7 @@
           :disabled="loading"
           v-if="isBatch === false"
         >
-          {{ $t('views.paragraph.addParagraph') }}
+          添加分段
         </el-button>
       </div>
     </template>
@@ -34,10 +31,10 @@
       v-loading="(paginationConfig.current_page === 1 && loading) || changeStateloading"
     >
       <div class="flex-between p-8">
-        <span>{{ paginationConfig.total }} {{ $t('views.paragraph.paragraph_count') }}</span>
+        <span>{{ paginationConfig.total }} 段落</span>
         <el-input
           v-model="search"
-          :placeholder="$t('common.search')"
+          placeholder="搜索"
           class="input-with-select"
           style="width: 260px"
           @change="searchHandle"
@@ -45,15 +42,15 @@
         >
           <template #prepend>
             <el-select v-model="searchType" placeholder="Select" style="width: 80px">
-              <el-option :label="$t('common.title')" value="title" />
-              <el-option :label="$t('common.content')" value="content" />
+              <el-option label="标题" value="title" />
+              <el-option label="内容" value="content" />
             </el-select>
           </template>
         </el-input>
       </div>
       <el-scrollbar>
         <div class="document-detail-height">
-          <el-empty v-if="paragraphDetail.length == 0" :description="$t('common.noData')" />
+          <el-empty v-if="paragraphDetail.length == 0" description="暂无数据" />
 
           <InfiniteScroll
             v-else
@@ -90,10 +87,7 @@
 
                   <template #footer>
                     <div class="footer-content flex-between">
-                      <span>
-                        {{ numberFormat(item?.content.length) || 0 }}
-                        {{ $t('views.paragraph.character_count') }}
-                      </span>
+                      <span> {{ numberFormat(item?.content.length) || 0 }} 个 字符 </span>
                     </div>
                   </template>
                 </CardBox>
@@ -119,10 +113,7 @@
 
                   <template #footer>
                     <div class="footer-content flex-between">
-                      <span>
-                        {{ numberFormat(item?.content.length) || 0 }}
-                        {{ $t('views.paragraph.character_count') }}
-                      </span>
+                      <span> {{ numberFormat(item?.content.length) || 0 }} 个 字符 </span>
 
                       <span @click.stop>
                         <el-dropdown trigger="click">
@@ -133,17 +124,15 @@
                             <el-dropdown-menu>
                               <el-dropdown-item @click="openGenerateDialog(item)">
                                 <el-icon><Connection /></el-icon>
-                                {{
-                                  $t('views.document.generateQuestion.title')
-                                }}</el-dropdown-item
+                                生成问题</el-dropdown-item
                               >
                               <el-dropdown-item @click="openSelectDocumentDialog(item)">
                                 <AppIcon iconName="app-migrate"></AppIcon>
-                                {{ $t('views.document.setting.migration') }}</el-dropdown-item
+                                迁移</el-dropdown-item
                               >
-                              <el-dropdown-item icon="Delete" @click.stop="deleteParagraph(item)">{{
-                                $t('common.delete')
-                              }}</el-dropdown-item>
+                              <el-dropdown-item icon="Delete" @click.stop="deleteParagraph(item)"
+                                >删除</el-dropdown-item
+                              >
                             </el-dropdown-menu>
                           </template>
                         </el-dropdown>
@@ -159,19 +148,16 @@
 
       <div class="mul-operation border-t w-full" v-if="isBatch === true">
         <el-button :disabled="multipleSelection.length === 0" @click="openGenerateDialog()">
-          {{ $t('views.document.generateQuestion.title') }}
+          生成问题
         </el-button>
         <el-button :disabled="multipleSelection.length === 0" @click="openSelectDocumentDialog()">
-          {{ $t('views.document.setting.migration') }}
+          迁移
         </el-button>
 
         <el-button :disabled="multipleSelection.length === 0" @click="deleteMulParagraph">
-          {{ $t('common.delete') }}
+          删除
         </el-button>
-        <span class="ml-8">
-          {{ $t('views.document.selected') }} {{ multipleSelection.length }}
-          {{ $t('views.document.items') }}
-        </span>
+        <span class="ml-8"> 已选 {{ multipleSelection.length }} 项 </span>
       </div>
     </div>
     <ParagraphDialog ref="ParagraphDialogRef" :title="title" @refresh="refresh" />
@@ -190,7 +176,7 @@ import GenerateRelatedDialog from '@/components/generate-related-dialog/index.vu
 import { numberFormat } from '@/utils/utils'
 import { MsgSuccess, MsgConfirm } from '@/utils/message'
 import useStore from '@/stores'
-import { t } from '@/locales'
+
 const { paragraph } = useStore()
 const route = useRoute()
 const {
@@ -222,7 +208,7 @@ function refreshMigrateParagraph() {
     (v) => !multipleSelection.value.includes(v.id)
   )
   multipleSelection.value = []
-  MsgSuccess(t('views.document.tip.migrationSuccess'))
+  MsgSuccess('迁移删除成功')
 }
 
 function openSelectDocumentDialog(row?: any) {
@@ -233,10 +219,10 @@ function openSelectDocumentDialog(row?: any) {
 }
 function deleteMulParagraph() {
   MsgConfirm(
-    `${t('views.document.delete.confirmTitle1')} ${multipleSelection.value.length} ${t('views.document.delete.confirmTitle2')}`,
-    t('views.paragraph.delete.confirmMessage'),
+    `是否批量删除 ${multipleSelection.value.length} 个分段?`,
+    `删除后无法恢复，请谨慎操作。`,
     {
-      confirmButtonText: t('common.confirm'),
+      confirmButtonText: '删除',
       confirmButtonClass: 'danger'
     }
   )
@@ -248,7 +234,7 @@ function deleteMulParagraph() {
             (v) => !multipleSelection.value.includes(v.id)
           )
           multipleSelection.value = []
-          MsgSuccess(t('views.document.delete.successMessage'))
+          MsgSuccess('批量删除成功')
         })
     })
     .catch(() => {})
@@ -290,30 +276,26 @@ function changeState(row: any) {
 }
 
 function deleteParagraph(row: any) {
-  MsgConfirm(
-    `${t('views.paragraph.delete.confirmTitle')} ${row.title || '-'} ?`,
-    t('views.paragraph.delete.confirmMessage'),
-    {
-      confirmButtonText: t('common.confirm'),
-      confirmButtonClass: 'danger'
-    }
-  )
+  MsgConfirm(`是否删除段落：${row.title || '-'} ?`, `删除后无法恢复，请谨慎操作。`, {
+    confirmButtonText: '删除',
+    confirmButtonClass: 'danger'
+  })
     .then(() => {
       paragraph.asyncDelParagraph(id, documentId, row.id, loading).then(() => {
         const index = paragraphDetail.value.findIndex((v) => v.id === row.id)
         paragraphDetail.value.splice(index, 1)
-        MsgSuccess(t('common.deleteSuccess'))
+        MsgSuccess('删除成功')
       })
     })
     .catch(() => {})
 }
 
 function addParagraph() {
-  title.value = t('views.paragraph.addParagraph')
+  title.value = '添加分段'
   ParagraphDialogRef.value.open()
 }
 function editParagraph(row: any) {
-  title.value = t('views.paragraph.paragraphDetail') 
+  title.value = '分段详情'
   ParagraphDialogRef.value.open(row)
 }
 

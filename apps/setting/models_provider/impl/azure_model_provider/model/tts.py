@@ -1,6 +1,8 @@
 from typing import Dict
 
-from openai import AzureOpenAI
+from dashscope import api_key
+from dashscope.common.env import api_version
+from openai import OpenAI, AzureOpenAI
 
 from common.config.tokenizer_manage_config import TokenizerManage
 from common.util.common import _remove_empty_lines

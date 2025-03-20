@@ -7,10 +7,13 @@
     @desc:
 """
 
-from typing import List, Dict
+from typing import List, Dict, Optional, Any, Iterator, Type
 
-from langchain_core.messages import BaseMessage, get_buffer_string
+from langchain_core.callbacks import CallbackManagerForLLMRun
+from langchain_core.messages import BaseMessage, get_buffer_string, BaseMessageChunk, AIMessageChunk
+from langchain_core.outputs import ChatGenerationChunk
 from langchain_openai import AzureChatOpenAI
+from langchain_openai.chat_models.base import _convert_delta_to_message_chunk
 
 from common.config.tokenizer_manage_config import TokenizerManage
 from setting.models_provider.base_model_provider import MaxKBBaseModel
@@ -27,7 +30,6 @@ class AzureChatModel(MaxKBBaseModel, AzureChatOpenAI):
 
         return AzureChatModel(
             azure_endpoint=model_credential.get('api_base'),
-            model_name=model_name,
             openai_api_version=model_credential.get('api_version', '2024-02-15-preview'),
             deployment_name=model_credential.get('deployment_name'),
             openai_api_key=model_credential.get('api_key'),

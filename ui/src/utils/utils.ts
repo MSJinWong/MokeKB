@@ -47,10 +47,11 @@ export function getImgUrl(name: string) {
   const list = Object.values(typeList).flat()
 
   const type = list.includes(fileType(name).toLowerCase()) ? fileType(name).toLowerCase() : 'unknow'
-  return new URL(`../assets/fileType/${type}-icon.svg`, import.meta.url).href
+  return new URL(`../assets/${type}-icon.svg`, import.meta.url).href
 }
 // 是否是白名单后缀
 export function isRightType(name: string, type: string) {
+  console.log(name, type)
   return typeList[type].includes(fileType(name).toLowerCase())
 }
 
@@ -98,18 +99,4 @@ export function downloadByURL(url: string, name: string) {
   document.body.appendChild(a)
   a.click()
   document.body.removeChild(a)
-}
-
-// 截取文件名
-export function cutFilename(filename: string, num: number) {
-  const lastIndex = filename.lastIndexOf('.')
-  const suffix = lastIndex === -1 ? '' : filename.substring(lastIndex + 1)
-  return filename.substring(0, num - suffix.length - 1) + '.' + suffix
-}
-
-export function getNormalizedUrl(url: string) {
-  if (url && !url.endsWith('/') && !/\.[^/]+$/.test(url)) {
-    return url + '/'
-  }
-  return url
 }

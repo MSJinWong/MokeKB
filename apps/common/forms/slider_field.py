@@ -10,7 +10,6 @@ from typing import Dict
 
 from common.exception.app_exception import AppApiException
 from common.forms import BaseField, TriggerType, BaseLabel
-from django.utils.translation import gettext_lazy as _
 
 
 class SliderField(BaseField):
@@ -53,13 +52,7 @@ class SliderField(BaseField):
         if value is not None:
             if value < self.attrs.get('min'):
                 raise AppApiException(500,
-                                      _("The {field_label} cannot be less than {min}").format(field_label=field_label,
-                                                                                              min=self.attrs.get(
-                                                                                                  'min')))
-
+                                      f"{field_label} 不能小于{self.attrs.get('min')}")
             if value > self.attrs.get('max'):
                 raise AppApiException(500,
-                                      _("The {field_label} cannot be greater than {max}").format(
-                                          field_label=field_label,
-                                          max=self.attrs.get(
-                                              'max')))
+                                      f"{field_label} 不能大于{self.attrs.get('max')}")

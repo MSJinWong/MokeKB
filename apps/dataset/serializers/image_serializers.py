@@ -16,11 +16,10 @@ from common.exception.app_exception import NotFound404
 from common.field.common import UploadedImageField
 from common.util.field_message import ErrMessage
 from dataset.models import Image
-from django.utils.translation import gettext_lazy as _
 
 
 class ImageSerializer(serializers.Serializer):
-    image = UploadedImageField(required=True, error_messages=ErrMessage.image(_('image')))
+    image = UploadedImageField(required=True, error_messages=ErrMessage.image("图片"))
 
     def upload(self, with_valid=True):
         if with_valid:
@@ -39,7 +38,7 @@ class ImageSerializer(serializers.Serializer):
             image_id = self.data.get('id')
             image = QuerySet(Image).filter(id=image_id).first()
             if image is None:
-                raise NotFound404(404, _('Image not found'))
+                raise NotFound404(404, "不存在的图片")
             if image.image_name.endswith('.svg'):
                 return HttpResponse(image.image, status=200, headers={'Content-Type': 'image/svg+xml'})
             # gif

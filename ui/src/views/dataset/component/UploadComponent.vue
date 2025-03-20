@@ -1,5 +1,5 @@
 <template>
-  <h4 class="title-decoration-1 mb-8">{{ $t('views.document.uploadDocument') }}</h4>
+  <h4 class="title-decoration-1 mb-8">上传文档</h4>
   <el-form
     ref="FormRef"
     :model="form"
@@ -9,11 +9,9 @@
   >
     <div class="mt-16 mb-16">
       <el-radio-group v-model="form.fileType" @change="radioChange" class="app-radio-button-group">
-        <el-radio-button value="txt">{{ $t('views.document.fileType.txt.label') }}</el-radio-button>
-        <el-radio-button value="table">{{
-          $t('views.document.fileType.table.label')
-        }}</el-radio-button>
-        <el-radio-button value="QA">{{ $t('views.document.fileType.QA.label') }}</el-radio-button>
+        <el-radio-button value="txt">文本文件</el-radio-button>
+        <el-radio-button value="table">表格</el-radio-button>
+        <el-radio-button value="QA">QA 问答对</el-radio-button>
       </el-radio-group>
     </div>
 
@@ -24,18 +22,16 @@
         </div>
         <div class="ml-16 lighter">
           <p>
-            {{ $t('views.document.fileType.QA.tip1') }}
+            1、点击下载对应模版并完善信息：
             <el-button type="primary" link @click="downloadTemplate('excel')">
-              {{ $t('views.document.upload.download') }} Excel
-              {{ $t('views.document.upload.template') }}
+              下载 Excel 模版
             </el-button>
             <el-button type="primary" link @click="downloadTemplate('csv')">
-              {{ $t('views.document.upload.download') }} CSV
-              {{ $t('views.document.upload.template') }}
+              下载 CSV 模版
             </el-button>
           </p>
-          <p>{{ $t('views.document.fileType.QA.tip2') }}</p>
-          <p>{{ $t('views.document.fileType.QA.tip3') }}</p>
+          <p>2、上传的表格文件中每个 sheet 会作为一个文档，sheet名称为文档名称</p>
+          <p>3、每次最多上传 50 个文件，每个文件不超过 100MB</p>
         </div>
       </div>
       <el-upload
@@ -56,16 +52,12 @@
         <img src="@/assets/upload-icon.svg" alt="" />
         <div class="el-upload__text">
           <p>
-            {{ $t('views.document.upload.uploadMessage') }}
-            <em class="hover" @click.prevent="handlePreview(false)">
-              {{ $t('views.document.upload.selectFile') }}
-            </em>
-            <em class="hove ml-4" @click.prevent="handlePreview(true)">
-              {{ $t('views.document.upload.selectFiles') }}
-            </em>
+            拖拽文件至此上传或
+            <em class="hover" @click.prevent="handlePreview(false)"> 选择文件 </em>
+            <em class="hover" @click.prevent="handlePreview(true)"> 选择文件夹 </em>
           </p>
           <div class="upload__decoration">
-            <p>{{ $t('views.document.upload.formats') }}XLS、XLSX、CSV、ZIP</p>
+            <p>支持格式：XLS、XLSX、CSV、ZIP</p>
           </div>
         </div>
       </el-upload>
@@ -77,19 +69,17 @@
         </div>
         <div class="ml-16 lighter">
           <p>
-            {{ $t('views.document.fileType.table.tip1') }}
+            1、点击下载对应模版并完善信息：
             <el-button type="primary" link @click="downloadTableTemplate('excel')">
-              {{ $t('views.document.upload.download') }} Excel
-              {{ $t('views.document.upload.template') }}
+              下载 Excel 模版
             </el-button>
             <el-button type="primary" link @click="downloadTableTemplate('csv')">
-              {{ $t('views.document.upload.download') }} CSV
-              {{ $t('views.document.upload.template') }}
+              下载 CSV 模版
             </el-button>
           </p>
-          <p>{{ $t('views.document.fileType.table.tip2') }}</p>
-          <p>{{ $t('views.document.fileType.table.tip3') }}</p>
-          <p>{{ $t('views.document.fileType.table.tip4') }}</p>
+          <p>2、第一行必须是列标题，且列标题必须是有意义的术语，表中每条记录将作为一个分段</p>
+          <p>3、上传的表格文件中每个 sheet 会作为一个文档，sheet名称为文档名称</p>
+          <p>4、每次最多上传 50 个文件，每个文件不超过 100MB</p>
         </div>
       </div>
       <el-upload
@@ -110,16 +100,12 @@
         <img src="@/assets/upload-icon.svg" alt="" />
         <div class="el-upload__text">
           <p>
-            {{ $t('views.document.upload.uploadMessage') }}
-            <em class="hover" @click.prevent="handlePreview(false)">
-              {{ $t('views.document.upload.selectFile') }}
-            </em>
-            <em class="hover ml-4" @click.prevent="handlePreview(true)">
-              {{ $t('views.document.upload.selectFiles') }}
-            </em>
+            拖拽文件至此上传或
+            <em class="hover" @click.prevent="handlePreview(false)"> 选择文件 </em>
+            <em class="hover" @click.prevent="handlePreview(true)"> 选择文件夹 </em>
           </p>
           <div class="upload__decoration">
-            <p>{{ $t('views.document.upload.formats') }}XLS、XLSX、CSV</p>
+            <p>支持格式：XLS、XLSX、CSV、ZIP</p>
           </div>
         </div>
       </el-upload>
@@ -130,8 +116,8 @@
           <AppIcon iconName="app-warning-colorful" style="font-size: 16px"></AppIcon>
         </div>
         <div class="ml-16 lighter">
-          <p>{{ $t('views.document.fileType.txt.tip1') }}</p>
-          <p>{{ $t('views.document.fileType.txt.tip2') }}</p>
+          <p>1、文件上传前，建议规范文件的分段标识</p>
+          <p>2、每次最多上传 50 个文件，每个文件不超过 100MB</p>
         </div>
       </div>
       <el-upload
@@ -152,20 +138,12 @@
         <img src="@/assets/upload-icon.svg" alt="" />
         <div class="el-upload__text">
           <p>
-            {{ $t('views.document.upload.uploadMessage') }}
-            <em class="hover" @click.prevent="handlePreview(false)">
-              {{ $t('views.document.upload.selectFile') }}
-            </em>
-            <em class="hover ml-4" @click.prevent="handlePreview(true)">
-              {{ $t('views.document.upload.selectFiles') }}
-            </em>
+            拖拽文件至此上传或
+            <em class="hover" @click.prevent="handlePreview(false)"> 选择文件 </em>
+            <em class="hover" @click.prevent="handlePreview(true)"> 选择文件夹 </em>
           </p>
           <div class="upload__decoration">
-            <p>
-              {{
-                $t('views.document.upload.formats')
-              }}TXT、Markdown、PDF、DOCX、HTML、XLS、XLSX、CSV、ZIP
-            </p>
+            <p>支持格式：TXT、Markdown、PDF、DOCX、HTML、XLS、XLSX、CSV、ZIP</p>
           </div>
         </div>
       </el-upload>
@@ -201,7 +179,6 @@ import { filesize, getImgUrl, isRightType } from '@/utils/utils'
 import { MsgError } from '@/utils/message'
 import documentApi from '@/api/document'
 import useStore from '@/stores'
-import { t } from '@/locales'
 const { dataset } = useStore()
 const documentsFiles = computed(() => dataset.documentsFiles)
 const documentsType = computed(() => dataset.documentsType)
@@ -211,9 +188,7 @@ const form = ref({
 })
 
 const rules = reactive({
-  fileList: [
-    { required: true, message: t('views.document.upload.requiredMessage'), trigger: 'change' }
-  ]
+  fileList: [{ required: true, message: '请上传文件', trigger: 'change' }]
 })
 const FormRef = ref()
 
@@ -223,17 +198,11 @@ watch(form.value, (value) => {
 })
 
 function downloadTemplate(type: string) {
-  documentApi.exportQATemplate(
-    `${type}${t('views.document.upload.template')}.${type == 'csv' ? type : 'xlsx'}`,
-    type
-  )
+  documentApi.exportQATemplate(`${type}模版.${type == 'csv' ? type : 'xlsx'}`, type)
 }
 
 function downloadTableTemplate(type: string) {
-  documentApi.exportTableTemplate(
-    `${type}${t('views.document.upload.template')}.${type == 'csv' ? type : 'xlsx'}`,
-    type
-  )
+  documentApi.exportTableTemplate(`${type}模版.${type == 'csv' ? type : 'xlsx'}`, type)
 }
 
 function radioChange() {
@@ -249,27 +218,24 @@ const fileHandleChange = (file: any, fileList: UploadFiles) => {
   //1、判断文件大小是否合法，文件限制不能大于100M
   const isLimit = file?.size / 1024 / 1024 < 100
   if (!isLimit) {
-    MsgError(t('views.document.upload.errorMessage1'))
+    MsgError('文件大小超过 100MB')
     fileList.splice(-1, 1) //移除当前超出大小的文件
     return false
   }
-
   if (!isRightType(file?.name, form.value.fileType)) {
-    if (file?.name !== '.DS_Store') {
-      MsgError(t('views.document.upload.errorMessage2'))
-    }
+    MsgError('文件格式不支持')
     fileList.splice(-1, 1)
     return false
   }
   if (file?.size === 0) {
-    MsgError(t('views.document.upload.errorMessage3'))
+    MsgError('文件不能为空')
     fileList.splice(-1, 1)
     return false
   }
 }
 
 const onExceed = () => {
-  MsgError(t('views.document.upload.errorMessage4'))
+  MsgError('每次最多上传50个文件')
 }
 
 const handlePreview = (bool: boolean) => {

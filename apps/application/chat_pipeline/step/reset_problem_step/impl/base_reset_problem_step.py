@@ -8,7 +8,6 @@
 """
 from typing import List
 
-from django.utils.translation import gettext as _
 from langchain.schema import HumanMessage
 
 from application.chat_pipeline.step.reset_problem_step.i_reset_problem_step import IResetProblemStep
@@ -16,8 +15,8 @@ from application.models import ChatRecord
 from common.util.split_model import flat_map
 from setting.models_provider.tools import get_model_instance_by_model_user_id
 
-prompt = _(
-    "() contains the user's question. Answer the guessed user's question based on the context ({question}) Requirement: Output a complete question and put it in the <data></data> tag")
+prompt = (
+    '()里面是用户问题,根据上下文回答揣测用户问题({question}) 要求: 输出一个补全问题,并且放在<data></data>标签中')
 
 
 class BaseResetProblemStep(IResetProblemStep):

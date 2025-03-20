@@ -1,7 +1,7 @@
 <template>
   <el-dialog
     align-center
-    :title="$t('common.paramSetting')"
+    :title="$t('views.application.applicationForm.dialogues.paramSettings')"
     class="param-dialog"
     v-model="dialogVisible"
     style="width: 550px"
@@ -13,7 +13,9 @@
       <el-scrollbar>
         <div class="p-16">
           <el-form label-position="top" ref="paramFormRef" :model="form">
-            <el-form-item :label="$t('views.application.applicationForm.dialog.selectSearchMode')">
+            <el-form-item
+              :label="$t('views.application.applicationForm.dialogues.selectSearchMode')"
+            >
               <el-radio-group
                 v-model="form.dataset_setting.search_mode"
                 class="card__radio"
@@ -26,10 +28,10 @@
                 >
                   <el-radio value="embedding" size="large">
                     <p class="mb-4">
-                      {{ $t('views.application.applicationForm.dialog.vectorSearch') }}
+                      {{ $t('views.application.applicationForm.dialogues.vectorSearch') }}
                     </p>
                     <el-text type="info">{{
-                      $t('views.application.applicationForm.dialog.vectorSearchTooltip')
+                      $t('views.application.applicationForm.dialogues.vectorSearchTooltip')
                     }}</el-text>
                   </el-radio>
                 </el-card>
@@ -40,10 +42,10 @@
                 >
                   <el-radio value="keywords" size="large">
                     <p class="mb-4">
-                      {{ $t('views.application.applicationForm.dialog.fullTextSearch') }}
+                      {{ $t('views.application.applicationForm.dialogues.fullTextSearch') }}
                     </p>
                     <el-text type="info">{{
-                      $t('views.application.applicationForm.dialog.fullTextSearchTooltip')
+                      $t('views.application.applicationForm.dialogues.fullTextSearchTooltip')
                     }}</el-text>
                   </el-radio>
                 </el-card>
@@ -53,10 +55,10 @@
                 >
                   <el-radio value="blend" size="large">
                     <p class="mb-4">
-                      {{ $t('views.application.applicationForm.dialog.hybridSearch') }}
+                      {{ $t('views.application.applicationForm.dialogues.hybridSearch') }}
                     </p>
                     <el-text type="info">{{
-                      $t('views.application.applicationForm.dialog.hybridSearchTooltip')
+                      $t('views.application.applicationForm.dialogues.hybridSearchTooltip')
                     }}</el-text>
                   </el-radio>
                 </el-card>
@@ -68,13 +70,9 @@
                   <template #label>
                     <div class="flex align-center">
                       <span class="mr-4">{{
-                        $t('views.application.applicationForm.dialog.similarityThreshold')
+                        $t('views.application.applicationForm.dialogues.similarityThreshold')
                       }}</span>
-                      <el-tooltip
-                        effect="dark"
-                        :content="$t('views.application.applicationForm.dialog.similarityTooltip')"
-                        placement="right"
-                      >
+                      <el-tooltip effect="dark" content="相似度越高相关性越强。" placement="right">
                         <AppIcon iconName="app-warning" class="app-warning-icon"></AppIcon>
                       </el-tooltip>
                     </div>
@@ -92,11 +90,13 @@
                 </el-form-item>
               </el-col>
               <el-col :span="12">
-                <el-form-item :label="$t('views.application.applicationForm.dialog.topReferences')">
+                <el-form-item
+                  :label="$t('views.application.applicationForm.dialogues.topReferences')"
+                >
                   <el-input-number
                     v-model="form.dataset_setting.top_n"
                     :min="1"
-                    :max="10000"
+                    :max="100"
                     :value-on-clear="1"
                     controls-position="right"
                     class="w-full"
@@ -105,7 +105,7 @@
               </el-col>
             </el-row>
 
-            <el-form-item :label="$t('views.application.applicationForm.dialog.maxCharacters')">
+            <el-form-item :label="$t('views.application.applicationForm.dialogues.maxCharacters')">
               <el-slider
                 v-model="form.dataset_setting.max_paragraph_char_number"
                 show-input
@@ -117,7 +117,7 @@
             </el-form-item>
             <el-form-item
               v-if="!isWorkflowType"
-              :label="$t('views.application.applicationForm.dialog.noReferencesAction')"
+              :label="$t('views.application.applicationForm.dialogues.noReferencesAction')"
             >
               <el-form
                 label-position="top"
@@ -134,13 +134,13 @@
                   <div>
                     <el-radio value="ai_questioning">
                       <p>
-                        {{ $t('views.application.applicationForm.dialog.continueQuestioning') }}
+                        {{ $t('views.application.applicationForm.dialogues.continueQuestioning') }}
                       </p>
                     </el-radio>
                   </div>
                   <div>
                     <el-radio value="designated_answer">
-                      <p>{{ $t('views.application.applicationForm.dialog.provideAnswer') }}</p>
+                      <p>{{ $t('views.application.applicationForm.dialogues.provideAnswer') }}</p>
                       <el-form-item
                         v-if="
                           form.dataset_setting.no_references_setting.status === 'designated_answer'
@@ -189,9 +189,11 @@
     </div>
     <template #footer>
       <span class="dialog-footer p-16">
-        <el-button @click.prevent="dialogVisible = false">{{ $t('common.cancel') }}</el-button>
+        <el-button @click.prevent="dialogVisible = false">{{
+          $t('views.application.applicationForm.buttons.cancel')
+        }}</el-button>
         <el-button type="primary" @click="submit(noReferencesformRef)" :loading="loading">
-          {{ $t('common.save') }}
+          {{ $t('views.application.applicationForm.buttons.save') }}
         </el-button>
       </span>
     </template>
@@ -199,6 +201,7 @@
 </template>
 <script setup lang="ts">
 import { ref, watch, reactive } from 'vue'
+import { cloneDeep } from 'lodash'
 import type { FormInstance, FormRules } from 'element-plus'
 import { isWorkFlow } from '@/utils/application'
 import { t } from '@/locales'
@@ -210,15 +213,10 @@ const noReferencesformRef = ref()
 const defaultValue = {
   ai_questioning: '{question}',
   // @ts-ignore
-  designated_answer: t('views.application.applicationForm.dialog.designated_answer')
+  designated_answer: t('views.application.applicationForm.dialogues.designated_answer')
 }
 
-const defaultPrompt =
-  t('views.application.applicationForm.dialog.defaultPrompt1', {
-    question: '{question}'
-  }) +
-  '<data></data>' +
-  t('views.application.applicationForm.dialog.defaultPrompt2')
+const defaultPrompt = `()里面是用户问题,根据上下文回答揣测用户问题({question}) 要求: 输出一个补全问题,并且放在<data></data>标签中`
 
 const form = ref<any>({
   dataset_setting: {
@@ -244,14 +242,14 @@ const noReferencesRules = reactive<FormRules<any>>({
   ai_questioning: [
     {
       required: true,
-      message: t('views.application.applicationForm.form.aiModel.placeholder'),
+      message: t('views.application.applicationForm.dialogues.promptPlaceholder'),
       trigger: 'blur'
     }
   ],
   designated_answer: [
     {
       required: true,
-      message: t('views.application.applicationForm.form.prompt.requiredMessage'),
+      message: t('views.application.applicationForm.dialogues.concentPlaceholder'),
       trigger: 'blur'
     }
   ]

@@ -7,12 +7,11 @@
   </el-card>
 </template>
 <script setup lang="ts">
-import { t } from '@/locales'
 defineOptions({ name: 'CardAdd' })
 defineProps({
   title: {
     type: String,
-    default: t('common.title')
+    default: '标题'
   }
 })
 </script>

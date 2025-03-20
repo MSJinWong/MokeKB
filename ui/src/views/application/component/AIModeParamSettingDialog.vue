@@ -1,12 +1,11 @@
 <template>
   <el-dialog
     align-center
-    :title="$t('common.paramSetting')"
+    :title="$t('views.application.applicationForm.dialogues.paramSettings')"
     class="aiMode-param-dialog"
     v-model="dialogVisible"
     style="width: 550px"
     append-to-body
-    destroy-on-close
     :close-on-click-modal="false"
     :close-on-press-escape="false"
   >
@@ -23,10 +22,10 @@
     <template #footer>
       <span class="dialog-footer p-16">
         <el-button @click.prevent="dialogVisible = false">
-          {{ $t('common.cancel') }}
+          {{ $t('views.application.applicationForm.buttons.cancel') }}
         </el-button>
         <el-button type="primary" @click="submit" :loading="loading">
-          {{ $t('common.confirm') }}
+          {{ $t('views.application.applicationForm.buttons.confirm') }}
         </el-button>
       </span>
     </template>

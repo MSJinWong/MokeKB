@@ -1,15 +1,17 @@
 <template>
-  <div
-    class="menu-item-container flex-center h-full"
-    :class="isActive ? 'active' : ''"
-    @click="router.push({ name: menu.name })"
-  >
+  <div class="menu-item-container flex-center h-full" :class="isActive ? 'active' : ''"
+    @click="router.push({ name: menu.name })">
     <!-- <div class="icon">
       <AppIcon :iconName="menu.meta ? (menu.meta.icon as string) : '404'" />
     </div> -->
     <div class="title">
-      {{ $t(menu.meta?.title as string) }}
+      {{
+        $te(`layout.topbar.MenuItem.${String(props.menu.name)}`)
+          ? $t(`layout.topbar.MenuItem.${String(props.menu.name)}`)
+          : menu.meta?.title
+      }}
     </div>
+
   </div>
 </template>
 <script setup lang="ts">

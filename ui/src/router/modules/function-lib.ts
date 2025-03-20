@@ -1,7 +1,8 @@
+import Layout from '@/layout/layout-template/DetailLayout.vue'
 const functionLibRouter = {
   path: '/function-lib',
-  name: 'function_lib',
-  meta: { title: 'views.functionLib.title', permission: 'APPLICATION:READ' },
+  name: 'function-lib',
+  meta: { title: '函数库', permission: 'APPLICATION:READ' },
   redirect: '/function-lib',
   component: () => import('@/layout/layout-template/AppLayout.vue'),
   children: [

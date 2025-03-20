@@ -7,7 +7,6 @@
     @desc:
 """
 import datetime
-import decimal
 import json
 import uuid
 
@@ -36,20 +35,14 @@ def get_dataset_setting_dict():
 
 
 def get_model_setting_dict():
-    return {
-        'prompt': Application.get_default_model_prompt(),
-        'no_references_prompt': '{question}',
-        'reasoning_content_start': '<think>',
-        'reasoning_content_end': '</think>',
-        'reasoning_content_enable': False,
-    }
+    return {'prompt': Application.get_default_model_prompt(), 'no_references_prompt': '{question}'}
 
 
 class Application(AppModelMixin):
     id = models.UUIDField(primary_key=True, max_length=128, default=uuid.uuid1, editable=False, verbose_name="主键id")
     name = models.CharField(max_length=128, verbose_name="应用名称")
     desc = models.CharField(max_length=512, verbose_name="引用描述", default="")
-    prologue = models.CharField(max_length=40960, verbose_name="开场白", default="")
+    prologue = models.CharField(max_length=4096, verbose_name="开场白", default="")
     dialogue_number = models.IntegerField(default=0, verbose_name="会话数量")
     user = models.ForeignKey(User, on_delete=models.DO_NOTHING)
     model = models.ForeignKey(Model, on_delete=models.SET_NULL, db_constraint=False, blank=True, null=True)
@@ -72,8 +65,6 @@ class Application(AppModelMixin):
     tts_model_enable = models.BooleanField(verbose_name="语音合成模型是否启用", default=False)
     stt_model_enable = models.BooleanField(verbose_name="语音识别模型是否启用", default=False)
     tts_type = models.CharField(verbose_name="语音播放类型", max_length=20, default="BROWSER")
-    tts_autoplay = models.BooleanField(verbose_name="自动播放", default=False)
-    stt_autosend = models.BooleanField(verbose_name="自动发送", default=False)
     clean_time = models.IntegerField(verbose_name="清理时间", default=180)
     file_upload_enable = models.BooleanField(verbose_name="文件上传是否启用", default=False)
     file_upload_setting = models.JSONField(verbose_name="文件上传相关设置", default=dict)
@@ -141,8 +132,6 @@ class DateEncoder(json.JSONEncoder):
             return str(obj)
         if isinstance(obj, datetime.datetime):
             return obj.strftime("%Y-%m-%d %H:%M:%S")
-        if isinstance(obj, decimal.Decimal):
-            return float(obj)
         else:
             return json.JSONEncoder.default(self, obj)
 

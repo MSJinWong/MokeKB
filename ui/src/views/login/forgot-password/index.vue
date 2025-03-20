@@ -1,7 +1,7 @@
 <template>
   <login-layout>
-    <LoginContainer :subTitle="$t('views.system.theme.defaultSlogan')">
-      <h2 class="mb-24">{{ $t('views.login.forgotPassword') }}</h2>
+    <LoginContainer subTitle="欢迎使用 MaxKB 智能知识库问答系统">
+      <h2 class="mb-24">忘记密码</h2>
       <el-form
         class="register-form"
         ref="resetPasswordFormRef"
@@ -14,7 +14,7 @@
               size="large"
               class="input-item"
               v-model="CheckEmailForm.email"
-              :placeholder="$t('views.user.userForm.form.email.placeholder')"
+              placeholder="请输入邮箱"
             >
             </el-input>
           </el-form-item>
@@ -26,7 +26,7 @@
                 size="large"
                 class="code-input"
                 v-model="CheckEmailForm.code"
-                :placeholder="$t('views.login.verificationCode.placeholder')"
+                placeholder="请输入验证码"
               >
               </el-input>
 
@@ -37,19 +37,13 @@
                 @click="sendEmail"
                 :loading="loading"
               >
-                {{
-                  isDisabled
-                    ? `${$t('views.login.verificationCode.resend')}（${time}s）`
-                    : $t('views.login.verificationCode.getVerificationCode')
-                }}</el-button
+                {{ isDisabled ? `重新发送（${time}s）` : '获取验证码' }}</el-button
               >
             </div>
           </el-form-item>
         </div>
       </el-form>
-      <el-button size="large" type="primary" class="w-full" @click="checkCode">{{
-        $t('views.login.buttons.checkCode')
-      }}</el-button>
+      <el-button size="large" type="primary" class="w-full" @click="checkCode">立即验证</el-button>
       <div class="operate-container mt-12">
         <el-button
           class="register"
@@ -58,7 +52,7 @@
           type="primary"
           icon="ArrowLeft"
         >
-          {{ $t('views.login.buttons.backLogin') }}
+          返回登录
         </el-button>
       </div>
     </LoginContainer>
@@ -71,7 +65,7 @@ import { useRouter } from 'vue-router'
 import type { FormInstance, FormRules } from 'element-plus'
 import UserApi from '@/api/user'
 import { MsgSuccess } from '@/utils/message'
-import { t } from '@/locales'
+
 const router = useRouter()
 const CheckEmailForm = ref<CheckCodeRequest>({
   email: '',
@@ -82,16 +76,12 @@ const CheckEmailForm = ref<CheckCodeRequest>({
 const resetPasswordFormRef = ref<FormInstance>()
 const rules = ref<FormRules<CheckCodeRequest>>({
   email: [
-    {
-      required: true,
-      message: t('views.user.userForm.form.email.requiredMessage'),
-      trigger: 'blur'
-    },
+    { required: true, message: '请输入邮箱', trigger: 'blur' },
     {
       validator: (rule, value, callback) => {
         const emailRegExp = /^[a-zA-Z0-9_.-]+@[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)*\.[a-zA-Z0-9]{2,6}$/
         if (!emailRegExp.test(value) && value != '') {
-          callback(new Error(t('views.user.userForm.form.email.validatorEmail')))
+          callback(new Error('请输入有效邮箱格式！'))
         } else {
           callback()
         }
@@ -99,7 +89,7 @@ const rules = ref<FormRules<CheckCodeRequest>>({
       trigger: 'blur'
     }
   ],
-  code: [{ required: true, message: t('views.login.verificationCode.placeholder') }]
+  code: [{ required: true, message: '请输入验证码' }]
 })
 const loading = ref<boolean>(false)
 const isDisabled = ref<boolean>(false)
@@ -118,7 +108,7 @@ const sendEmail = () => {
   resetPasswordFormRef.value?.validateField('email', (v: boolean) => {
     if (v) {
       UserApi.sendEmit(CheckEmailForm.value.email, 'reset_password', loading).then(() => {
-        MsgSuccess(t('views.login.verificationCode.successMessage'))
+        MsgSuccess('发送验证码成功')
         isDisabled.value = true
         handleTimeChange()
       })

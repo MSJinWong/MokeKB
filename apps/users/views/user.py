@@ -22,9 +22,7 @@ from common.response import result
 from smartdoc.settings import JWT_AUTH
 from users.serializers.user_serializers import RegisterSerializer, LoginSerializer, CheckCodeSerializer, \
     RePasswordSerializer, \
-    SendEmailSerializer, UserProfile, UserSerializer, UserManageSerializer, UserInstanceSerializer, SystemSerializer, \
-    SwitchLanguageSerializer
-from django.utils.translation import gettext_lazy as _
+    SendEmailSerializer, UserProfile, UserSerializer, UserManageSerializer, UserInstanceSerializer, SystemSerializer
 
 user_cache = cache.caches['user_cache']
 token_cache = cache.caches['token_cache']
@@ -32,10 +30,10 @@ token_cache = cache.caches['token_cache']
 
 class Profile(APIView):
     @action(methods=['GET'], detail=False)
-    @swagger_auto_schema(operation_summary=_("Get MaxKB related information"),
-                         operation_id=_("Get MaxKB related information"),
+    @swagger_auto_schema(operation_summary="获取MaxKB相关信息",
+                         operation_id="获取MaxKB相关信息",
                          responses=result.get_api_response(SystemSerializer.get_response_body_api()),
-                         tags=[_('System parameters')])
+                         tags=['系统参数'])
     def get(self, request: Request):
         return result.success(SystemSerializer.get_profile())
 
@@ -44,10 +42,10 @@ class User(APIView):
     authentication_classes = [TokenAuth]
 
     @action(methods=['GET'], detail=False)
-    @swagger_auto_schema(operation_summary=_("Get current user information"),
-                         operation_id=_("Get current user information"),
+    @swagger_auto_schema(operation_summary="获取当前用户信息",
+                         operation_id="获取当前用户信息",
                          responses=result.get_api_response(UserProfile.get_response_body_api()),
-                         tags=[])
+                         tags=['用户'])
     @has_permissions(PermissionConstants.USER_READ)
     def get(self, request: Request):
         return result.success(UserProfile.get_user_profile(request.user))
@@ -56,58 +54,35 @@ class User(APIView):
         authentication_classes = [TokenAuth]
 
         @action(methods=['GET'], detail=False)
-        @swagger_auto_schema(operation_summary=_("Get user list"),
-                             operation_id=_("Get user list"),
+        @swagger_auto_schema(operation_summary="获取用户列表",
+                             operation_id="获取用户列表",
                              manual_parameters=UserSerializer.Query.get_request_params_api(),
                              responses=result.get_api_array_response(UserSerializer.Query.get_response_body_api()),
-                             tags=[_("User")])
+                             tags=['用户'])
         @has_permissions(PermissionConstants.USER_READ)
         def get(self, request: Request):
             return result.success(
                 UserSerializer.Query(data={'email_or_username': request.query_params.get('email_or_username')}).list())
 
 
-class SwitchUserLanguageView(APIView):
-    authentication_classes = [TokenAuth]
-
-    @action(methods=['POST'], detail=False)
-    @swagger_auto_schema(operation_summary=_("Switch Language"),
-                         operation_id=_("Switch Language"),
-                         request_body=openapi.Schema(
-                             type=openapi.TYPE_OBJECT,
-                             required=['language'],
-                             properties={
-                                 'language': openapi.Schema(type=openapi.TYPE_STRING, title=_("language"),
-                                                            description=_("language")),
-                             }
-                         ),
-                         responses=RePasswordSerializer().get_response_body_api(),
-                         tags=[_("User")])
-    def post(self, request: Request):
-        data = {**request.data, 'user_id': request.user.id}
-        return result.success(SwitchLanguageSerializer(data=data).switch())
-
-
 class ResetCurrentUserPasswordView(APIView):
     authentication_classes = [TokenAuth]
 
     @action(methods=['POST'], detail=False)
-    @swagger_auto_schema(operation_summary=_("Modify current user password"),
-                         operation_id=_("Modify current user password"),
+    @swagger_auto_schema(operation_summary="修改当前用户密码",
+                         operation_id="修改当前用户密码",
                          request_body=openapi.Schema(
                              type=openapi.TYPE_OBJECT,
                              required=['email', 'code', "password", 're_password'],
                              properties={
-                                 'code': openapi.Schema(type=openapi.TYPE_STRING, title=_("Verification code"),
-                                                        description=_("Verification code")),
-                                 'password': openapi.Schema(type=openapi.TYPE_STRING, title=_("Password"),
-                                                            description=_("Password")),
-                                 're_password': openapi.Schema(type=openapi.TYPE_STRING, title=_("Password"),
-                                                               description=_("Password"))
+                                 'code': openapi.Schema(type=openapi.TYPE_STRING, title="验证码", description="验证码"),
+                                 'password': openapi.Schema(type=openapi.TYPE_STRING, title="密码", description="密码"),
+                                 're_password': openapi.Schema(type=openapi.TYPE_STRING, title="密码",
+                                                               description="密码")
                              }
                          ),
                          responses=RePasswordSerializer().get_response_body_api(),
-                         tags=[_("User")])
+                         tags=['用户'])
     def post(self, request: Request):
         data = {'email': request.user.email}
         data.update(request.data)
@@ -115,7 +90,7 @@ class ResetCurrentUserPasswordView(APIView):
         if serializer_obj.reset_password():
             token_cache.delete(request.META.get('HTTP_AUTHORIZATION'))
             return result.success(True)
-        return result.error(_("Failed to change password"))
+        return result.error("修改密码失败")
 
 
 class SendEmailToCurrentUserView(APIView):
@@ -123,10 +98,10 @@ class SendEmailToCurrentUserView(APIView):
 
     @action(methods=['POST'], detail=False)
     @permission_classes((AllowAny,))
-    @swagger_auto_schema(operation_summary=_("Send email to current user"),
-                         operation_id=_("Send email to current user"),
+    @swagger_auto_schema(operation_summary="发送邮件到当前用户",
+                         operation_id="发送邮件到当前用户",
                          responses=SendEmailSerializer().get_response_body_api(),
-                         tags=[_("User")])
+                         tags=['用户'])
     def post(self, request: Request):
         serializer_obj = SendEmailSerializer(data={'email': request.user.email, 'type': "reset_password"})
         if serializer_obj.is_valid(raise_exception=True):
@@ -138,10 +113,10 @@ class Logout(APIView):
 
     @action(methods=['POST'], detail=False)
     @permission_classes((AllowAny,))
-    @swagger_auto_schema(operation_summary=_("Sign out"),
-                         operation_id=_("Sign out"),
+    @swagger_auto_schema(operation_summary="登出",
+                         operation_id="登出",
                          responses=SendEmailSerializer().get_response_body_api(),
-                         tags=[_("User")])
+                         tags=['用户'])
     def post(self, request: Request):
         token_cache.delete(request.META.get('HTTP_AUTHORIZATION'))
         return result.success(True)
@@ -150,12 +125,12 @@ class Logout(APIView):
 class Login(APIView):
 
     @action(methods=['POST'], detail=False)
-    @swagger_auto_schema(operation_summary=_("Log in"),
-                         operation_id=_("Log in"),
+    @swagger_auto_schema(operation_summary="登录",
+                         operation_id="登录",
                          request_body=LoginSerializer().get_request_body_api(),
                          responses=LoginSerializer().get_response_body_api(),
                          security=[],
-                         tags=[_("User")])
+                         tags=['用户'])
     def post(self, request: Request):
         login_request = LoginSerializer(data=request.data)
         # 校验请求参数
@@ -169,29 +144,29 @@ class Register(APIView):
 
     @action(methods=['POST'], detail=False)
     @permission_classes((AllowAny,))
-    @swagger_auto_schema(operation_summary=_("User registration"),
-                         operation_id=_("User registration"),
+    @swagger_auto_schema(operation_summary="用户注册",
+                         operation_id="用户注册",
                          request_body=RegisterSerializer().get_request_body_api(),
                          responses=RegisterSerializer().get_response_body_api(),
                          security=[],
-                         tags=[_("User")])
+                         tags=['用户'])
     def post(self, request: Request):
         serializer_obj = RegisterSerializer(data=request.data)
         if serializer_obj.is_valid(raise_exception=True):
             serializer_obj.save()
-            return result.success(_("Registration successful"))
+            return result.success("注册成功")
 
 
 class RePasswordView(APIView):
 
     @action(methods=['POST'], detail=False)
     @permission_classes((AllowAny,))
-    @swagger_auto_schema(operation_summary=_("Change password"),
-                         operation_id=_("Change password"),
+    @swagger_auto_schema(operation_summary="修改密码",
+                         operation_id="修改密码",
                          request_body=RePasswordSerializer().get_request_body_api(),
                          responses=RePasswordSerializer().get_response_body_api(),
                          security=[],
-                         tags=[_("User")])
+                         tags=['用户'])
     def post(self, request: Request):
         serializer_obj = RePasswordSerializer(data=request.data)
         return result.success(serializer_obj.reset_password())
@@ -201,12 +176,12 @@ class CheckCode(APIView):
 
     @action(methods=['POST'], detail=False)
     @permission_classes((AllowAny,))
-    @swagger_auto_schema(operation_summary=_("Check whether the verification code is correct"),
-                         operation_id=_("Check whether the verification code is correct"),
+    @swagger_auto_schema(operation_summary="校验验证码是否正确",
+                         operation_id="校验验证码是否正确",
                          request_body=CheckCodeSerializer().get_request_body_api(),
                          responses=CheckCodeSerializer().get_response_body_api(),
                          security=[],
-                         tags=[_("User")])
+                         tags=['用户'])
     def post(self, request: Request):
         return result.success(CheckCodeSerializer(data=request.data).is_valid(raise_exception=True))
 
@@ -214,12 +189,12 @@ class CheckCode(APIView):
 class SendEmail(APIView):
 
     @action(methods=['POST'], detail=False)
-    @swagger_auto_schema(operation_summary=_("Send email"),
-                         operation_id=_("Send email"),
+    @swagger_auto_schema(operation_summary="发送邮件",
+                         operation_id="发送邮件",
                          request_body=SendEmailSerializer().get_request_body_api(),
                          responses=SendEmailSerializer().get_response_body_api(),
                          security=[],
-                         tags=[_("User")])
+                         tags=['用户'])
     def post(self, request: Request):
         serializer_obj = SendEmailSerializer(data=request.data)
         if serializer_obj.is_valid(raise_exception=True):
@@ -230,11 +205,11 @@ class UserManage(APIView):
     authentication_classes = [TokenAuth]
 
     @action(methods=['POST'], detail=False)
-    @swagger_auto_schema(operation_summary=_("Add user"),
-                         operation_id=_("Add user"),
+    @swagger_auto_schema(operation_summary="添加用户",
+                         operation_id="添加用户",
                          request_body=UserManageSerializer.UserInstance.get_request_body_api(),
                          responses=result.get_api_response(UserInstanceSerializer.get_response_body_api()),
-                         tags=[_("User management")]
+                         tags=["用户管理"]
                          )
     @has_permissions(ViewPermission(
         [RoleConstants.ADMIN],
@@ -247,9 +222,9 @@ class UserManage(APIView):
         authentication_classes = [TokenAuth]
 
         @action(methods=['GET'], detail=False)
-        @swagger_auto_schema(operation_summary=_("Get user paginated list"),
-                             operation_id=_("Get user paginated list"),
-                             tags=[_("User management")],
+        @swagger_auto_schema(operation_summary="获取用户分页列表",
+                             operation_id="获取用户分页列表",
+                             tags=["用户管理"],
                              manual_parameters=UserManageSerializer.Query.get_request_params_api(),
                              responses=result.get_page_api_response(UserInstanceSerializer.get_response_body_api()),
                              )
@@ -267,12 +242,12 @@ class UserManage(APIView):
         authentication_classes = [TokenAuth]
 
         @action(methods=['PUT'], detail=False)
-        @swagger_auto_schema(operation_summary=_("Change password"),
-                             operation_id=_("Change password"),
+        @swagger_auto_schema(operation_summary="修改密码",
+                             operation_id="修改密码",
                              manual_parameters=UserInstanceSerializer.get_request_params_api(),
                              request_body=UserManageSerializer.RePasswordInstance.get_request_body_api(),
                              responses=result.get_default_response(),
-                             tags=[_("User management")])
+                             tags=["用户管理"])
         @has_permissions(ViewPermission(
             [RoleConstants.ADMIN],
             [PermissionConstants.USER_READ],
@@ -285,11 +260,11 @@ class UserManage(APIView):
         authentication_classes = [TokenAuth]
 
         @action(methods=['DELETE'], detail=False)
-        @swagger_auto_schema(operation_summary=_("Delete user"),
-                             operation_id=_("Delete user"),
+        @swagger_auto_schema(operation_summary="删除用户",
+                             operation_id="删除用户",
                              manual_parameters=UserInstanceSerializer.get_request_params_api(),
                              responses=result.get_default_response(),
-                             tags=[_("User management")])
+                             tags=["用户管理"])
         @has_permissions(ViewPermission(
             [RoleConstants.ADMIN],
             [PermissionConstants.USER_READ],
@@ -298,11 +273,11 @@ class UserManage(APIView):
             return result.success(UserManageSerializer.Operate(data={'id': user_id}).delete(with_valid=True))
 
         @action(methods=['GET'], detail=False)
-        @swagger_auto_schema(operation_summary=_("Get user information"),
-                             operation_id=_("Get user information"),
+        @swagger_auto_schema(operation_summary="获取用户信息",
+                             operation_id="获取用户信息",
                              manual_parameters=UserInstanceSerializer.get_request_params_api(),
                              responses=result.get_api_response(UserInstanceSerializer.get_response_body_api()),
-                             tags=[_("User management")]
+                             tags=["用户管理"]
                              )
         @has_permissions(ViewPermission(
             [RoleConstants.ADMIN],
@@ -312,12 +287,12 @@ class UserManage(APIView):
             return result.success(UserManageSerializer.Operate(data={'id': user_id}).one(with_valid=True))
 
         @action(methods=['PUT'], detail=False)
-        @swagger_auto_schema(operation_summary=_("Update user information"),
-                             operation_id=_("Update user information"),
+        @swagger_auto_schema(operation_summary="修改用户信息",
+                             operation_id="修改用户信息",
                              manual_parameters=UserInstanceSerializer.get_request_params_api(),
                              request_body=UserManageSerializer.UserEditInstance.get_request_body_api(),
                              responses=result.get_api_response(UserInstanceSerializer.get_response_body_api()),
-                             tags=[_("User management")]
+                             tags=["用户管理"]
                              )
         @has_permissions(ViewPermission(
             [RoleConstants.ADMIN],
@@ -331,11 +306,11 @@ class UserManage(APIView):
 class UserListView(APIView):
     authentication_classes = [TokenAuth]
 
-    @swagger_auto_schema(operation_summary=_("Get user list by type"),
-                         operation_id=_("Get user list by type"),
+    @swagger_auto_schema(operation_summary="通过类型获取用户列表",
+                         operation_id="通过类型获取用户列表",
                          manual_parameters=UserSerializer.Query.get_request_params_api(),
                          responses=result.get_api_array_response(UserSerializer.Query.get_response_body_api()),
-                         tags=[_("User")])
+                         tags=['用户'])
     @has_permissions(PermissionConstants.USER_READ)
     def get(self, request: Request, type):
         return result.success(UserSerializer().listByType(type, request.user.id))

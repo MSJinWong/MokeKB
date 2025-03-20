@@ -11,7 +11,7 @@
       <el-breadcrumb separator=">">
         <el-breadcrumb-item
           ><span class="active-breadcrumb">{{
-            `${$t('common.edit')} ${providerValue?.name}`
+            `编辑 ${providerValue?.name}`
           }}</span></el-breadcrumb-item
         >
       </el-breadcrumb>
@@ -31,11 +31,11 @@
           <template #label>
             <div class="flex align-center" style="display: inline-flex">
               <div class="mr-4">
-                <span>{{ $t('views.template.templateForm.form.templateName.label') }} </span>
+                <span>模型名称 </span>
               </div>
               <el-tooltip effect="dark" placement="right">
                 <template #content>
-                  <p>{{ $t('views.template.templateForm.form.templateName.tooltip') }}</p>
+                  <p>MaxKB 中自定义的模型名称</p>
                 </template>
                 <AppIcon iconName="app-warning" class="app-warning-icon"></AppIcon>
               </el-tooltip>
@@ -45,12 +45,12 @@
             v-model="base_form_data.name"
             maxlength="64"
             show-word-limit
-            :placeholder="$t('views.template.templateForm.form.templateName.placeholder')"
+            placeholder="请给基础模型设置一个名称"
           />
         </el-form-item>
         <el-form-item prop="permission_type" :rules="base_form_data_rule.permission_type">
           <template #label>
-            <span>{{ $t('views.template.templateForm.form.permissionType.label') }}</span>
+            <span>权限</span>
           </template>
 
           <el-radio-group v-model="base_form_data.permission_type" class="card__radio">
@@ -63,9 +63,9 @@
                     :class="base_form_data.permission_type === key ? 'active' : ''"
                   >
                     <el-radio :value="key" size="large">
-                      <p class="mb-4">{{ $t(value) }}</p>
+                      <p class="mb-4">{{ value }}</p>
                       <el-text type="info">
-                        {{ $t(PermissionDesc[key]) }}
+                        {{ PermissionDesc[key] }}
                       </el-text>
                     </el-radio>
                   </el-card>
@@ -76,7 +76,7 @@
         </el-form-item>
         <el-form-item prop="model_type" :rules="base_form_data_rule.model_type">
           <template #label>
-            <span>{{ $t('views.template.templateForm.form.model_type.label') }}</span>
+            <span>模型类型</span>
           </template>
           <el-select
             disabled
@@ -84,7 +84,7 @@
             @change="list_base_model($event, true)"
             v-model="base_form_data.model_type"
             class="w-full m-2"
-            :placeholder="$t('views.template.templateForm.form.model_type.placeholder')"
+            placeholder="请选择模型类型"
           >
             <el-option
               v-for="item in model_type_list"
@@ -98,10 +98,8 @@
           <template #label>
             <div class="flex align-center" style="display: inline-flex">
               <div class="mr-4">
-                <span>{{ $t('views.template.templateForm.form.base_model.label') }} </span>
-                <span class="danger ml-4">{{
-                  $t('views.template.templateForm.form.base_model.tooltip')
-                }}</span>
+                <span>基础模型 </span>
+                <span class="danger">列表中未列出的模型，直接输入模型名称，回车即可添加</span>
               </div>
             </div>
           </template>
@@ -110,7 +108,7 @@
             v-loading="base_model_loading"
             v-model="base_form_data.model_name"
             class="w-full m-2"
-            :placeholder="$t('views.template.templateForm.form.base_model.requiredMessage')"
+            placeholder="请选择基础模型"
             filterable
             allow-create
             default-first-option
@@ -136,10 +134,8 @@
     </DynamicsForm>
     <template #footer>
       <span class="dialog-footer">
-        <el-button @click="close">{{ $t('common.cancel') }}</el-button>
-        <el-button type="primary" @click="submit" :loading="loading">
-          {{ $t('common.modify') }}
-        </el-button>
+        <el-button @click="close">取消</el-button>
+        <el-button type="primary" @click="submit" :loading="loading"> 修改 </el-button>
       </span>
     </template>
   </el-dialog>
@@ -154,7 +150,6 @@ import DynamicsForm from '@/components/dynamics-form/index.vue'
 import type { FormRules } from 'element-plus'
 import { MsgSuccess } from '@/utils/message'
 import { PermissionType, PermissionDesc } from '@/enums/model'
-import { t } from '@/locales'
 
 const providerValue = ref<Provider>()
 const dynamicsFormRef = ref<InstanceType<typeof DynamicsForm>>()
@@ -170,21 +165,9 @@ const model_form_field = ref<Array<FormField>>([])
 const dialogVisible = ref<boolean>(false)
 
 const base_form_data_rule = ref<FormRules>({
-  name: {
-    required: true,
-    trigger: 'blur',
-    message: t('views.template.templateForm.form.templateName.requiredMessage')
-  },
-  model_type: {
-    required: true,
-    trigger: 'change',
-    message: t('views.template.templateForm.form.model_type.requiredMessage')
-  },
-  model_name: {
-    required: true,
-    trigger: 'change',
-    message: t('views.template.templateForm.form.base_model.requiredMessage')
-  }
+  name: { required: true, trigger: 'blur', message: '模型名称不能为空' },
+  model_type: { required: true, trigger: 'change', message: '模型类型不能为空' },
+  model_name: { required: true, trigger: 'change', message: '基础模型不能为空' }
 })
 
 const base_form_data = ref<{
@@ -275,7 +258,7 @@ const submit = () => {
         },
         loading
       ).then((ok) => {
-        MsgSuccess(t('views.template.tip.updateSuccessMessage'))
+        MsgSuccess('修改模型成功')
         close()
         emit('submit')
       })

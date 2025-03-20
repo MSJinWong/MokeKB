@@ -1,6 +1,6 @@
 <template>
   <el-dialog
-    :title="$t('views.application.createApplication')"
+    :title="$t('views.application.applicationForm.title.create')"
     v-model="dialogVisible"
     width="650"
     append-to-body
@@ -34,69 +34,44 @@
           show-word-limit
         />
       </el-form-item>
-      <el-form-item :label="$t('views.application.applicationForm.form.appType.label')">
+      <el-form-item label="选择应用类型">
         <el-radio-group v-model="applicationForm.type" class="card__radio">
           <el-row :gutter="16">
             <el-col :span="12">
-              <el-card shadow="never" :class="applicationForm.type === 'SIMPLE' ? 'active' : ''">
+              <el-card
+                shadow="never"
+                class="mb-16"
+                :class="applicationForm.type === 'SIMPLE' ? 'active' : ''"
+              >
                 <el-radio value="SIMPLE" size="large">
-                  <p class="mb-4">{{ $t('views.application.simple') }}</p>
-                  <el-text type="info">{{
-                    $t('views.application.applicationForm.form.appType.simplePlaceholder')
-                  }}</el-text>
+                  <p class="mb-4">简单配置</p>
+                  <el-text type="info">适合新手创建小助手</el-text>
                 </el-radio>
               </el-card>
             </el-col>
             <el-col :span="12">
-              <el-card shadow="never" :class="isWorkFlow(applicationForm.type) ? 'active' : ''">
+              <el-card
+                shadow="never"
+                class="mb-16"
+                :class="isWorkFlow(applicationForm.type) ? 'active' : ''"
+              >
                 <el-radio value="WORK_FLOW" size="large">
-                  <p class="mb-4">{{ $t('views.application.workflow') }}</p>
-                  <el-text type="info">{{
-                    $t('views.application.applicationForm.form.appType.workflowPlaceholder')
-                  }}</el-text>
+                  <p class="mb-4">高级编排</p>
+                  <el-text type="info">适合高级用户自定义小助手的工作流</el-text>
                 </el-radio>
               </el-card>
             </el-col>
           </el-row>
         </el-radio-group>
       </el-form-item>
-      <el-form-item
-        :label="$t('views.document.upload.template')"
-        v-if="applicationForm.type === 'WORK_FLOW'"
-      >
-        <div class="w-full">
-          <el-row :gutter="16">
-            <el-col :span="12">
-              <el-card
-                class="radio-card cursor"
-                shadow="never"
-                @click="selectedType('blank')"
-                :class="appTemplate === 'blank' ? 'active' : ''"
-              >
-                {{ $t('views.application.applicationForm.form.appTemplate.blankApp') }}
-              </el-card>
-            </el-col>
-            <el-col :span="12">
-              <el-card
-                class="radio-card cursor"
-                shadow="never"
-                :class="appTemplate === 'assistant' ? 'active' : ''"
-                @click="selectedType('assistant')"
-              >
-                {{ $t('views.application.applicationForm.form.appTemplate.assistantApp') }}
-              </el-card>
-            </el-col>
-          </el-row>
-        </div>
-      </el-form-item>
     </el-form>
     <template #footer>
       <span class="dialog-footer">
         <el-button @click.prevent="dialogVisible = false" :loading="loading">
-          {{ $t('common.cancel') }}
+          {{ $t('views.application.applicationForm.buttons.cancel') }}
         </el-button>
         <el-button type="primary" @click="submitHandle(applicationFormRef)" :loading="loading">
-          {{ $t('common.create') }}
+          {{ $t('views.application.applicationForm.buttons.create') }}
         </el-button>
       </span>
     </template>
@@ -110,30 +85,19 @@ import type { FormInstance, FormRules } from 'element-plus'
 import applicationApi from '@/api/application'
 import { MsgSuccess, MsgAlert } from '@/utils/message'
 import { isWorkFlow } from '@/utils/application'
-import { baseNodes } from '@/workflow/common/data'
 import { t } from '@/locales'
+import useStore from '@/stores'
+import { ValidType, ValidCount } from '@/enums/common'
+
+const { common, user } = useStore()
 const router = useRouter()
 const emit = defineEmits(['refresh'])
 
 // @ts-ignore
-const defaultPrompt = t('views.application.applicationForm.form.prompt.defaultPrompt', {
+const defaultPrompt = t('views.application.prompt.defaultPrompt', {
   data: '{data}',
   question: '{question}'
 })
-
-const optimizationPrompt =
-  t('views.application.applicationForm.dialog.defaultPrompt1', {
-    question: '{question}'
-  }) +
-  '<data></data>' +
-  t('views.application.applicationForm.dialog.defaultPrompt2')
-
-const workflowDefault = ref<any>({
-  edges: [],
-  nodes: baseNodes
-})
-const appTemplate = ref('blank')
-
 const applicationFormRef = ref()
 
 const loading = ref(false)
@@ -144,7 +108,7 @@ const applicationForm = ref<ApplicationFormType>({
   desc: '',
   model_id: '',
   dialogue_number: 1,
-  prologue: t('views.application.applicationForm.form.defaultPrologue'),
+  prologue: t('views.application.prompt.defaultPrologue'),
   dataset_id_list: [],
   dataset_setting: {
     top_n: 3,
@@ -158,12 +122,13 @@ const applicationForm = ref<ApplicationFormType>({
   },
   model_setting: {
     prompt: defaultPrompt,
-    system: t('views.application.applicationForm.form.roleSettings.placeholder'),
+    system: '你是 xxx 小助手',
     no_references_prompt: '{question}'
   },
   model_params_setting: {},
   problem_optimization: false,
-  problem_optimization_prompt: optimizationPrompt,
+  problem_optimization_prompt:
+    '()里面是用户问题,根据上下文回答揣测用户问题({question}) 要求: 输出一个补全问题,并且放在<data></data>标签中',
   stt_model_id: '',
   tts_model_id: '',
   stt_model_enable: false,
@@ -196,7 +161,7 @@ watch(dialogVisible, (bool) => {
       desc: '',
       model_id: '',
       dialogue_number: 1,
-      prologue: t('views.application.applicationForm.form.defaultPrologue'),
+      prologue: t('views.application.prompt.defaultPrologue'),
       dataset_id_list: [],
       dataset_setting: {
         top_n: 3,
@@ -210,12 +175,13 @@ watch(dialogVisible, (bool) => {
       },
       model_setting: {
         prompt: defaultPrompt,
-        system: t('views.application.applicationForm.form.roleSettings.placeholder'),
+        system: '你是 xxx 小助手',
         no_references_prompt: '{question}'
       },
       model_params_setting: {},
       problem_optimization: false,
-      problem_optimization_prompt: optimizationPrompt,
+      problem_optimization_prompt:
+        '()里面是用户问题,根据上下文回答揣测用户问题({question}) 要求: 输出一个补全问题,并且放在<data></data>标签中',
       stt_model_id: '',
       tts_model_id: '',
       stt_model_enable: false,
@@ -235,13 +201,8 @@ const submitHandle = async (formEl: FormInstance | undefined) => {
   if (!formEl) return
   await formEl.validate((valid) => {
     if (valid) {
-      if (isWorkFlow(applicationForm.value.type) && appTemplate.value === 'blank') {
-        workflowDefault.value.nodes[0].properties.node_data.desc = applicationForm.value.desc
-        workflowDefault.value.nodes[0].properties.node_data.name = applicationForm.value.name
-        applicationForm.value['work_flow'] = workflowDefault.value
-      }
       applicationApi.postApplication(applicationForm.value, loading).then((res) => {
-        MsgSuccess(t('common.createSuccess'))
+        MsgSuccess(t('views.application.applicationForm.buttons.createSuccess'))
         if (isWorkFlow(applicationForm.value.type)) {
           router.push({ path: `/application/${res.data.id}/workflow` })
         } else {
@@ -253,18 +214,6 @@ const submitHandle = async (formEl: FormInstance | undefined) => {
   })
 }
 
-function selectedType(type: string) {
-  appTemplate.value = type
-}
-
 defineExpose({ open })
 </script>
-<style lang="scss" scope>
-.radio-card {
-  line-height: 22px;
-  &.active {
-    border-color: var(--el-color-primary);
-    color: var(--el-color-primary);
-  }
-}
-</style>
+<style lang="scss" scope></style>

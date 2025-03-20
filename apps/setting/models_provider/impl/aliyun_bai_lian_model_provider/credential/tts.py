@@ -1,8 +1,6 @@
 # coding=utf-8
-import traceback
-from typing import Dict
 
-from django.utils.translation import gettext_lazy as _, gettext
+from typing import Dict
 
 from common import forms
 from common.exception.app_exception import AppApiException
@@ -12,31 +10,31 @@ from setting.models_provider.base_model_provider import BaseModelCredential, Val
 
 class AliyunBaiLianTTSModelGeneralParams(BaseForm):
     voice = forms.SingleSelect(
-        TooltipLabel(_('timbre'), _('Chinese sounds can support mixed scenes of Chinese and English')),
+        TooltipLabel('音色', '中文音色可支持中英文混合场景'),
         required=True, default_value='longxiaochun',
         text_field='value',
         value_field='value',
         option_list=[
-            {'text': _('Long Xiaochun'), 'value': 'longxiaochun'},
-            {'text': _('Long Xiaoxia'), 'value': 'longxiaoxia'},
-            {'text': _('Long Xiaochen'), 'value': 'longxiaocheng'},
-            {'text': _('Long Xiaobai'), 'value': 'longxiaobai'},
-            {'text': _('Long laotie'), 'value': 'longlaotie'},
-            {'text': _('Long Shu'), 'value': 'longshu'},
-            {'text': _('Long Shuo'), 'value': 'longshuo'},
-            {'text': _('Long Jing'), 'value': 'longjing'},
-            {'text': _('Long Miao'), 'value': 'longmiao'},
-            {'text': _('Long Yue'), 'value': 'longyue'},
-            {'text': _('Long Yuan'), 'value': 'longyuan'},
-            {'text': _('Long Fei'), 'value': 'longfei'},
-            {'text': _('Long Jielidou'), 'value': 'longjielidou'},
-            {'text': _('Long Tong'), 'value': 'longtong'},
-            {'text': _('Long Xiang'), 'value': 'longxiang'},
+            {'text': '龙小淳', 'value': 'longxiaochun'},
+            {'text': '龙小夏', 'value': 'longxiaoxia'},
+            {'text': '龙小诚', 'value': 'longxiaocheng'},
+            {'text': '龙小白', 'value': 'longxiaobai'},
+            {'text': '龙老铁', 'value': 'longlaotie'},
+            {'text': '龙书', 'value': 'longshu'},
+            {'text': '龙硕', 'value': 'longshuo'},
+            {'text': '龙婧', 'value': 'longjing'},
+            {'text': '龙妙', 'value': 'longmiao'},
+            {'text': '龙悦', 'value': 'longyue'},
+            {'text': '龙媛', 'value': 'longyuan'},
+            {'text': '龙飞', 'value': 'longfei'},
+            {'text': '龙杰力豆', 'value': 'longjielidou'},
+            {'text': '龙彤', 'value': 'longtong'},
+            {'text': '龙祥', 'value': 'longxiang'},
             {'text': 'Stella', 'value': 'loongstella'},
             {'text': 'Bella', 'value': 'loongbella'},
         ])
     speech_rate = forms.SliderField(
-        TooltipLabel(_('speaking speed'), _('[0.5,2], the default is 1, usually one decimal place is enough')),
+        TooltipLabel('语速', '[0.5,2]，默认为1，通常保留一位小数即可'),
         required=True, default_value=1,
         _min=0.5,
         _max=2,
@@ -51,27 +49,22 @@ class AliyunBaiLianTTSModelCredential(BaseForm, BaseModelCredential):
                  raise_exception=False):
         model_type_list = provider.get_model_type_list()
         if not any(list(filter(lambda mt: mt.get('value') == model_type, model_type_list))):
-            raise AppApiException(ValidCode.valid_error.value,
-                                  gettext('{model_type} Model type is not supported').format(model_type=model_type))
+            raise AppApiException(ValidCode.valid_error.value, f'{model_type} 模型类型不支持')
 
         for key in ['api_key']:
             if key not in model_credential:
                 if raise_exception:
-                    raise AppApiException(ValidCode.valid_error.value, gettext('{key}  is required').format(key=key))
+                    raise AppApiException(ValidCode.valid_error.value, f'{key} 字段为必填字段')
                 else:
                     return False
         try:
             model = provider.get_model(model_type, model_name, model_credential, **model_params)
             model.check_auth()
         except Exception as e:
-            traceback.print_exc()
             if isinstance(e, AppApiException):
                 raise e
             if raise_exception:
-                raise AppApiException(ValidCode.valid_error.value,
-                                      gettext(
-                                          'Verification failed, please check whether the parameters are correct: {error}').format(
-                                          error=str(e)))
+                raise AppApiException(ValidCode.valid_error.value, f'校验失败,请检查参数是否正确: {str(e)}')
             else:
                 return False
         return True

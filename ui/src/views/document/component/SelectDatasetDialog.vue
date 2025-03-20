@@ -1,6 +1,6 @@
 <template>
   <el-dialog
-    :title="$t('views.log.selectDataset')"
+    title="选择知识库"
     v-model="dialogVisible"
     width="600"
     class="select-dataset-dialog"
@@ -9,9 +9,9 @@
   >
     <template #header="{ titleId, titleClass }">
       <div class="my-header flex">
-        <h4 :id="titleId" :class="titleClass">{{$t('views.log.selectDataset')}}</h4>
+        <h4 :id="titleId" :class="titleClass">选择知识库</h4>
         <el-button link class="ml-16" @click="refresh">
-          <el-icon class="mr-4"><Refresh /></el-icon>{{ $t('common.refresh') }}
+          <el-icon class="mr-4"><Refresh /></el-icon>刷新
         </el-button>
       </div>
     </template>
@@ -58,9 +58,9 @@
     </div>
     <template #footer>
       <span class="dialog-footer">
-        <el-button @click.prevent="dialogVisible = false"> {{ $t('common.cancel') }} </el-button>
+        <el-button @click.prevent="dialogVisible = false"> 取消 </el-button>
         <el-button type="primary" @click="submitHandle" :disabled="!selectDataset || loading">
-          {{ $t('common.confirm') }}
+          确认
         </el-button>
       </span>
     </template>

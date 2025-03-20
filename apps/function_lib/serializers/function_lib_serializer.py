@@ -7,33 +7,21 @@
     @desc:
 """
 import json
-import pickle
 import re
 import uuid
-from typing import List
 
 from django.core import validators
-from django.db import transaction
 from django.db.models import QuerySet, Q
-from django.http import HttpResponse
-from rest_framework import serializers, status
+from rest_framework import serializers
 
 from common.db.search import page_search
 from common.exception.app_exception import AppApiException
-from common.field.common import UploadedFileField
-from common.response import result
 from common.util.field_message import ErrMessage
 from common.util.function_code import FunctionExecutor
 from function_lib.models.function import FunctionLib
 from smartdoc.const import CONFIG
-from django.utils.translation import gettext_lazy as _
 
 function_executor = FunctionExecutor(CONFIG.get('SANDBOX'))
-
-class FlibInstance:
-    def __init__(self, function_lib: dict, version: str):
-        self.function_lib = function_lib
-        self.version = version
 
 
 class FunctionLibModelSerializer(serializers.ModelSerializer):
@@ -44,79 +32,79 @@ class FunctionLibModelSerializer(serializers.ModelSerializer):
 
 
 class FunctionLibInputField(serializers.Serializer):
-    name = serializers.CharField(required=True, error_messages=ErrMessage.char(_('variable name')))
-    is_required = serializers.BooleanField(required=True, error_messages=ErrMessage.boolean(_('required')))
-    type = serializers.CharField(required=True, error_messages=ErrMessage.char(_('type')), validators=[
+    name = serializers.CharField(required=True, error_messages=ErrMessage.char('变量名'))
+    is_required = serializers.BooleanField(required=True, error_messages=ErrMessage.boolean("是否必填"))
+    type = serializers.CharField(required=True, error_messages=ErrMessage.char("类型"), validators=[
         validators.RegexValidator(regex=re.compile("^string|int|dict|array|float$"),
-                                  message=_('fields only support string|int|dict|array|float'), code=500)
+                                  message="字段只支持string|int|dict|array|float", code=500)
     ])
-    source = serializers.CharField(required=True, error_messages=ErrMessage.char(_('source')), validators=[
+    source = serializers.CharField(required=True, error_messages=ErrMessage.char("来源"), validators=[
         validators.RegexValidator(regex=re.compile("^custom|reference$"),
-                                  message=_('The field only supports custom|reference'), code=500)
+                                  message="字段只支持custom|reference", code=500)
     ])
 
 
 class DebugField(serializers.Serializer):
-    name = serializers.CharField(required=True, error_messages=ErrMessage.char(_('variable name')))
+    name = serializers.CharField(required=True, error_messages=ErrMessage.char('变量名'))
     value = serializers.CharField(required=False, allow_blank=True, allow_null=True,
-                                  error_messages=ErrMessage.char(_('variable value')))
+                                  error_messages=ErrMessage.char("变量值"))
 
 
 class DebugInstance(serializers.Serializer):
     debug_field_list = DebugField(required=True, many=True)
     input_field_list = FunctionLibInputField(required=True, many=True)
-    code = serializers.CharField(required=True, error_messages=ErrMessage.char(_('function content')))
+    code = serializers.CharField(required=True, error_messages=ErrMessage.char("函数内容"))
 
 
 class EditFunctionLib(serializers.Serializer):
     name = serializers.CharField(required=False, allow_null=True, allow_blank=True,
-                                 error_messages=ErrMessage.char(_('function name')))
+                                 error_messages=ErrMessage.char("函数名称"))
 
     desc = serializers.CharField(required=False, allow_null=True, allow_blank=True,
-                                 error_messages=ErrMessage.char(_('function description')))
+                                 error_messages=ErrMessage.char("函数描述"))
 
     code = serializers.CharField(required=False, allow_null=True, allow_blank=True,
-                                 error_messages=ErrMessage.char(_('function content')))
+                                 error_messages=ErrMessage.char("函数内容"))
 
     input_field_list = FunctionLibInputField(required=False, many=True)
 
-    is_active = serializers.BooleanField(required=False, error_messages=ErrMessage.char(_('Is active')))
+    is_active = serializers.BooleanField(required=False, error_messages=ErrMessage.char('是否可用'))
 
 
 class CreateFunctionLib(serializers.Serializer):
-    name = serializers.CharField(required=True, error_messages=ErrMessage.char(_('function name')))
+    name = serializers.CharField(required=True, error_messages=ErrMessage.char("函数名称"))
 
     desc = serializers.CharField(required=False, allow_null=True, allow_blank=True,
-                                 error_messages=ErrMessage.char(_('function description')))
+                                 error_messages=ErrMessage.char("函数描述"))
 
-    code = serializers.CharField(required=True, error_messages=ErrMessage.char(_('function content')))
+    code = serializers.CharField(required=True, error_messages=ErrMessage.char("函数内容"))
 
     input_field_list = FunctionLibInputField(required=True, many=True)
 
-    permission_type = serializers.CharField(required=True, error_messages=ErrMessage.char(_('permission')), validators=[
+    permission_type = serializers.CharField(required=True, error_messages=ErrMessage.char("权限"), validators=[
         validators.RegexValidator(regex=re.compile("^PUBLIC|PRIVATE$"),
                                   message="权限只支持PUBLIC|PRIVATE", code=500)
     ])
-    is_active = serializers.BooleanField(required=False, error_messages=ErrMessage.char(_('Is active')))
+    is_active = serializers.BooleanField(required=False, error_messages=ErrMessage.char('是否可用'))
 
 
 class FunctionLibSerializer(serializers.Serializer):
     class Query(serializers.Serializer):
         name = serializers.CharField(required=False, allow_null=True, allow_blank=True,
-                                     error_messages=ErrMessage.char(_('function name')))
+                                     error_messages=ErrMessage.char("函数名称"))
 
         desc = serializers.CharField(required=False, allow_null=True, allow_blank=True,
-                                     error_messages=ErrMessage.char(_('function description')))
-        is_active = serializers.BooleanField(required=False, error_messages=ErrMessage.char(_('Is active')))
+                                     error_messages=ErrMessage.char("函数描述"))
+        is_active = serializers.BooleanField(required=False, error_messages=ErrMessage.char("是否可用"))
 
-        user_id = serializers.UUIDField(required=True, error_messages=ErrMessage.uuid(_('user id')))
+        user_id = serializers.UUIDField(required=True, error_messages=ErrMessage.uuid("用户id"))
         select_user_id = serializers.CharField(required=False, allow_null=True, allow_blank=True)
 
         def get_query_set(self):
             query_set = QuerySet(FunctionLib).filter(
                 (Q(user_id=self.data.get('user_id')) | Q(permission_type='PUBLIC')))
             if self.data.get('name') is not None:
-                query_set = query_set.filter(name__icontains=self.data.get('name'))
+                query_set = query_set.filter(name__contains=self.data.get('name'))
             if self.data.get('desc') is not None:
                 query_set = query_set.filter(desc__contains=self.data.get('desc'))
             if self.data.get('is_active') is not None:
@@ -138,7 +126,7 @@ class FunctionLibSerializer(serializers.Serializer):
                                post_records_handler=lambda row: FunctionLibModelSerializer(row).data)
 
     class Create(serializers.Serializer):
-        user_id = serializers.UUIDField(required=True, error_messages=ErrMessage.uuid(_('user id')))
+        user_id = serializers.UUIDField(required=True, error_messages=ErrMessage.uuid("用户id"))
 
         def insert(self, instance, with_valid=True):
             if with_valid:
@@ -154,7 +142,7 @@ class FunctionLibSerializer(serializers.Serializer):
             return FunctionLibModelSerializer(function_lib).data
 
     class Debug(serializers.Serializer):
-        user_id = serializers.UUIDField(required=True, error_messages=ErrMessage.uuid(_('user id')))
+        user_id = serializers.UUIDField(required=True, error_messages=ErrMessage.uuid("用户id"))
 
         def debug(self, debug_instance, with_valid=True):
             if with_valid:
@@ -177,7 +165,7 @@ class FunctionLibSerializer(serializers.Serializer):
             if len(result) > 0:
                 return result[-1].get('value')
             if is_required:
-                raise AppApiException(500, f"{name}" + _('field has no value set'))
+                raise AppApiException(500, f"{name}字段未设置值")
             return None
 
         @staticmethod
@@ -193,26 +181,24 @@ class FunctionLibSerializer(serializers.Serializer):
                     v = json.loads(value)
                     if isinstance(v, dict):
                         return v
-                    raise Exception(_('type error'))
+                    raise Exception("类型错误")
                 if _type == 'array':
                     v = json.loads(value)
                     if isinstance(v, list):
                         return v
-                    raise Exception(_('type error'))
+                    raise Exception("类型错误")
                 return value
             except Exception as e:
-                raise AppApiException(500, _('Field: {name} Type: {_type} Value: {value} Type conversion error').format(
-                    name=name, type=_type, value=value
-                ))
+                raise AppApiException(500, f'字段:{name}类型:{_type}值:{value}类型转换错误')
 
     class Operate(serializers.Serializer):
-        id = serializers.UUIDField(required=True, error_messages=ErrMessage.uuid(_('function id')))
-        user_id = serializers.UUIDField(required=True, error_messages=ErrMessage.uuid(_('user id')))
+        id = serializers.UUIDField(required=True, error_messages=ErrMessage.uuid("函数id"))
+        user_id = serializers.UUIDField(required=True, error_messages=ErrMessage.uuid("用户id"))
 
         def is_valid(self, *, raise_exception=False):
             super().is_valid(raise_exception=True)
-            if not QuerySet(FunctionLib).filter(id=self.data.get('id')).exists():
-                raise AppApiException(500, _('Function does not exist'))
+            if not QuerySet(FunctionLib).filter(id=self.data.get('id'), user_id=self.data.get('user_id')).exists():
+                raise AppApiException(500, '函数不存在')
 
         def delete(self, with_valid=True):
             if with_valid:
@@ -235,46 +221,6 @@ class FunctionLibSerializer(serializers.Serializer):
                 super().is_valid(raise_exception=True)
                 if not QuerySet(FunctionLib).filter(id=self.data.get('id')).filter(
                         Q(user_id=self.data.get('user_id')) | Q(permission_type='PUBLIC')).exists():
-                    raise AppApiException(500, _('Function does not exist'))
+                    raise AppApiException(500, '函数不存在')
             function_lib = QuerySet(FunctionLib).filter(id=self.data.get('id')).first()
             return FunctionLibModelSerializer(function_lib).data
-
-        def export(self, with_valid=True):
-            try:
-                if with_valid:
-                    self.is_valid()
-                id = self.data.get('id')
-                function_lib = QuerySet(FunctionLib).filter(id=id).first()
-                application_dict = FunctionLibModelSerializer(function_lib).data
-                mk_instance = FlibInstance(application_dict, 'v1')
-                application_pickle = pickle.dumps(mk_instance)
-                response = HttpResponse(content_type='text/plain', content=application_pickle)
-                response['Content-Disposition'] = f'attachment; filename="{function_lib.name}.fx"'
-                return response
-            except Exception as e:
-                return result.error(str(e), response_status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-    class Import(serializers.Serializer):
-        file = UploadedFileField(required=True, error_messages=ErrMessage.image(_("file")))
-        user_id = serializers.UUIDField(required=True, error_messages=ErrMessage.uuid(_("User ID")))
-
-        @transaction.atomic
-        def import_(self, with_valid=True):
-            if with_valid:
-                self.is_valid()
-            user_id = self.data.get('user_id')
-            flib_instance_bytes = self.data.get('file').read()
-            try:
-                flib_instance = pickle.loads(flib_instance_bytes)
-            except Exception as e:
-                raise AppApiException(1001, _("Unsupported file format"))
-            function_lib = flib_instance.function_lib
-            function_lib_model = FunctionLib(id=uuid.uuid1(), name=function_lib.get('name'),
-                                             desc=function_lib.get('desc'),
-                                             code=function_lib.get('code'),
-                                             user_id=user_id,
-                                             input_field_list=function_lib.get('input_field_list'),
-                                             permission_type='PRIVATE',
-                                             is_active=function_lib.get('is_active'))
-            function_lib_model.save()
-            return True

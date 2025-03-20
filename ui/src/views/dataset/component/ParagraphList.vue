@@ -31,9 +31,7 @@
           {{ child.content }}
         </div>
         <div class="lighter mt-12">
-          <el-text type="info">
-            {{ child.content.length }} {{ $t('views.paragraph.character_count') }}
-          </el-text>
+          <el-text type="info"> {{ child.content.length }} 个字符 </el-text>
         </div>
       </el-card>
     </InfiniteScroll>
@@ -50,7 +48,6 @@ import { cloneDeep } from 'lodash'
 import { ref, computed } from 'vue'
 import EditParagraphDialog from './EditParagraphDialog.vue'
 import { MsgConfirm } from '@/utils/message'
-import { t } from '@/locales'
 const page_size = ref<number>(30)
 const current_page = ref<number>(1)
 const currentCIndex = ref<number>(0)
@@ -76,28 +73,15 @@ const next = () => {
 
 const updateContent = (data: any) => {
   const new_value = [...props.modelValue]
-  if (
-    props.isConnect &&
-    data.title &&
-    !data?.problem_list.some((item: any) => item.content === data.title.trim())
-  ) {
-    data['problem_list'].push({
-      content: data.title.trim()
-    })
-  }
   new_value[currentCIndex.value] = cloneDeep(data)
   emit('update:modelValue', new_value)
 }
 
 const deleteHandle = (item: any, cIndex: number) => {
-  MsgConfirm(
-    `${t('views.paragraph.delete.confirmTitle')}${item.title || '-'} ?`,
-    t('views.paragraph.delete.confirmMessage'),
-    {
-      confirmButtonText: t('common.confirm'),
-      confirmButtonClass: 'danger'
-    }
-  )
+  MsgConfirm(`是否删除分段：${item.title || '-'} ?`, `删除后将不会存入知识库，对本地文档无影响。`, {
+    confirmButtonText: '删除',
+    confirmButtonClass: 'danger'
+  })
     .then(() => {
       const new_value = [...props.modelValue]
       new_value.splice(cIndex, 1)

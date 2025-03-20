@@ -9,7 +9,7 @@
   >
     <template #defFooters>
       <el-button text type="info" @click="openDialog">
-        <AppIcon class="color-secondary" iconName="app-magnify" style="font-size: 16px"></AppIcon>
+        <AppIcon class="color-secondary"  iconName="app-magnify" style="font-size: 16px"></AppIcon>
       </el-button>
     </template>
   </MdEditor>
@@ -18,14 +18,14 @@
     <MdEditor v-model="cloneContent" :preview="false" :toolbars="[]" :footers="[]"></MdEditor>
     <template #footer>
       <div class="dialog-footer mt-24">
-        <el-button type="primary" @click="submitDialog"> {{ $t('common.confirm') }}</el-button>
+        <el-button type="primary" @click="submitDialog"> 确认</el-button>
       </div>
     </template>
   </el-dialog>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed } from 'vue'
 defineOptions({ name: 'MdEditorMagnify' })
 const props = defineProps<{
   title: String
@@ -40,13 +40,8 @@ const data = computed({
     return props.modelValue
   }
 })
-const dialogVisible = ref(false)
-watch(dialogVisible, (bool) => {
-  if (!bool) {
-    emit('submitDialog', cloneContent.value)
-  }
-})
 
+const dialogVisible = ref(false)
 const cloneContent = ref('')
 const footers: any = [null, '=', 0]
 function openDialog() {

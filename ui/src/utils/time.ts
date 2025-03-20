@@ -1,7 +1,7 @@
 import moment from 'moment'
 import 'moment/dist/locale/zh-cn'
 moment.locale('zh-cn')
-import { t } from '@/locales'
+
 // 当天日期 YYYY-MM-DD
 export const nowDate = moment().format('YYYY-MM-DD')
 
@@ -64,15 +64,15 @@ export function fromNowDate(time: any) {
     return ''
   } else {
     if (exceedDay < 7 && exceedDay > 0) {
-      return exceedDay + t('layout.time.daysLater')
+      return exceedDay + '天后'
     } else {
       if (exceedHour < 24 && exceedHour > 0) {
-        return exceedHour + t('layout.time.hoursLater')
+        return exceedHour + '小时后'
       } else {
         if (exceedMin < 0) {
-          return t('layout.time.expired')
+          return '已过期'
         } else {
-          return t('layout.time.expiringSoon')
+          return '即将到期'
         }
       }
     }

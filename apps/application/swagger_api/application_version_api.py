@@ -9,7 +9,6 @@
 from drf_yasg import openapi
 
 from common.mixins.api_mixin import ApiMixin
-from django.utils.translation import gettext_lazy as _
 
 
 class ApplicationVersionApi(ApiMixin):
@@ -19,16 +18,13 @@ class ApplicationVersionApi(ApiMixin):
             type=openapi.TYPE_OBJECT,
             required=['id', 'name', 'work_flow', 'create_time', 'update_time'],
             properties={
-                'id': openapi.Schema(type=openapi.TYPE_NUMBER, title=_("Primary key id"),
-                                     description=_("Primary key id")),
-                'name': openapi.Schema(type=openapi.TYPE_NUMBER, title=_("Version Name"),
-                                       description=_("Version Name")),
-                'work_flow': openapi.Schema(type=openapi.TYPE_STRING, title=_("Workflow data"),
-                                            description=_('Workflow data')),
-                'create_time': openapi.Schema(type=openapi.TYPE_STRING, title=_("Creation time"),
-                                              description=_('Creation time')),
-                'update_time': openapi.Schema(type=openapi.TYPE_STRING, title=_("Modification time"),
-                                              description=_('Modification time'))
+                'id': openapi.Schema(type=openapi.TYPE_NUMBER, title="主键id",
+                                     description="主键id"),
+                'name': openapi.Schema(type=openapi.TYPE_NUMBER, title="版本名称",
+                                       description="版本名称"),
+                'work_flow': openapi.Schema(type=openapi.TYPE_STRING, title="工作流数据", description='工作流数据'),
+                'create_time': openapi.Schema(type=openapi.TYPE_STRING, title="创建时间", description='创建时间'),
+                'update_time': openapi.Schema(type=openapi.TYPE_STRING, title="修改时间", description='修改时间')
             }
         )
 
@@ -39,12 +35,12 @@ class ApplicationVersionApi(ApiMixin):
                                       in_=openapi.IN_PATH,
                                       type=openapi.TYPE_STRING,
                                       required=True,
-                                      description=_('Application ID')),
+                                      description='应用id'),
                     openapi.Parameter(name='name',
                                       in_=openapi.IN_QUERY,
                                       type=openapi.TYPE_STRING,
                                       required=False,
-                                      description=_('Version Name'))]
+                                      description='版本名称')]
 
     class Operate(ApiMixin):
         @staticmethod
@@ -53,12 +49,12 @@ class ApplicationVersionApi(ApiMixin):
                                       in_=openapi.IN_PATH,
                                       type=openapi.TYPE_STRING,
                                       required=True,
-                                      description=_('Application ID')),
+                                      description='应用id'),
                     openapi.Parameter(name='work_flow_version_id',
                                       in_=openapi.IN_PATH,
                                       type=openapi.TYPE_STRING,
                                       required=True,
-                                      description=_('Application version id')), ]
+                                      description='应用版本id'), ]
 
     class Edit(ApiMixin):
         @staticmethod
@@ -67,7 +63,7 @@ class ApplicationVersionApi(ApiMixin):
                 type=openapi.TYPE_OBJECT,
                 required=[],
                 properties={
-                    'name': openapi.Schema(type=openapi.TYPE_STRING, title=_("Version Name"),
-                                           description=_("Version Name"))
+                    'name': openapi.Schema(type=openapi.TYPE_STRING, title="版本名称",
+                                           description="版本名称")
                 }
             )

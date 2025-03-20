@@ -15,12 +15,11 @@ from rest_framework import serializers
 
 from common.util.field_message import ErrMessage
 from smartdoc.const import PROJECT_DIR
-from django.utils.translation import gettext_lazy as _
 
 
 class PyLintInstance(serializers.Serializer):
     code = serializers.CharField(required=True, allow_null=True, allow_blank=True,
-                                 error_messages=ErrMessage.char(_('function content')))
+                                 error_messages=ErrMessage.char("函数内容"))
 
 
 def to_dict(message, file_name):

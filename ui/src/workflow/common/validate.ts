@@ -1,5 +1,4 @@
 import { WorkflowType } from '@/enums/workflow'
-import { t } from '@/locales'
 
 const end_nodes: Array<string> = [
   WorkflowType.AiChat,
@@ -27,9 +26,9 @@ export class WorkFlowInstance {
   private is_valid_start_node() {
     const start_node_list = this.nodes.filter((item) => item.id === WorkflowType.Start)
     if (start_node_list.length == 0) {
-      throw t('views.applicationWorkflow.validate.startNodeRequired')
+      throw '开始节点必填'
     } else if (start_node_list.length > 1) {
-      throw t('views.applicationWorkflow.validate.startNodeOnly')
+      throw '开始节点只能有一个'
     }
   }
   /**
@@ -38,9 +37,9 @@ export class WorkFlowInstance {
   private is_valid_base_node() {
     const start_node_list = this.nodes.filter((item) => item.id === WorkflowType.Base)
     if (start_node_list.length == 0) {
-      throw t('views.applicationWorkflow.validate.baseNodeRequired')
+      throw '基本信息节点必填'
     } else if (start_node_list.length > 1) {
-      throw t('views.applicationWorkflow.validate.baseNodeOnly')
+      throw '基本信息节点只能有一个'
     }
   }
   /**
@@ -92,7 +91,7 @@ export class WorkFlowInstance {
       .filter((node: any) => node.id !== WorkflowType.Start && node.id !== WorkflowType.Base)
       .filter((node) => !this.workFlowNodes.includes(node))
     if (notInWorkFlowNodes.length > 0) {
-      throw `${t('views.applicationWorkflow.validate.notInWorkFlowNode')}:${notInWorkFlowNodes.map((node) => node.properties.stepName).join('，')}`
+      throw `未在流程中的节点:${notInWorkFlowNodes.map((node) => node.properties.stepName).join('，')}`
     }
     this.workFlowNodes = []
   }
@@ -107,7 +106,7 @@ export class WorkFlowInstance {
       .map((edge) => this.nodes.filter((node) => node.id == edge.targetNodeId))
       .reduce((x, y) => [...x, ...y], [])
     if (node_list.length == 0 && !end_nodes.includes(node.type)) {
-      throw t('views.applicationWorkflow.validate.noNextNode')
+      throw '不存在的下一个节点'
     }
     return node_list
   }
@@ -115,7 +114,7 @@ export class WorkFlowInstance {
     for (const node of this.nodes) {
       if (node.type !== WorkflowType.Base && node.type !== WorkflowType.Start) {
         if (!this.edges.some((edge) => edge.targetNodeId === node.id)) {
-          throw `${t('views.applicationWorkflow.validate.notInWorkFlowNode')}:${node.properties.stepName}`
+          throw `未在流程中的节点:${node.properties.stepName}`
         }
       }
     }
@@ -126,7 +125,7 @@ export class WorkFlowInstance {
    */
   private is_valid_node(node: any) {
     if (node.properties.status && node.properties.status === 500) {
-      throw `${node.properties.stepName} ${t('views.applicationWorkflow.validate.nodeUnavailable')}`
+      throw `${node.properties.stepName} 节点不可用`
     }
     if (node.type === WorkflowType.Condition) {
       const branch_list = node.properties.node_data.branch
@@ -134,17 +133,17 @@ export class WorkFlowInstance {
         const source_anchor_id = `${node.id}_${branch.id}_right`
         const edge_list = this.edges.filter((edge) => edge.sourceAnchorId == source_anchor_id)
         if (edge_list.length == 0) {
-          throw `${node.properties.stepName} ${t('views.applicationWorkflow.validate.needConnect1')}${branch.type}${t('views.applicationWorkflow.validate.needConnect2')}`
+          throw `${node.properties.stepName} 节点的${branch.type}分支需要连接`
         }
       }
     } else {
       const edge_list = this.edges.filter((edge) => edge.sourceNodeId == node.id)
       if (edge_list.length == 0 && !end_nodes.includes(node.type)) {
-        throw `${node.properties.stepName} ${t('views.applicationWorkflow.validate.cannotEndNode')}`
+        throw `${node.properties.stepName} 节点不能当做结束节点`
       }
     }
     if (node.properties.status && node.properties.status !== 200) {
-      throw `${node.properties.stepName} ${t('views.applicationWorkflow.validate.nodeUnavailable')}`
+      throw `${node.properties.stepName} 节点不可用`
     }
   }
 }

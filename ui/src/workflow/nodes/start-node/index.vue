@@ -1,6 +1,6 @@
 <template>
   <NodeContainer :nodeModel="nodeModel">
-    <h5 class="title-decoration-1 mb-8">{{ $t('views.applicationWorkflow.variable.global') }}</h5>
+    <h5 class="title-decoration-1 mb-8">全局变量</h5>
     <div
       v-for="(item, index) in nodeModel.properties.config.globalFields"
       :key="index"
@@ -9,13 +9,12 @@
       @mouseleave="showicon = false"
     >
       <span>{{ item.label }} {{ '{' + item.value + '}' }}</span>
-      <el-tooltip
-        effect="dark"
-        :content="$t('views.applicationWorkflow.setting.copyParam')"
-        placement="top"
-        v-if="showicon === true"
-      >
-        <el-button link @click="copyClick(`{{global.${item.value}}}`)" style="padding: 0">
+      <el-tooltip effect="dark" content="复制参数" placement="top" v-if="showicon === true">
+        <el-button
+          link
+          @click="copyClick('{{' + '全局变量.' + item.value + '}}')"
+          style="padding: 0"
+        >
           <AppIcon iconName="app-copy"></AppIcon>
         </el-button>
       </el-tooltip>
@@ -27,17 +26,14 @@ import { cloneDeep, set } from 'lodash'
 import NodeContainer from '@/workflow/common/NodeContainer.vue'
 import { copyClick } from '@/utils/clipboard'
 import { ref, computed, onMounted } from 'vue'
-import { t } from '@/locales'
+
 const props = defineProps<{ nodeModel: any }>()
 
 const showicon = ref(false)
 const globalFields = [
-  { label: t('views.applicationWorkflow.nodes.startNode.currentTime'), value: 'time' },
-  {
-    label: t('views.application.applicationForm.form.historyRecord.label'),
-    value: 'history_context'
-  },
-  { label: t('chat.chatId'), value: 'chat_id' }
+  { label: '当前时间', value: 'time' },
+  { label: '历史聊天记录', value: 'history_context' },
+  { label: '对话id', value: 'chat_id' }
 ]
 
 const getRefreshFieldList = () => {
@@ -73,13 +69,7 @@ const refreshFileUploadConfig = () => {
     .map((v: any) => cloneDeep(v.properties.node_data.file_upload_setting))
     .filter((v: any) => v)
 
-  fields = fields.filter(
-    (item: any) =>
-      item.value !== 'image' &&
-      item.value !== 'document' &&
-      item.value !== 'audio' &&
-      item.value !== 'video'
-  )
+  fields = fields.filter((item: any) => item.value !== 'image' && item.value !== 'document' && item.value !== 'audio' && item.value !== 'video')
 
   if (form_data.length === 0) {
     set(props.nodeModel.properties.config, 'fields', fields)
@@ -87,16 +77,16 @@ const refreshFileUploadConfig = () => {
   }
   let fileUploadFields = []
   if (form_data[0].document) {
-    fileUploadFields.push({ label: t('common.fileUpload.document'), value: 'document' })
+    fileUploadFields.push({ label: '文档', value: 'document' })
   }
   if (form_data[0].image) {
-    fileUploadFields.push({ label: t('common.fileUpload.image'), value: 'image' })
+    fileUploadFields.push({ label: '图片', value: 'image' })
   }
   if (form_data[0].audio) {
-    fileUploadFields.push({ label: t('common.fileUpload.audio'), value: 'audio' })
+    fileUploadFields.push({ label: '音频', value: 'audio' })
   }
   if (form_data[0].video) {
-    fileUploadFields.push({ label: t('common.fileUpload.video'), value: 'video' })
+    fileUploadFields.push({ label: '视频', value: 'video' })
   }
 
   set(props.nodeModel.properties.config, 'fields', [...fields, ...fileUploadFields])

@@ -25,8 +25,6 @@ instance.interceptors.request.use(
     }
     const { user } = useStore()
     const token = user.getToken()
-    const language = user.getLanguage()
-    config.headers['Accept-Language'] = `${language}`
     if (token) {
       config.headers['AUTHORIZATION'] = `${token}`
     }
@@ -205,12 +203,10 @@ export const postStream: (url: string, data?: unknown) => Promise<Result<any> | 
 ) => {
   const { user } = useStore()
   const token = user.getToken()
-  const language = user.getLanguage()
   const headers: HeadersInit = { 'Content-Type': 'application/json' }
   if (token) {
     headers['AUTHORIZATION'] = `${token}`
   }
-  headers['Accept-Language'] = `${language}`
   return fetch(url, {
     method: 'POST',
     body: data ? JSON.stringify(data) : undefined,

@@ -1,5 +1,5 @@
 <template>
-  <div ref="aiChatRef" class="ai-chat" :class="type">
+  <div ref="aiChatRef" class="ai-chat" :class="type == 'log' ? 'chart-log' : ''">
     <UserForm
       v-model:api_form_data="api_form_data"
       v-model:form_data="form_data"
@@ -18,11 +18,7 @@
 
         <template v-for="(item, index) in chatList" :key="index">
           <!-- 问题 -->
-          <QuestionContent
-            :type="type"
-            :application="applicationDetails"
-            :chat-record="item"
-          ></QuestionContent>
+          <QuestionContent :application="applicationDetails" :chat-record="item"></QuestionContent>
           <!-- 回答 -->
           <AnswerContent
             :application="applicationDetails"
@@ -50,7 +46,6 @@
     >
       <template #operateBefore> <slot name="operateBefore" /> </template>
     </ChatInputOperate>
-    <Control></Control>
   </div>
 </template>
 <script setup lang="ts">
@@ -68,8 +63,6 @@ import QuestionContent from '@/components/ai-chat/component/question-content/ind
 import ChatInputOperate from '@/components/ai-chat/component/chat-input-operate/index.vue'
 import PrologueContent from '@/components/ai-chat/component/prologue-content/index.vue'
 import UserForm from '@/components/ai-chat/component/user-form/index.vue'
-import Control from '@/components/ai-chat/component/control/index.vue'
-import { t } from '@/locales'
 defineOptions({ name: 'AiChat' })
 const route = useRoute()
 const {
@@ -189,9 +182,9 @@ const openChatId: () => Promise<string> = () => {
 /**
  * 对话
  */
-function getChartOpenId(chat?: any, problem?: string, re_chat?: boolean, other_params_data?: any) {
+function getChartOpenId(chat?: any) {
   return openChatId().then(() => {
-    chatMessage(chat, problem, re_chat, other_params_data)
+    chatMessage(chat)
   })
 }
 
@@ -275,7 +268,7 @@ const getWrite = (chat: any, reader: any, stream: boolean) => {
 const errorWrite = (chat: any, message?: string) => {
   ChatManagement.addChatRecord(chat, 50, loading)
   ChatManagement.write(chat.id)
-  ChatManagement.append(chat.id, message || t('chat.tip.error500Message'))
+  ChatManagement.append(chat.id, message || '抱歉，当前正在维护，无法提供服务，请稍后再试！')
   ChatManagement.updateStatus(chat.id, 500)
   ChatManagement.close(chat.id)
 }
@@ -288,10 +281,8 @@ function chatMessage(chat?: any, problem?: string, re_chat?: boolean, other_para
       id: randomId(),
       problem_text: problem ? problem : inputValue.value.trim(),
       answer_text: '',
-      answer_text_list: [[]],
+      answer_text_list: [{ content: '' }],
       buffer: [],
-      reasoning_content: '',
-      reasoning_content_buffer: [],
       write_ed: false,
       is_stop: false,
       record_id: '',
@@ -323,7 +314,7 @@ function chatMessage(chat?: any, problem?: string, re_chat?: boolean, other_para
     ChatManagement.write(chat.id)
   }
   if (!chartOpenId.value) {
-    getChartOpenId(chat, problem, re_chat, other_params_data).catch(() => {
+    getChartOpenId(chat).catch(() => {
       errorWrite(chat)
     })
   } else {
@@ -350,9 +341,9 @@ function chatMessage(chat?: any, problem?: string, re_chat?: boolean, other_para
               errorWrite(chat)
             })
         } else if (response.status === 460) {
-          return Promise.reject(t('chat.tip.errorIdentifyMessage'))
+          return Promise.reject('无法识别用户身份')
         } else if (response.status === 461) {
-          return Promise.reject(t('chat.tip.errorLimitMessage'))
+          return Promise.reject('抱歉，您的提问已达到最大限制，请明天再来吧！')
         } else {
           nextTick(() => {
             // 将滚动条滚动到最下面
@@ -417,7 +408,7 @@ const handleScrollTop = ($event: any) => {
   scrollTop.value = $event.scrollTop
   if (
     dialogScrollbar.value.scrollHeight - (scrollTop.value + scrollDiv.value.wrapRef.offsetHeight) <=
-    40
+    30
   ) {
     scorll.value = true
   } else {

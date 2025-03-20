@@ -6,8 +6,7 @@ import UserApi from '@/api/user'
 import ThemeApi from '@/api/theme'
 import { useElementPlusTheme } from 'use-element-plus-theme'
 import { defaultPlatformSetting } from '@/utils/theme'
-import { useLocalStorage } from '@vueuse/core'
-import { localeConfigKey, getBrowserLang } from '@/locales/index'
+
 export interface userStateTypes {
   userType: number // 1 系统操作者 2 对话用户
   userInfo: User | null
@@ -31,11 +30,6 @@ const useUserStore = defineStore({
     themeInfo: null
   }),
   actions: {
-    getLanguage() {
-      return this.userType === 1
-        ? localStorage.getItem('MaxKB-locale') || getBrowserLang()
-        : sessionStorage.getItem('language') || getBrowserLang()
-    },
     showXpack() {
       return this.isXPack
     },
@@ -124,7 +118,6 @@ const useUserStore = defineStore({
     async profile() {
       return UserApi.profile().then(async (ok) => {
         this.userInfo = ok.data
-        useLocalStorage(localeConfigKey, 'en-US').value = ok.data?.language || this.getLanguage()
         return this.asyncGetProfile()
       })
     },
@@ -165,19 +158,6 @@ const useUserStore = defineStore({
     async getQrType() {
       return UserApi.getQrType().then((ok) => {
         return ok.data
-      })
-    },
-    async postUserLanguage(lang: string, loading?: Ref<boolean>) {
-      return new Promise((resolve, reject) => {
-        UserApi.postLanguage({ language: lang }, loading)
-          .then(async (ok) => {
-            useLocalStorage(localeConfigKey, 'en-US').value = lang
-            window.location.reload()
-            resolve(ok)
-          })
-          .catch((error) => {
-            reject(error)
-          })
       })
     }
   }

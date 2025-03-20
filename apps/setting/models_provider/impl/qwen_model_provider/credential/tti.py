@@ -6,10 +6,11 @@
     @date：2024/7/11 18:41
     @desc:
 """
-import traceback
+import base64
+import os
 from typing import Dict
 
-from django.utils.translation import gettext_lazy as _, gettext
+from langchain_core.messages import HumanMessage
 
 from common import forms
 from common.exception.app_exception import AppApiException
@@ -19,7 +20,7 @@ from setting.models_provider.base_model_provider import BaseModelCredential, Val
 
 class QwenModelParams(BaseForm):
     size = forms.SingleSelect(
-        TooltipLabel(_('Image size'), _('Specify the size of the generated image, such as: 1024x1024')),
+        TooltipLabel('图片尺寸', '指定生成图片的尺寸, 如: 1024x1024'),
         required=True,
         default_value='1024*1024',
         option_list=[
@@ -31,27 +32,27 @@ class QwenModelParams(BaseForm):
         text_field='label',
         value_field='value')
     n = forms.SliderField(
-        TooltipLabel(_('Number of pictures'), _('Specify the number of generated images')),
+        TooltipLabel('图片数量', '指定生成图片的数量'),
         required=True, default_value=1,
         _min=1,
         _max=4,
         _step=1,
         precision=0)
     style = forms.SingleSelect(
-        TooltipLabel(_('Style'), _('Specify the style of generated images')),
+        TooltipLabel('风格', '指定生成图片的风格'),
         required=True,
         default_value='<auto>',
         option_list=[
-            {'value': '<auto>', 'label': _('Default value, the image style is randomly output by the model')},
-            {'value': '<photography>', 'label': _('photography')},
-            {'value': '<portrait>', 'label': _('Portraits')},
-            {'value': '<3d cartoon>', 'label': _('3D cartoon')},
-            {'value': '<anime>', 'label': _('animation')},
-            {'value': '<oil painting>', 'label': _('painting')},
-            {'value': '<watercolor>', 'label': _('watercolor')},
-            {'value': '<sketch>', 'label': _('sketch')},
-            {'value': '<chinese painting>', 'label': _('Chinese painting')},
-            {'value': '<flat illustration>', 'label': _('flat illustration')},
+            {'value': '<auto>', 'label': '默认值，由模型随机输出图像风格'},
+            {'value': '<photography>', 'label': '摄影'},
+            {'value': '<portrait>', 'label': '人像写真'},
+            {'value': '<3d cartoon>', 'label': '3D卡通'},
+            {'value': '<anime>', 'label': '动画'},
+            {'value': '<oil painting>', 'label': '油画'},
+            {'value': '<watercolor>', 'label': '水彩'},
+            {'value': '<sketch>', 'label': '素描'},
+            {'value': '<chinese painting>', 'label': '中国画'},
+            {'value': '<flat illustration>', 'label': '扁平插画'},
         ],
         text_field='label',
         value_field='value'
@@ -64,12 +65,11 @@ class QwenTextToImageModelCredential(BaseForm, BaseModelCredential):
                  raise_exception=False):
         model_type_list = provider.get_model_type_list()
         if not any(list(filter(lambda mt: mt.get('value') == model_type, model_type_list))):
-            raise AppApiException(ValidCode.valid_error.value,
-                                  gettext('{model_type} Model type is not supported').format(model_type=model_type))
+            raise AppApiException(ValidCode.valid_error.value, f'{model_type} 模型类型不支持')
         for key in ['api_key']:
             if key not in model_credential:
                 if raise_exception:
-                    raise AppApiException(ValidCode.valid_error.value, gettext('{key}  is required').format(key=key))
+                    raise AppApiException(ValidCode.valid_error.value, f'{key} 字段为必填字段')
                 else:
                     return False
         try:
@@ -77,14 +77,10 @@ class QwenTextToImageModelCredential(BaseForm, BaseModelCredential):
             res = model.check_auth()
             print(res)
         except Exception as e:
-            traceback.print_exc()
             if isinstance(e, AppApiException):
                 raise e
             if raise_exception:
-                raise AppApiException(ValidCode.valid_error.value,
-                                      gettext(
-                                          'Verification failed, please check whether the parameters are correct: {error}').format(
-                                          error=str(e)))
+                raise AppApiException(ValidCode.valid_error.value, f'校验失败,请检查参数是否正确: {str(e)}')
             else:
                 return False
         return True

@@ -17,14 +17,14 @@
           v-if="chatRecord.is_stop && !chatRecord.write_ed"
           @click="startChat(chatRecord)"
           link
-          >{{ $t('chat.operation.continue') }}
+          >继续
         </el-button>
         <el-button
           type="primary"
           v-else-if="!chatRecord.write_ed"
           @click="stopChat(chatRecord)"
           link
-          >{{ $t('chat.operation.stopChat') }}
+          >停止回答
         </el-button>
       </div>
     </div>
@@ -32,7 +32,6 @@
       <ChatOperationButton
         :tts="application.tts_model_enable"
         :tts_type="application.tts_type"
-        :tts_autoplay="application.tts_autoplay"
         :data="chatRecord"
         :type="type"
         :applicationId="application.id"

@@ -7,14 +7,12 @@
             <Back />
           </el-icon>
         </el-button>
-        <h4>{{ $t('common.debug') }}</h4>
+        <h4>调试</h4>
       </div>
     </template>
     <div>
       <div v-if="form.debug_field_list.length > 0" class="mb-16">
-        <h4 class="title-decoration-1 mb-16">
-          {{ $t('common.param.inputParam') }}
-        </h4>
+        <h4 class="title-decoration-1 mb-16">输入参数</h4>
         <el-card shadow="never" class="card-never" style="--el-card-padding: 12px">
           <el-form
             ref="FormRef"
@@ -30,7 +28,7 @@
                 :prop="'debug_field_list.' + index + '.value'"
                 :rules="{
                   required: item.is_required,
-                  message: $t('views.functionLib.functionForm.form.param.inputPlaceholder'),
+                  message: '请输入参数值',
                   trigger: 'blur'
                 }"
               >
@@ -42,41 +40,22 @@
                     <el-tag type="info" class="info-tag ml-4">{{ item.type }}</el-tag>
                   </div>
                 </template>
-                <el-input
-                  v-model="item.value"
-                  :placeholder="$t('views.functionLib.functionForm.form.param.inputPlaceholder')"
-                />
+                <el-input v-model="item.value" placeholder="请输入参数值" />
               </el-form-item>
             </template>
           </el-form>
         </el-card>
       </div>
 
-      <el-button type="primary" @click="submit(FormRef)" :loading="loading">
-        {{ $t('views.functionLib.functionForm.form.debug.run') }}
-      </el-button>
+      <el-button type="primary" @click="submit(FormRef)" :loading="loading"> 运行 </el-button>
       <div v-if="showResult" class="mt-8">
-        <h4 class="title-decoration-1 mb-16 mt-16">
-          {{ $t('views.functionLib.functionForm.form.debug.runResult') }}
-        </h4>
+        <h4 class="title-decoration-1 mb-16 mt-16">运行结果</h4>
         <div class="mb-16">
-          <el-alert
-            v-if="isSuccess"
-            :title="$t('views.functionLib.functionForm.form.debug.runSuccess')"
-            type="success"
-            show-icon
-            :closable="false"
-          />
-          <el-alert
-            v-else
-            :title="$t('views.functionLib.functionForm.form.debug.runFailed')"
-            type="error"
-            show-icon
-            :closable="false"
-          />
+          <el-alert v-if="isSuccess" title="运行成功" type="success" show-icon :closable="false" />
+          <el-alert v-else title="运行失败" type="error" show-icon :closable="false" />
         </div>
 
-        <p class="lighter mb-8">{{ $t('views.functionLib.functionForm.form.debug.output') }}</p>
+        <p class="lighter mb-8">输出</p>
 
         <el-card
           :class="isSuccess ? '' : 'danger'"
@@ -84,7 +63,7 @@
           shadow="never"
           style="max-height: 350px; overflow: scroll"
         >
-          {{ String(result) == '0' ? 0 : result || '-' }}
+          {{ result || '-' }}
         </el-card>
       </div>
     </div>

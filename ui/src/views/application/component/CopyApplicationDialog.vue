@@ -1,6 +1,6 @@
 <template>
   <el-dialog
-    :title="$t('views.application.copyApplication')"
+    :title="$t('views.application.applicationForm.title.copy')"
     v-model="dialogVisible"
     width="650"
     append-to-body
@@ -36,10 +36,10 @@
     <template #footer>
       <span class="dialog-footer">
         <el-button @click.prevent="dialogVisible = false" :loading="loading">
-          {{ $t('common.cancel') }}
+          {{ $t('views.application.applicationForm.buttons.cancel') }}
         </el-button>
         <el-button type="primary" @click="submitValid(applicationFormRef)" :loading="loading">
-          {{ $t('common.copy') }}
+          {{ $t('views.application.applicationForm.buttons.copy') }}
         </el-button>
       </span>
     </template>
@@ -61,7 +61,7 @@ const router = useRouter()
 const { common, user } = useStore()
 
 // @ts-ignore
-const defaultPrompt = t('views.application.applicationForm.form.prompt.defaultPrompt', {
+const defaultPrompt = t('views.application.prompt.defaultPrompt', {
   data: '{data}',
   question: '{question}'
 })
@@ -75,7 +75,7 @@ const applicationForm = ref<ApplicationFormType>({
   desc: '',
   model_id: '',
   dialogue_number: 0,
-  prologue: t('views.application.applicationForm.form.defaultPrologue'),
+  prologue: t('views.application.prompt.defaultPrologue'),
   dataset_id_list: [],
   dataset_setting: {
     top_n: 3,
@@ -111,7 +111,7 @@ watch(dialogVisible, (bool) => {
       desc: '',
       model_id: '',
       dialogue_number: 0,
-      prologue: t('views.application.applicationForm.form.defaultPrologue'),
+      prologue: t('views.application.prompt.defaultPrologue'),
       dataset_id_list: [],
       dataset_setting: {
         top_n: 3,
@@ -136,7 +136,7 @@ watch(dialogVisible, (bool) => {
 const open = (data: any) => {
   const obj = cloneDeep(data)
   delete obj['id']
-  obj['name'] = obj['name'] + ` ${t('views.application.applicationForm.title.copy')}`
+  obj['name'] = obj['name'] + ' 副本'
   applicationForm.value = obj
   dialogVisible.value = true
 }
@@ -149,7 +149,7 @@ const submitHandle = async (formEl: FormInstance | undefined) => {
   await formEl.validate((valid) => {
     if (valid) {
       applicationApi.postApplication(applicationForm.value, loading).then((res) => {
-        MsgSuccess(t('common.createSuccess'))
+        MsgSuccess(t('views.application.applicationForm.buttons.createSuccess'))
         if (isWorkFlow(applicationForm.value.type)) {
           router.push({ path: `/application/${res.data.id}/workflow` })
         } else {

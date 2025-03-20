@@ -1,11 +1,12 @@
 # coding=utf-8
 
-from typing import Dict, List
+from typing import Dict, Optional, List, Any, Iterator
 from urllib.parse import urlparse, ParseResult
 
-from langchain_core.messages import BaseMessage, get_buffer_string
+from langchain_core.language_models import LanguageModelInput
+from langchain_core.messages import BaseMessageChunk
+from langchain_core.runnables import RunnableConfig
 
-from common.config.tokenizer_manage_config import TokenizerManage
 from setting.models_provider.base_model_provider import MaxKBBaseModel
 from setting.models_provider.impl.base_chat_open_ai import BaseChatOpenAI
 
@@ -36,15 +37,3 @@ class XinferenceChatModel(MaxKBBaseModel, BaseChatOpenAI):
             openai_api_key=model_credential.get('api_key'),
             **optional_params
         )
-
-    def get_num_tokens_from_messages(self, messages: List[BaseMessage]) -> int:
-        if self.usage_metadata is None or self.usage_metadata == {}:
-            tokenizer = TokenizerManage.get_tokenizer()
-            return sum([len(tokenizer.encode(get_buffer_string([m]))) for m in messages])
-        return self.usage_metadata.get('input_tokens', 0)
-
-    def get_num_tokens(self, text: str) -> int:
-        if self.usage_metadata is None or self.usage_metadata == {}:
-            tokenizer = TokenizerManage.get_tokenizer()
-            return len(tokenizer.encode(text))
-        return self.get_last_generation_info().get('output_tokens', 0)

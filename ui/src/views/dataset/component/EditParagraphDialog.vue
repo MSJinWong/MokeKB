@@ -1,6 +1,6 @@
 <template>
   <el-dialog
-    :title="$t('views.paragraph.editParagraph')"
+    title="编辑分段"
     v-model="dialogVisible"
     width="80%"
     destroy-on-close
@@ -15,7 +15,7 @@
       <el-col :span="6" class="border-l" style="width: 300px">
         <p class="bold title p-24" style="padding-bottom: 0">
           <span class="flex align-center">
-            <span>{{ $t('views.paragraph.relatedProblem.title') }}</span>
+            <span>关联问题</span>
             <el-divider direction="vertical" class="mr-4" />
             <el-button text @click="addProblem">
               <el-icon><Plus /></el-icon>
@@ -27,11 +27,10 @@
             <el-input
               v-if="isAddProblem"
               v-model="problemValue"
-              :placeholder="$t('views.paragraph.relatedProblem.placeholder')"
+              placeholder="请选择问题"
               @change="addProblemHandle"
               @blur="isAddProblem = false"
               ref="inputRef"
-              class="mb-8"
             />
 
             <template v-for="(item, index) in detail.problem_list" :key="index">
@@ -57,8 +56,8 @@
 
     <template #footer>
       <span class="dialog-footer">
-        <el-button @click.prevent="dialogVisible = false"> {{ $t('common.cancel') }} </el-button>
-        <el-button type="primary" @click="submitHandle"> {{ $t('common.save') }} </el-button>
+        <el-button @click.prevent="dialogVisible = false"> 取消 </el-button>
+        <el-button type="primary" @click="submitHandle"> 保存 </el-button>
       </span>
     </template>
   </el-dialog>

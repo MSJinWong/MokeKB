@@ -3,7 +3,7 @@
     :modelValue="show"
     modal-class="positioned-mask"
     width="300"
-    :title="$t('chat.passwordValidator.title')"
+    title="请输入密码打开链接"
     custom-class="no-close-button"
     :close-on-click-modal="false"
     :close-on-press-escape="false"
@@ -16,8 +16,8 @@
       <el-form-item prop="value" :rules="rules.value">
         <el-input show-password v-model="form.value" />
       </el-form-item>
-      <el-button class="w-full mt-8" type="primary" @click="validator" :loading="loading">
-        {{ $t('common.confirm') }}</el-button
+      <el-button class="w-full mt-8" type="primary" @click="validator" :loading="loading"
+        >确定</el-button
       >
     </el-form>
   </el-dialog>
@@ -26,7 +26,6 @@
 import { ref, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import useStore from '@/stores'
-import { t } from '@/locales'
 const route = useRoute()
 const FormRef = ref()
 const {
@@ -52,10 +51,10 @@ const auth = () => {
 }
 const validator_auth = (rule: any, value: string, callback: any) => {
   if (value === '') {
-    callback(new Error(t('chat.passwordValidator.errorMessage1')))
+    callback(new Error('密码不能为空'))
   } else {
     auth().catch(() => {
-      callback(new Error(t('chat.passwordValidator.errorMessage2')))
+      callback(new Error('密码错误'))
     })
   }
 }

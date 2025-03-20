@@ -8,7 +8,6 @@
 """
 import csv
 import io
-import os
 from typing import List
 
 from charset_normalizer import detect
@@ -29,8 +28,7 @@ class CsvSplitHandle(BaseSplitHandle):
     def handle(self, file, pattern_list: List, with_filter: bool, limit: int, get_buffer, save_image):
         buffer = get_buffer(file)
         paragraphs = []
-        file_name = os.path.basename(file.name)
-        result = {'name': file_name, 'content': paragraphs}
+        result = {'name': file.name, 'content': paragraphs}
         try:
             reader = csv.reader(io.TextIOWrapper(io.BytesIO(buffer), encoding=detect(buffer)['encoding']))
             try:
@@ -55,7 +53,7 @@ class CsvSplitHandle(BaseSplitHandle):
                         result_item_content += next_md_content
                     else:
                         paragraphs.append({'content': result_item_content, 'title': ''})
-                        result_item_content = title_md_content + next_md_content
+                        result_item_content = ''
             if len(result_item_content) > 0:
                 paragraphs.append({'content': result_item_content, 'title': ''})
             return result

@@ -10,7 +10,6 @@ from enum import Enum
 
 from setting.models_provider.impl.aliyun_bai_lian_model_provider.aliyun_bai_lian_model_provider import \
     AliyunBaiLianModelProvider
-from setting.models_provider.impl.anthropic_model_provider.anthropic_model_provider import AnthropicModelProvider
 from setting.models_provider.impl.aws_bedrock_model_provider.aws_bedrock_model_provider import BedrockModelProvider
 from setting.models_provider.impl.azure_model_provider.azure_model_provider import AzureModelProvider
 from setting.models_provider.impl.deepseek_model_provider.deepseek_model_provider import DeepSeekModelProvider
@@ -19,10 +18,6 @@ from setting.models_provider.impl.kimi_model_provider.kimi_model_provider import
 from setting.models_provider.impl.ollama_model_provider.ollama_model_provider import OllamaModelProvider
 from setting.models_provider.impl.openai_model_provider.openai_model_provider import OpenAIModelProvider
 from setting.models_provider.impl.qwen_model_provider.qwen_model_provider import QwenModelProvider
-from setting.models_provider.impl.siliconCloud_model_provider.siliconCloud_model_provider import \
-    SiliconCloudModelProvider
-from setting.models_provider.impl.tencent_cloud_model_provider.tencent_cloud_model_provider import \
-    TencentCloudModelProvider
 from setting.models_provider.impl.tencent_model_provider.tencent_model_provider import TencentModelProvider
 from setting.models_provider.impl.vllm_model_provider.vllm_model_provider import VllmModelProvider
 from setting.models_provider.impl.volcanic_engine_model_provider.volcanic_engine_model_provider import \
@@ -47,11 +42,8 @@ class ModelProvideConstants(Enum):
     model_gemini_provider = GeminiModelProvider()
     model_volcanic_engine_provider = VolcanicEngineModelProvider()
     model_tencent_provider = TencentModelProvider()
-    model_tencent_cloud_provider = TencentCloudModelProvider()
     model_aws_bedrock_provider = BedrockModelProvider()
     model_local_provider = LocalModelProvider()
     model_xinference_provider = XinferenceModelProvider()
     model_vllm_provider = VllmModelProvider()
     aliyun_bai_lian_model_provider = AliyunBaiLianModelProvider()
-    model_anthropic_provider = AnthropicModelProvider()
-    model_siliconCloud_provider = SiliconCloudModelProvider()

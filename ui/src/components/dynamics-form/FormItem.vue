@@ -35,7 +35,6 @@ import type { FormField } from '@/components/dynamics-form/type'
 import FormItemLabel from './FormItemLabel.vue'
 import type { Dict } from '@/api/type/common'
 import bus from '@/bus'
-import { t } from '@/locales'
 const props = defineProps<{
   // 双向绑定的值
   modelValue: any
@@ -105,8 +104,8 @@ const errMsg = computed(() => {
   return props_info.value.err_msg
     ? props_info.value.err_msg
     : isString(props.formfield.label)
-      ? props.formfield.label + ' ' + t('dynamicsForm.tip.requiredMessage')
-      : props.formfield.label.label + ' ' + t('dynamicsForm.tip.requiredMessage')
+      ? props.formfield.label + '不能为空'
+      : props.formfield.label.label + '不能为空'
 })
 /**
  * 反序列化

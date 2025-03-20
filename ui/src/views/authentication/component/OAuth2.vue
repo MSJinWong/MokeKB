@@ -9,89 +9,68 @@
           label-position="top"
           require-asterisk-position="right"
         >
-          <el-form-item
-            :label="$t('views.system.authentication.oauth2.authEndpoint')"
-            prop="config_data.authEndpoint"
-          >
+          <el-form-item :label="$t('login.oauth2.authEndpoint')" prop="config_data.authEndpoint">
             <el-input
               v-model="form.config_data.authEndpoint"
-              :placeholder="$t('views.system.authentication.oauth2.authEndpointPlaceholder')"
+              :placeholder="$t('login.oauth2.authEndpointPlaceholder')"
             />
           </el-form-item>
-          <el-form-item
-            :label="$t('views.system.authentication.oauth2.tokenEndpoint')"
-            prop="config_data.tokenEndpoint"
-          >
+          <el-form-item :label="$t('login.oauth2.tokenEndpoint')" prop="config_data.tokenEndpoint">
             <el-input
               v-model="form.config_data.tokenEndpoint"
-              :placeholder="$t('views.system.authentication.oauth2.tokenEndpointPlaceholder')"
+              :placeholder="$t('login.oauth2.tokenEndpointPlaceholder')"
             />
           </el-form-item>
           <el-form-item
-            :label="$t('views.system.authentication.oauth2.userInfoEndpoint')"
+            :label="$t('login.oauth2.userInfoEndpoint')"
             prop="config_data.userInfoEndpoint"
           >
             <el-input
               v-model="form.config_data.userInfoEndpoint"
-              :placeholder="$t('views.system.authentication.oauth2.userInfoEndpointPlaceholder')"
+              :placeholder="$t('login.oauth2.userInfoEndpointPlaceholder')"
             />
           </el-form-item>
-          <el-form-item
-            :label="$t('views.system.authentication.oauth2.scope')"
-            prop="config_data.scope"
-          >
+          <el-form-item :label="$t('login.oauth2.scope')" prop="config_data.scope">
             <el-input
               v-model="form.config_data.scope"
-              :placeholder="$t('views.system.authentication.oauth2.scopePlaceholder')"
+              :placeholder="$t('login.oauth2.scopePlaceholder')"
             />
           </el-form-item>
-          <el-form-item
-            :label="$t('views.system.authentication.oauth2.clientId')"
-            prop="config_data.clientId"
-          >
+          <el-form-item :label="$t('login.oauth2.clientId')" prop="config_data.clientId">
             <el-input
               v-model="form.config_data.clientId"
-              :placeholder="$t('views.system.authentication.oauth2.clientIdPlaceholder')"
+              :placeholder="$t('login.oauth2.clientIdPlaceholder')"
             />
           </el-form-item>
-          <el-form-item
-            :label="$t('views.system.authentication.oauth2.clientSecret')"
-            prop="config_data.clientSecret"
-          >
+          <el-form-item :label="$t('login.oauth2.clientSecret')" prop="config_data.clientSecret">
             <el-input
               v-model="form.config_data.clientSecret"
-              :placeholder="$t('views.system.authentication.oauth2.clientSecretPlaceholder')"
+              :placeholder="$t('login.oauth2.clientSecretPlaceholder')"
               show-password
             />
           </el-form-item>
-          <el-form-item
-            :label="$t('views.system.authentication.oauth2.redirectUrl')"
-            prop="config_data.redirectUrl"
-          >
+          <el-form-item :label="$t('login.oauth2.redirectUrl')" prop="config_data.redirectUrl">
             <el-input
               v-model="form.config_data.redirectUrl"
-              :placeholder="$t('views.system.authentication.oauth2.redirectUrlPlaceholder')"
+              :placeholder="$t('login.oauth2.redirectUrlPlaceholder')"
             />
           </el-form-item>
-          <el-form-item
-            :label="$t('views.system.authentication.oauth2.filedMapping')"
-            prop="config_data.fieldMapping"
-          >
+          <el-form-item :label="$t('login.oauth2.filedMapping')" prop="config_data.fieldMapping">
             <el-input
               v-model="form.config_data.fieldMapping"
-              :placeholder="$t('views.system.authentication.oauth2.filedMappingPlaceholder')"
+              :placeholder="$t('login.oauth2.filedMappingPlaceholder')"
             />
           </el-form-item>
           <el-form-item>
             <el-checkbox v-model="form.is_active"
-              >{{ $t('views.system.authentication.oauth2.enableAuthentication') }}
+              >{{ $t('login.oauth2.enableAuthentication') }}
             </el-checkbox>
           </el-form-item>
         </el-form>
 
         <div class="text-right">
           <el-button @click="submit(authFormRef)" type="primary" :disabled="loading">
-            {{ $t('common.save') }}
+            {{ $t('login.ldap.save') }}
           </el-button>
         </div>
       </div>
@@ -127,60 +106,32 @@ const loading = ref(false)
 
 const rules = reactive<FormRules<any>>({
   'config_data.authEndpoint': [
-    {
-      required: true,
-      message: t('views.system.authentication.oauth2.authEndpointPlaceholder'),
-      trigger: 'blur'
-    }
+    { required: true, message: t('login.oauth2.authEndpointPlaceholder'), trigger: 'blur' }
   ],
   'config_data.tokenEndpoint': [
-    {
-      required: true,
-      message: t('views.system.authentication.oauth2.tokenEndpointPlaceholder'),
-      trigger: 'blur'
-    }
+    { required: true, message: t('login.oauth2.tokenEndpointPlaceholder'), trigger: 'blur' }
   ],
   'config_data.userInfoEndpoint': [
     {
       required: true,
-      message: t('views.system.authentication.oauth2.userInfoEndpointPlaceholder'),
+      message: t('login.oauth2.userInfoEndpointPlaceholder'),
       trigger: 'blur'
     }
   ],
   'config_data.scope': [
-    {
-      required: true,
-      message: t('views.system.authentication.oauth2.scopePlaceholder'),
-      trigger: 'blur'
-    }
+    { required: true, message: t('login.oauth2.scopePlaceholder'), trigger: 'blur' }
   ],
   'config_data.clientId': [
-    {
-      required: true,
-      message: t('views.system.authentication.oauth2.clientIdPlaceholder'),
-      trigger: 'blur'
-    }
+    { required: true, message: t('login.oauth2.clientIdPlaceholder'), trigger: 'blur' }
   ],
   'config_data.clientSecret': [
-    {
-      required: true,
-      message: t('views.system.authentication.oauth2.clientSecretPlaceholder'),
-      trigger: 'blur'
-    }
+    { required: true, message: t('login.oauth2.clientSecretPlaceholder'), trigger: 'blur' }
   ],
   'config_data.redirectUrl': [
-    {
-      required: true,
-      message: t('views.system.authentication.oauth2.redirectUrlPlaceholder'),
-      trigger: 'blur'
-    }
+    { required: true, message: t('login.oauth2.redirectUrlPlaceholder'), trigger: 'blur' }
   ],
   'config_data.fieldMapping': [
-    {
-      required: true,
-      message: t('views.system.authentication.oauth2.filedMappingPlaceholder'),
-      trigger: 'blur'
-    }
+    { required: true, message: t('login.oauth2.filedMappingPlaceholder'), trigger: 'blur' }
   ]
 })
 
@@ -189,7 +140,7 @@ const submit = async (formEl: FormInstance | undefined, test?: string) => {
   await formEl.validate((valid, fields) => {
     if (valid) {
       authApi.putAuthSetting(form.value.auth_type, form.value, loading).then((res) => {
-        MsgSuccess(t('common.saveSuccess'))
+        MsgSuccess(t('login.ldap.saveSuccess'))
       })
     }
   })

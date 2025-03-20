@@ -21,10 +21,9 @@ lock = FileLock()
 
 
 def client_access_num_reset_job():
-    from django.utils.translation import gettext_lazy as _
-    logging.getLogger("max_kb").info(_('start reset access_num'))
+    logging.getLogger("max_kb").info('开始重置access_num')
     QuerySet(ApplicationPublicAccessClient).update(intraday_access_num=0)
-    logging.getLogger("max_kb").info(_('end reset access_num'))
+    logging.getLogger("max_kb").info('结束重置access_num')
 
 
 def run():

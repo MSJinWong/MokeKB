@@ -1,6 +1,5 @@
 from typing import Dict
 
-from django.utils.translation import gettext
 from langchain_community.chat_models import ChatZhipuAI
 from langchain_core.messages import HumanMessage
 from zhipuai import ZhipuAI
@@ -46,7 +45,7 @@ class ZhiPuTextToImage(MaxKBBaseModel, BaseTextToImage):
             zhipuai_api_key=self.api_key,
             model_name=self.model,
         )
-        chat.invoke([HumanMessage([{"type": "text", "text": gettext('Hello')}])])
+        chat.invoke([HumanMessage([{"type": "text", "text": "你好"}])])
 
         # self.generate_image('生成一个小猫图片')
 

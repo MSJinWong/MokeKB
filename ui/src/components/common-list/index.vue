@@ -14,7 +14,7 @@
       </template>
     </ul>
     <slot name="empty" v-else>
-      <el-empty :description="$t('common.noData')" />
+      <el-empty description="暂无数据" />
     </slot>
   </div>
 </template>

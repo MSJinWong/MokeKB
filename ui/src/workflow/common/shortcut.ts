@@ -2,7 +2,6 @@ import type LogicFlow from '@logicflow/core'
 import { type GraphModel } from '@logicflow/core'
 import { MsgSuccess, MsgError, MsgConfirm } from '@/utils/message'
 import { WorkflowType } from '@/enums/workflow'
-import { t } from '@/locales'
 let selected: any | null = null
 
 function translationNodeData(nodeData: any, distance: any) {
@@ -60,13 +59,13 @@ export function initDefaultShortcut(lf: LogicFlow, graph: GraphModel) {
       (node: any) => node.type === WorkflowType.Start || node.type === WorkflowType.Base
     )
     if (base_nodes.length > 0) {
-      MsgError(base_nodes[0]?.properties?.stepName + t('views.applicationWorkflow.tip.cannotCopy'))
+      MsgError(base_nodes[0]?.properties?.stepName + '不能被复制')
       return
     }
     selected = elements
     selected.nodes.forEach((node: any) => translationNodeData(node, TRANSLATION_DISTANCE))
     selected.edges.forEach((edge: any) => translationEdgeData(edge, TRANSLATION_DISTANCE))
-    MsgSuccess(t('views.applicationWorkflow.tip.copyError'))
+    MsgSuccess('已复制节点')
     return false
   }
   const paste_node = () => {
@@ -96,11 +95,11 @@ export function initDefaultShortcut(lf: LogicFlow, graph: GraphModel) {
     }
     const nodes = elements.nodes.filter((node) => ['start-node', 'base-node'].includes(node.type))
     if (nodes.length > 0) {
-      MsgError(`${nodes[0].properties?.stepName}${t('views.applicationWorkflow.delete.deleteMessage')}`)
+      MsgError(`${nodes[0].properties?.stepName}节点不允许删除`)
       return
     }
-    MsgConfirm(t('common.tip'), t('views.applicationWorkflow.delete.confirmTitle'), {
-      confirmButtonText: t('common.confirm'),
+    MsgConfirm(`提示`, `确定删除该节点？`, {
+      confirmButtonText: '删除',
       confirmButtonClass: 'danger'
     }).then(() => {
       if (!keyboardOptions?.enabled) return true

@@ -8,7 +8,7 @@
     align-center
   >
     <el-button type="primary" class="mb-16" @click="createApiKey">
-      {{ $t('common.create') }}
+      {{ $t('views.applicationOverview.appInfo.APIKeyDialog.creatApiKey') }}
     </el-button>
     <el-table :data="apiKey" class="mb-16" :loading="loading" height="420">
       <el-table-column prop="secret_key" label="API Key">
@@ -21,28 +21,47 @@
           </el-button>
         </template>
       </el-table-column>
-      <el-table-column :label="$t('common.status.label')" width="70">
+      <el-table-column
+        :label="$t('views.applicationOverview.appInfo.APIKeyDialog.status')"
+        width="60"
+      >
         <template #default="{ row }">
           <div @click.stop>
             <el-switch size="small" v-model="row.is_active" @change="changeState($event, row)" />
           </div>
         </template>
       </el-table-column>
-      <el-table-column prop="name" :label="$t('common.createDate')" width="170">
+      <el-table-column
+        prop="name"
+        :label="$t('views.applicationOverview.appInfo.APIKeyDialog.creationDate')"
+        width="170"
+      >
         <template #default="{ row }">
           {{ datetimeFormat(row.create_time) }}
         </template>
       </el-table-column>
-      <el-table-column :label="$t('common.operation')" align="left" width="90">
+      <el-table-column
+        :label="$t('views.applicationOverview.appInfo.APIKeyDialog.operations')"
+        align="left"
+        width="80"
+      >
         <template #default="{ row }">
           <span class="mr-4">
-            <el-tooltip effect="dark" :content="$t('common.setting')" placement="top">
+            <el-tooltip
+              effect="dark"
+              :content="$t('views.applicationOverview.appInfo.APIKeyDialog.settings')"
+              placement="top"
+            >
               <el-button type="primary" text @click.stop="settingApiKey(row)">
                 <el-icon><Setting /></el-icon>
               </el-button>
             </el-tooltip>
           </span>
-          <el-tooltip effect="dark" :content="$t('common.delete')" placement="top">
+          <el-tooltip
+            effect="dark"
+            :content="$t('views.applicationOverview.appInfo.APIKeyDialog.delete')"
+            placement="top"
+          >
             <el-button type="primary" text @click="deleteApiKey(row)">
               <el-icon><Delete /></el-icon>
             </el-button>
@@ -81,7 +100,7 @@ watch(dialogVisible, (bool) => {
 })
 
 function settingApiKey(row: any) {
-  SettingAPIKeyDialogRef.value.open(row, 'APPLICATION')
+  SettingAPIKeyDialogRef.value.open(row)
 }
 
 function deleteApiKey(row: any) {
@@ -90,14 +109,14 @@ function deleteApiKey(row: any) {
     `${t('views.applicationOverview.appInfo.APIKeyDialog.msgConfirm1')}: ${row.secret_key}?`,
     t('views.applicationOverview.appInfo.APIKeyDialog.msgConfirm2'),
     {
-      confirmButtonText: t('common.confirm'),
-      cancelButtonText: t('common.cancel'),
+      confirmButtonText: t('views.applicationOverview.appInfo.APIKeyDialog.confirmDelete'),
+      cancelButtonText: t('views.applicationOverview.appInfo.APIKeyDialog.cancel'),
       confirmButtonClass: 'danger'
     }
   )
     .then(() => {
       overviewApi.delAPIKey(id as string, row.id, loading).then(() => {
-        MsgSuccess(t('common.deleteSuccess'))
+        MsgSuccess(t('views.applicationOverview.appInfo.APIKeyDialog.deleteSuccess'))
         getApiKeyList()
       })
     })

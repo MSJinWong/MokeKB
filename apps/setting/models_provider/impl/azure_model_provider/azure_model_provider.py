@@ -24,7 +24,6 @@ from setting.models_provider.impl.azure_model_provider.model.stt import AzureOpe
 from setting.models_provider.impl.azure_model_provider.model.tti import AzureOpenAITextToImage
 from setting.models_provider.impl.azure_model_provider.model.tts import AzureOpenAITextToSpeech
 from smartdoc.conf import PROJECT_DIR
-from django.utils.translation import gettext_lazy as _
 
 base_azure_llm_model_credential = AzureLLMModelCredential()
 base_azure_embedding_model_credential = AzureOpenAIEmbeddingCredential()
@@ -34,7 +33,7 @@ base_azure_tts_model_credential = AzureOpenAITTSModelCredential()
 base_azure_stt_model_credential = AzureOpenAISTTModelCredential()
 
 default_model_info = [
-    ModelInfo('Azure OpenAI', '', ModelTypeConst.LLM,
+    ModelInfo('Azure OpenAI', '具体的基础模型由部署名决定', ModelTypeConst.LLM,
               base_azure_llm_model_credential, AzureChatModel, api_version='2024-02-15-preview'
               ),
     ModelInfo('gpt-4', '', ModelTypeConst.LLM,
@@ -49,7 +48,7 @@ default_model_info = [
 ]
 
 embedding_model_info = [
-    ModelInfo('text-embedding-3-large', '', ModelTypeConst.EMBEDDING,
+    ModelInfo('text-embedding-3-large', '具体的基础模型由部署名决定', ModelTypeConst.EMBEDDING,
               base_azure_embedding_model_credential, AzureOpenAIEmbeddingModel, api_version='2023-05-15'
               ),
     ModelInfo('text-embedding-3-small', '', ModelTypeConst.EMBEDDING,

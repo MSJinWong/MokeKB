@@ -5,33 +5,29 @@
         <img v-if="application.avatar" :src="application.avatar" height="32px" width="32px" />
         <LogoIcon v-else height="32px" width="32px" />
       </div>
-      <div class="content" @mouseup="openControl">
-        <el-card shadow="always" class="mb-8 border-r-8">
+      <div class="content">
+        <el-card shadow="always" class="dialog-card mb-8">
           <MdRenderer
             v-if="
               (chatRecord.write_ed === undefined || chatRecord.write_ed === true) &&
-              answer_text.length == 0
+              !answer_text.content
             "
-            :source="$t('chat.tip.answerMessage')"
+            source=" 抱歉，没有查找到相关内容，请重新描述您的问题或提供更多信息。"
           ></MdRenderer>
-          <template v-else-if="answer_text.length > 0">
-            <MdRenderer
-              v-for="(answer, index) in answer_text"
-              :key="index"
-              :chat_record_id="answer.chat_record_id"
-              :child_node="answer.child_node"
-              :runtime_node_id="answer.runtime_node_id"
-              :reasoning_content="answer.reasoning_content"
-              :disabled="loading || type == 'log'"
-              :source="answer.content"
-              :send-message="chatMessage"
-            ></MdRenderer>
-          </template>
-          <span v-else-if="chatRecord.is_stop" shadow="always">
-            {{ $t('chat.tip.stopAnswer') }}
+          <MdRenderer
+            :chat_record_id="answer_text.chat_record_id"
+            :child_node="answer_text.child_node"
+            :runtime_node_id="answer_text.runtime_node_id"
+            :disabled="loading || type == 'log'"
+            v-else-if="answer_text.content"
+            :source="answer_text.content"
+            :send-message="chatMessage"
+          ></MdRenderer>
+          <span v-else-if="chatRecord.is_stop" shadow="always" class="dialog-card">
+            已停止回答
           </span>
-          <span v-else shadow="always">
-            {{ $t('chat.tip.answerLoading') }} <span class="dotting"></span>
+          <span v-else shadow="always" class="dialog-card">
+            回答中 <span class="dotting"></span>
           </span>
           <!-- 知识来源 -->
           <div v-if="showSource(chatRecord) && index === chatRecord.answer_text_list.length - 1">
@@ -60,7 +56,6 @@ import MdRenderer from '@/components/markdown/MdRenderer.vue'
 import OperationButton from '@/components/ai-chat/component/operation-button/index.vue'
 import { type chatType } from '@/api/type/application'
 import { computed } from 'vue'
-import bus from '@/bus'
 const props = defineProps<{
   chatRecord: chatType
   application: any
@@ -82,32 +77,14 @@ const chatMessage = (question: string, type: 'old' | 'new', other_params_data?: 
   }
 }
 const add_answer_text_list = (answer_text_list: Array<any>) => {
-  answer_text_list.push([])
+  answer_text_list.push({ content: '' })
 }
-
-const openControl = (event: any) => {
-  if (props.type !== 'log') {
-    bus.emit('open-control', event)
-  }
-}
-
 const answer_text_list = computed(() => {
   return props.chatRecord.answer_text_list.map((item) => {
     if (typeof item == 'string') {
-      return [
-        {
-          content: item,
-          chat_record_id: undefined,
-          child_node: undefined,
-          runtime_node_id: undefined,
-          reasoning_content: undefined
-        }
-      ]
-    } else if (item instanceof Array) {
-      return item
-    } else {
-      return [item]
+      return { content: item }
     }
+    return item
   })
 })
 
@@ -122,7 +99,7 @@ function showSource(row: any) {
   return false
 }
 const regenerationChart = (chat: chatType) => {
-  props.sendMessage(chat.problem_text, { re_chat: true })
+  props.sendMessage(chat.problem_text, { rechat: true })
 }
 const stopChat = (chat: chatType) => {
   props.chatManagement.stop(chat.id)

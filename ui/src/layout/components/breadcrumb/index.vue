@@ -94,15 +94,14 @@
           <template v-if="isApplication">
             <div class="w-full text-left cursor" @click="openCreateDialog">
               <el-button link>
-                <el-icon class="mr-4"><Plus /></el-icon>
-                {{ $t('views.application.createApplication') }}
+                <el-icon class="mr-4"><Plus /></el-icon> 创建应用
               </el-button>
             </div>
           </template>
           <template v-else-if="isDataset">
             <div class="w-full text-left cursor" @click="openCreateDialog">
               <el-button link>
-                <el-icon class="mr-4"><Plus /></el-icon> {{ $t('views.dataset.createDataset') }}
+                <el-icon class="mr-4"><Plus /></el-icon> 创建知识库
               </el-button>
             </div>
           </template>

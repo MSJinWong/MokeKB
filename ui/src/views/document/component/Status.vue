@@ -42,7 +42,6 @@
 import { computed, ref } from 'vue'
 import { TaskType, State } from '@/utils/status'
 import StatusTable from '@/views/document/component/StatusTable.vue'
-import { t } from '@/locales'
 const props = defineProps<{ status: string; statusMeta: any }>()
 const visible = ref<boolean>(false)
 const checkList: Array<string> = [
@@ -66,22 +65,22 @@ const aggStatus = computed(() => {
   return obj
 })
 const startedMap = {
-  [TaskType.EMBEDDING]: t('views.document.fileStatus.EMBEDDING'),
-  [TaskType.GENERATE_PROBLEM]: t('views.document.fileStatus.GENERATE'),
-  [TaskType.SYNC]: t('views.document.fileStatus.SYNC')
+  [TaskType.EMBEDDING]: '索引中',
+  [TaskType.GENERATE_PROBLEM]: '生成中',
+  [TaskType.SYNC]: '同步中'
 }
 const taskTypeMap = {
-  [TaskType.EMBEDDING]: t('views.dataset.setting.vectorization'),
-  [TaskType.GENERATE_PROBLEM]: t('views.document.generateQuestion.title'),
-  [TaskType.SYNC]: t('views.dataset.setting.sync')
+  [TaskType.EMBEDDING]: '向量化',
+  [TaskType.GENERATE_PROBLEM]: '生成问题',
+  [TaskType.SYNC]: '同步'
 }
 const stateMap: any = {
-  [State.PENDING]: (type: number) => t('views.document.fileStatus.PENDING'),
+  [State.PENDING]: (type: number) => '排队中',
   [State.STARTED]: (type: number) => startedMap[type],
-  [State.REVOKE]: (type: number) => t('views.document.fileStatus.REVOKE'),
-  [State.REVOKED]: (type: number) => t('views.document.fileStatus.SUCCESS'),
-  [State.FAILURE]: (type: number) => t('views.document.fileStatus.FAILURE'),
-  [State.SUCCESS]: (type: number) => t('views.document.fileStatus.SUCCESS'),
+  [State.REVOKE]: (type: number) => '取消中',
+  [State.REVOKED]: (type: number) => '成功',
+  [State.FAILURE]: (type: number) => '失败',
+  [State.SUCCESS]: (type: number) => '成功'
 }
 </script>
 <style lang="scss" scoped></style>

@@ -6,10 +6,8 @@
     @date：2024/7/11 17:57
     @desc:
 """
-import traceback
 from typing import Dict
 
-from django.utils.translation import gettext_lazy as _, gettext
 from langchain_core.messages import HumanMessage
 
 from common import forms
@@ -19,8 +17,7 @@ from setting.models_provider.base_model_provider import BaseModelCredential, Val
 
 
 class GeminiLLMModelParams(BaseForm):
-    temperature = forms.SliderField(TooltipLabel(_('Temperature'),
-                                                 _('Higher values make the output more random, while lower values make it more focused and deterministic')),
+    temperature = forms.SliderField(TooltipLabel('温度', '较高的数值会使输出更加随机，而较低的数值会使其更加集中和确定'),
                                     required=True, default_value=0.7,
                                     _min=0.1,
                                     _max=1.0,
@@ -28,8 +25,7 @@ class GeminiLLMModelParams(BaseForm):
                                     precision=2)
 
     max_tokens = forms.SliderField(
-        TooltipLabel(_('Output the maximum Tokens'),
-                     _('Specify the maximum number of tokens that the model can generate')),
+        TooltipLabel('输出最大Tokens', '指定模型可生成的最大token个数'),
         required=True, default_value=800,
         _min=1,
         _max=100000,
@@ -43,28 +39,23 @@ class GeminiLLMModelCredential(BaseForm, BaseModelCredential):
                  raise_exception=False):
         model_type_list = provider.get_model_type_list()
         if not any(list(filter(lambda mt: mt.get('value') == model_type, model_type_list))):
-            raise AppApiException(ValidCode.valid_error.value,
-                                  gettext('{model_type} Model type is not supported').format(model_type=model_type))
+            raise AppApiException(ValidCode.valid_error.value, f'{model_type} 模型类型不支持')
 
         for key in ['api_key']:
             if key not in model_credential:
                 if raise_exception:
-                    raise AppApiException(ValidCode.valid_error.value, gettext('{key}  is required').format(key=key))
+                    raise AppApiException(ValidCode.valid_error.value, f'{key} 字段为必填字段')
                 else:
                     return False
         try:
             model = provider.get_model(model_type, model_name, model_credential, **model_params)
-            res = model.invoke([HumanMessage(content=gettext('Hello'))])
+            res = model.invoke([HumanMessage(content='你好')])
             print(res)
         except Exception as e:
-            traceback.print_exc()
             if isinstance(e, AppApiException):
                 raise e
             if raise_exception:
-                raise AppApiException(ValidCode.valid_error.value,
-                                      gettext(
-                                          'Verification failed, please check whether the parameters are correct: {error}').format(
-                                          error=str(e)))
+                raise AppApiException(ValidCode.valid_error.value, f'校验失败,请检查参数是否正确: {str(e)}')
             else:
                 return False
         return True

@@ -1,6 +1,6 @@
 <template>
   <NodeContainer :node-model="nodeModel">
-    <h5 class="title-decoration-1 mb-8">{{ $t('views.applicationWorkflow.nodeSetting') }}</h5>
+    <h5 class="title-decoration-1 mb-8">节点设置</h5>
     <el-card shadow="never" class="card-never">
       <el-form
         @submit.prevent
@@ -12,37 +12,86 @@
         hide-required-asterisk
       >
         <el-form-item
-          :label="$t('views.applicationWorkflow.nodes.speechToTextNode.stt_model.label')"
+          label="语音识别模型"
           prop="stt_model_id"
           :rules="{
             required: true,
-            message: $t('views.application.applicationForm.form.voiceInput.placeholder'),
+            message: '请选择语音识别模型',
             trigger: 'change'
           }"
         >
           <template #label>
             <div class="flex-between w-full">
               <div>
-                <span
-                  >{{ $t('views.applicationWorkflow.nodes.speechToTextNode.stt_model.label')
-                  }}<span class="danger">*</span></span
-                >
+                <span>语音识别模型<span class="danger">*</span></span>
               </div>
             </div>
           </template>
-          <ModelSelect
+          <el-select
+            @change="model_change"
             @wheel="wheel"
             :teleported="false"
             v-model="form_data.stt_model_id"
-            :placeholder="$t('views.application.applicationForm.form.voiceInput.placeholder')"
-            :options="modelOptions"
-          ></ModelSelect>
+            placeholder="请选择语音识别模型"
+            class="w-full"
+            popper-class="select-model"
+            :clearable="true"
+          >
+            <el-option-group
+              v-for="(value, label) in modelOptions"
+              :key="value"
+              :label="relatedObject(providerOptions, label, 'provider')?.name"
+            >
+              <el-option
+                v-for="item in value.filter((v: any) => v.status === 'SUCCESS')"
+                :key="item.id"
+                :label="item.name"
+                :value="item.id"
+                class="flex-between"
+              >
+                <div class="flex align-center">
+                  <span
+                    v-html="relatedObject(providerOptions, label, 'provider')?.icon"
+                    class="model-icon mr-8"
+                  ></span>
+                  <span>{{ item.name }}</span>
+                  <el-tag v-if="item.permission_type === 'PUBLIC'" type="info" class="info-tag ml-8"
+                    >公用
+                  </el-tag>
+                </div>
+                <el-icon class="check-icon" v-if="item.id === form_data.stt_model_id">
+                  <Check />
+                </el-icon>
+              </el-option>
+              <!-- 不可用 -->
+              <el-option
+                v-for="item in value.filter((v: any) => v.status !== 'SUCCESS')"
+                :key="item.id"
+                :label="item.name"
+                :value="item.id"
+                class="flex-between"
+                disabled
+              >
+                <div class="flex">
+                  <span
+                    v-html="relatedObject(providerOptions, label, 'provider')?.icon"
+                    class="model-icon mr-8"
+                  ></span>
+                  <span>{{ item.name }}</span>
+                  <span class="danger">（不可用）</span>
+                </div>
+                <el-icon class="check-icon" v-if="item.id === form_data.stt_model_id">
+                  <Check />
+                </el-icon>
+              </el-option>
+            </el-option-group>
+          </el-select>
         </el-form-item>
         <el-form-item
-          :label="$t('views.applicationWorkflow.nodes.speechToTextNode.audio.label')"
+          label="选择语音文件"
           prop="audio_list"
           :rules="{
-            message: $t('views.applicationWorkflow.nodes.speechToTextNode.audio.label'),
+            message: '选择语音文件',
             trigger: 'change',
             required: true
           }"
@@ -50,10 +99,7 @@
           <template #label>
             <div class="flex-between w-full">
               <div>
-                <span
-                  >{{ $t('views.applicationWorkflow.nodes.speechToTextNode.audio.label')
-                  }}<span class="danger">*</span></span
-                >
+                <span>选择语音文件<span class="danger">*</span></span>
               </div>
             </div>
           </template>
@@ -61,26 +107,21 @@
             ref="nodeCascaderRef"
             :nodeModel="nodeModel"
             class="w-full"
-            :placeholder="$t('views.applicationWorkflow.nodes.speechToTextNode.audio.placeholder')"
+            placeholder="请选择语音文件"
             v-model="form_data.audio_list"
           />
         </el-form-item>
 
-        <el-form-item
-          :label="$t('views.applicationWorkflow.nodes.aiChatNode.returnContent.label')"
-          @click.prevent
-        >
+        <el-form-item label="返回内容" @click.prevent>
           <template #label>
             <div class="flex align-center">
               <div class="mr-4">
-                <span
-                  >{{ $t('views.applicationWorkflow.nodes.aiChatNode.returnContent.label')
-                  }}<span class="danger">*</span></span
-                >
+                <span>返回内容<span class="danger">*</span></span>
               </div>
               <el-tooltip effect="dark" placement="right" popper-class="max-w-200">
                 <template #content>
-                  {{ $t('views.applicationWorkflow.nodes.aiChatNode.returnContent.tooltip') }}
+                  关闭后该节点的内容则不输出给用户。
+                  如果你想让用户看到该节点的输出内容，请打开开关。
                 </template>
                 <AppIcon iconName="app-warning" class="app-warning-icon"></AppIcon>
               </el-tooltip>
@@ -97,6 +138,8 @@
 import NodeContainer from '@/workflow/common/NodeContainer.vue'
 import { computed, onMounted, ref } from 'vue'
 import { groupBy, set } from 'lodash'
+import { relatedObject } from '@/utils/utils'
+import type { Provider } from '@/api/type/model'
 import applicationApi from '@/api/application'
 import { app } from '@/main'
 import useStore from '@/stores'
@@ -111,6 +154,7 @@ const {
 
 const props = defineProps<{ nodeModel: any }>()
 const modelOptions = ref<any>(null)
+const providerOptions = ref<Array<Provider>>([])
 
 const aiChatNodeFormRef = ref<FormInstance>()
 const nodeCascaderRef = ref()
@@ -165,8 +209,17 @@ function getModel() {
   }
 }
 
+function getProvider() {
+  model.asyncGetProvider().then((res: any) => {
+    providerOptions.value = res?.data
+  })
+}
+
+const model_change = (model_id?: string) => {}
+
 onMounted(() => {
   getModel()
+  getProvider()
 
   set(props.nodeModel, 'validate', validate)
 })

@@ -1,12 +1,12 @@
 <template>
-  <LayoutContainer :header="$t('views.user.title')">
+  <LayoutContainer header="用户管理">
     <div class="p-24">
       <div class="flex-between">
-        <el-button type="primary" @click="createUser">{{ $t('views.user.createUser') }}</el-button>
+        <el-button type="primary" @click="createUser">创建用户</el-button>
         <el-input
           v-model="searchValue"
           @change="searchHandle"
-          :placeholder="$t('common.search')"
+          placeholder="搜索"
           prefix-icon="Search"
           class="w-240"
           clearable
@@ -21,32 +21,26 @@
         @changePage="getList"
         v-loading="loading"
       >
-        <el-table-column prop="username" :label="$t('views.user.userForm.form.username.label')" />
-        <el-table-column prop="nick_name" :label="$t('views.user.userForm.form.nick_name.label')" />
-        <el-table-column
-          prop="email"
-          :label="$t('views.user.userForm.form.email.label')"
-          show-overflow-tooltip
-        />
-        <el-table-column prop="phone" :label="$t('views.user.userForm.form.phone.label')" />
-        <el-table-column prop="source" :label="$t('views.user.source.label')">
+        <el-table-column prop="username" label="用户名" />
+        <el-table-column prop="nick_name" label="姓名" />
+        <el-table-column prop="email" label="邮箱" show-overflow-tooltip />
+        <el-table-column prop="phone" label="手机号" />
+        <el-table-column prop="source" label="用户类型">
           <template #default="{ row }">
             {{
               row.source === 'LOCAL'
-                ? $t('views.user.source.local')
+                ? '系统用户'
                 : row.source === 'wecom'
-                  ? $t('views.user.source.wecom')
+                  ? '企业微信'
                   : row.source === 'lark'
-                    ? $t('views.user.source.lark')
+                    ? '飞书'
                     : row.source === 'dingtalk'
-                      ? $t('views.user.source.dingtalk')
-                      : row.source === 'OAUTH2' || row.source === 'OAuth2'
-                        ? 'OAuth2'
-                        : row.source
+                      ? '钉钉'
+                      : row.source
             }}
           </template>
         </el-table-column>
-        <el-table-column :label="$t('common.status.label')" width="80">
+        <el-table-column label="状态" width="60">
           <template #default="{ row }">
             <div @click.stop>
               <el-switch
@@ -58,34 +52,30 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column :label="$t('common.createTime')" width="180">
+        <el-table-column label="创建时间" width="180">
           <template #default="{ row }">
             {{ datetimeFormat(row.create_time) }}
           </template>
         </el-table-column>
 
-        <el-table-column :label="$t('common.operation')" width="110" align="left" fixed="right">
+        <el-table-column label="操作" width="110" align="left" fixed="right">
           <template #default="{ row }">
             <span class="mr-4">
-              <el-tooltip effect="dark" :content="$t('common.edit')" placement="top">
+              <el-tooltip effect="dark" content="编辑" placement="top">
                 <el-button type="primary" text @click.stop="editUser(row)">
                   <el-icon><EditPen /></el-icon>
                 </el-button>
               </el-tooltip>
             </span>
             <span class="mr-4">
-              <el-tooltip
-                effect="dark"
-                :content="$t('views.user.setting.updatePwd')"
-                placement="top"
-              >
+              <el-tooltip effect="dark" content="修改用户密码" placement="top">
                 <el-button type="primary" text @click.stop="editPwdUser(row)">
                   <el-icon><Lock /></el-icon>
                 </el-button>
               </el-tooltip>
             </span>
             <span class="mr-4">
-              <el-tooltip effect="dark" :content="$t('common.delete')" placement="top">
+              <el-tooltip effect="dark" content="删除" placement="top">
                 <el-button
                   :disabled="row.role === 'ADMIN'"
                   type="primary"
@@ -113,7 +103,6 @@ import userApi from '@/api/user-manage'
 import { datetimeFormat } from '@/utils/time'
 import useStore from '@/stores'
 import { ValidType, ValidCount } from '@/enums/common'
-import { t } from '@/locales'
 
 const { common, user } = useStore()
 
@@ -141,7 +130,7 @@ function changeState(bool: Boolean, row: any) {
   const obj = {
     is_active: bool
   }
-  const str = bool ? t('common.status.enableSuccess') : t('common.status.disableSuccess')
+  const str = bool ? '启用成功' : '禁用成功'
   userApi.putUserManage(row.id, obj, loading).then((res) => {
     getList()
     MsgSuccess(str)
@@ -151,9 +140,8 @@ function changeState(bool: Boolean, row: any) {
 function editPwdUser(row: any) {
   UserPwdDialogRef.value.open(row)
 }
-
 function editUser(row: any) {
-  title.value = t('views.user.editUser')
+  title.value = '编辑用户'
   UserDialogRef.value.open(row)
 }
 
@@ -164,17 +152,17 @@ function createUser() {
 
 function deleteUserManage(row: any) {
   MsgConfirm(
-    `${t('views.user.delete.confirmTitle')}${row.username} ?`,
-    t('views.user.delete.confirmMessage'),
+    `是否删除用户：${row.username} ?`,
+    `删除用户，该用户创建的资源（应用、知识库、模型）都会删除，请谨慎操作。`,
     {
-      confirmButtonText: t('common.confirm'),
+      confirmButtonText: '删除',
       confirmButtonClass: 'danger'
     }
   )
     .then(() => {
       loading.value = true
       userApi.delUserManage(row.id, loading).then(() => {
-        MsgSuccess(t('common.deleteSuccess'))
+        MsgSuccess('删除成功')
         getList()
       })
     })

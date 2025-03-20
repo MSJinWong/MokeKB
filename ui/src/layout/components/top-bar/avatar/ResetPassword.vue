@@ -1,7 +1,7 @@
 <template>
   <el-dialog
     v-model="resetPasswordDialog"
-    :title="$t('views.login.resetPassword')"
+    :title="$t('layout.topbar.avatar.resetPassword')"
     :close-on-click-modal="false"
     :close-on-press-escape="false"
   >
@@ -11,13 +11,13 @@
       :model="resetPasswordForm"
       :rules="rules1"
     >
-      <p class="mb-8 lighter">{{ $t('views.login.newPassword') }}</p>
+      <p class="mb-8 lighter">{{ $t('layout.topbar.avatar.dialog.newPassword') }}</p>
       <el-form-item prop="password" style="margin-bottom: 8px">
         <el-input
           type="password"
           class="input-item"
           v-model="resetPasswordForm.password"
-          :placeholder="$t('views.login.enterPassword')"
+          :placeholder="$t('layout.topbar.avatar.dialog.enterPassword')"
           show-password
         >
         </el-input>
@@ -27,7 +27,7 @@
           type="password"
           class="input-item"
           v-model="resetPasswordForm.re_password"
-          :placeholder="$t('views.user.userForm.form.re_password.placeholder')"
+          :placeholder="$t('layout.topbar.avatar.dialog.confirmPassword')"
           show-password
         >
         </el-input>
@@ -39,13 +39,13 @@
       :model="resetPasswordForm"
       :rules="rules2"
     >
-      <p class="mb-8 lighter">{{ $t('views.login.useEmail') }}</p>
+      <p class="mb-8 lighter">{{ $t('layout.topbar.avatar.dialog.useEmail') }}</p>
       <el-form-item style="margin-bottom: 8px">
         <el-input
           class="input-item"
           :disabled="true"
           v-bind:modelValue="user.userInfo?.email"
-          :placeholder="t('views.user.userForm.form.email.placeholder')"
+          :placeholder="$t('layout.topbar.avatar.dialog.enterEmail')"
         >
         </el-input>
       </el-form-item>
@@ -54,7 +54,7 @@
           <el-input
             class="code-input"
             v-model="resetPasswordForm.code"
-            :placeholder="$t('views.login.verificationCode.placeholder')"
+            :placeholder="$t('layout.topbar.avatar.dialog.enterVerificationCode')"
           >
           </el-input>
           <el-button
@@ -65,8 +65,8 @@
           >
             {{
               isDisabled
-                ? `${$t('views.login.verificationCode.resend')}（${time}s）`
-                : $t('views.login.verificationCode.getVerificationCode')
+                ? $t('layout.topbar.avatar.dialog.resend', { time })
+                : $t('layout.topbar.avatar.dialog.getVerificationCode')
             }}
           </el-button>
         </div>
@@ -74,9 +74,11 @@
     </el-form>
     <template #footer>
       <div class="dialog-footer">
-        <el-button @click="resetPasswordDialog = false">{{ $t('common.cancel') }}</el-button>
+        <el-button @click="resetPasswordDialog = false">{{
+          $t('layout.topbar.avatar.dialog.cancel')
+        }}</el-button>
         <el-button type="primary" @click="resetPassword">
-          {{ $t('common.save') }}
+          {{ $t('layout.topbar.avatar.dialog.save') }}
         </el-button>
       </div>
     </template>
@@ -113,32 +115,32 @@ const rules1 = ref<FormRules<ResetCurrentUserPasswordRequest>>({
   password: [
     {
       required: true,
-      message: t('views.login.enterPassword'),
+      message: t('layout.topbar.avatar.dialog.enterPassword'),
       trigger: 'blur'
     },
     {
       min: 6,
       max: 20,
-      message: t('views.user.userForm.form.password.lengthMessage'),
+      message: t('layout.topbar.avatar.dialog.passwordLength'),
       trigger: 'blur'
     }
   ],
   re_password: [
     {
       required: true,
-      message: t('views.user.userForm.form.re_password.requiredMessage'),
+      message: t('layout.topbar.avatar.dialog.confirmPassword'),
       trigger: 'blur'
     },
     {
       min: 6,
       max: 20,
-      message: t('views.user.userForm.form.password.lengthMessage'),
+      message: t('layout.topbar.avatar.dialog.passwordLength'),
       trigger: 'blur'
     },
     {
       validator: (rule, value, callback) => {
         if (resetPasswordForm.value.password != resetPasswordForm.value.re_password) {
-          callback(new Error(t('views.user.userForm.form.re_password.validatorMessage')))
+          callback(new Error(t('layout.topbar.avatar.dialog.passwordMismatch')))
         } else {
           callback()
         }
@@ -152,7 +154,7 @@ const rules2 = ref<FormRules<ResetCurrentUserPasswordRequest>>({
   code: [
     {
       required: true,
-      message: t('views.login.verificationCode.placeholder'),
+      message: t('layout.topbar.avatar.dialog.enterVerificationCode'),
       trigger: 'blur'
     }
   ]
@@ -163,7 +165,7 @@ const rules2 = ref<FormRules<ResetCurrentUserPasswordRequest>>({
 const sendEmail = () => {
   resetPasswordFormRef1.value?.validate().then(() => {
     UserApi.sendEmailToCurrent(loading).then(() => {
-      MsgSuccess(t('views.login.verificationCode.successMessage'))
+      MsgSuccess(t('layout.topbar.avatar.dialog.verificationCodeSentSuccess'))
       isDisabled.value = true
       handleTimeChange()
     })

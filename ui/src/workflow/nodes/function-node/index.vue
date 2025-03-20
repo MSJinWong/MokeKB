@@ -1,10 +1,10 @@
 <template>
   <NodeContainer :nodeModel="nodeModel">
-    <h5 class="title-decoration-1 mb-16">{{ $t('views.applicationWorkflow.nodeSetting') }}</h5>
+    <h5 class="title-decoration-1 mb-16">节点设置</h5>
     <div class="flex-between">
-      <h5 class="lighter mb-8">{{ $t('common.param.inputParam') }}</h5>
+      <h5 class="lighter mb-8">输入参数</h5>
       <el-button link type="primary" @click="openAddDialog()">
-        <el-icon class="mr-4"><Plus /></el-icon> {{ $t('common.add') }}
+        <el-icon class="mr-4"><Plus /></el-icon> 添加
       </el-button>
     </div>
     <el-form
@@ -23,10 +23,7 @@
               :prop="'input_field_list.' + index + '.value'"
               :rules="{
                 required: item.is_required,
-                message:
-                  item.source === 'reference'
-                    ? $t('views.functionLib.functionForm.form.param.selectPlaceholder')
-                    : $t('views.functionLib.functionForm.form.param.inputPlaceholder'),
+                message: '请输入参数值',
                 trigger: 'blur'
               }"
             >
@@ -58,50 +55,41 @@
                 ref="nodeCascaderRef"
                 :nodeModel="nodeModel"
                 class="w-full"
-                :placeholder="$t('views.functionLib.functionForm.form.param.selectPlaceholder')"
+                placeholder="请选择参数"
                 v-model="item.value"
                 :width="100"
               />
-              <el-input
-                v-else
-                v-model="item.value"
-                :placeholder="$t('views.functionLib.functionForm.form.param.inputPlaceholder')"
-              />
+              <el-input v-else v-model="item.value" placeholder="请输入参数值" />
             </el-form-item>
           </template>
         </div>
 
-        <el-text type="info" v-else> {{ $t('common.noData') }} </el-text>
+        <el-text type="info" v-else> 暂无数据 </el-text>
       </el-card>
 
-      <h5 class="lighter mb-8">
-        {{ $t('views.functionLib.functionForm.form.param.code') }}
-      </h5>
-      <div class="mb-8" v-if="showEditor">
+      <h5 class="lighter mb-8">Python 代码</h5>
+      <div class="function-CodemirrorEditor mb-8" v-if="showEditor">
         <CodemirrorEditor
-          :title="$t('views.functionLib.functionForm.form.param.code')"
           v-model="chat_data.code"
           @wheel="wheel"
           style="height: 130px !important"
-          @submitDialog="submitCodemirrorEditor"
         />
+        <div class="function-CodemirrorEditor__footer">
+          <el-button text type="info" @click="openCodemirrorDialog" class="magnify">
+            <AppIcon iconName="app-magnify" style="font-size: 16px"></AppIcon>
+          </el-button>
+        </div>
       </div>
 
-      <el-form-item
-        :label="$t('views.applicationWorkflow.nodes.aiChatNode.returnContent.label')"
-        @click.prevent
-      >
+      <el-form-item label="返回内容" @click.prevent>
         <template #label>
           <div class="flex align-center">
             <div class="mr-4">
-              <span
-                >{{ $t('views.applicationWorkflow.nodes.aiChatNode.returnContent.label')
-                }}<span class="danger">*</span></span
-              >
+              <span>返回内容<span class="danger">*</span></span>
             </div>
             <el-tooltip effect="dark" placement="right" popper-class="max-w-200">
               <template #content>
-                {{ $t('views.applicationWorkflow.nodes.aiChatNode.returnContent.tooltip') }}
+                关闭后该节点的内容则不输出给用户。 如果你想让用户看到该节点的输出内容，请打开开关。
               </template>
               <AppIcon iconName="app-warning" class="app-warning-icon"></AppIcon>
             </el-tooltip>
@@ -111,6 +99,18 @@
       </el-form-item>
     </el-form>
     <FieldFormDialog ref="FieldFormDialogRef" @refresh="refreshFieldList" />
+    <!-- Codemirror 弹出层 -->
+    <el-dialog v-model="dialogVisible" title="Python 代码" append-to-body fullscreen>
+      <CodemirrorEditor
+        v-model="cloneContent"
+        style="height: calc(100vh - 160px) !important; border: 1px solid #bbbfc4; border-radius: 4px"
+      />
+      <template #footer>
+        <div class="dialog-footer mt-24">
+          <el-button type="primary" @click="submitDialog"> 确认</el-button>
+        </div>
+      </template>
+    </el-dialog>
   </NodeContainer>
 </template>
 <script setup lang="ts">
@@ -167,8 +167,17 @@ const validate = () => {
   })
 }
 
-function submitCodemirrorEditor(val: string) {
-  set(props.nodeModel.properties.node_data, 'code', val)
+const dialogVisible = ref(false)
+const cloneContent = ref('')
+
+function openCodemirrorDialog() {
+  cloneContent.value = chat_data.value.code
+  dialogVisible.value = true
+}
+
+function submitDialog() {
+  set(props.nodeModel.properties.node_data, 'code', cloneContent.value)
+  dialogVisible.value = false
 }
 
 function openAddDialog(data?: any, index?: any) {
@@ -212,4 +221,13 @@ onMounted(() => {
   }, 100)
 })
 </script>
-<style lang="scss"></style>
+<style lang="scss">
+.function-CodemirrorEditor__footer {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+}
+.function-CodemirrorEditor {
+  position: relative;
+}
+</style>

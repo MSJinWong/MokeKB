@@ -2,43 +2,38 @@
   <div class="application-workflow" v-loading="loading">
     <div class="header border-b flex-between p-12-24">
       <div class="flex align-center">
-        <back-button @click="back"></back-button>
+        <back-button
+          @click="router.push({ path: `/application/${id}/WORK_FLOW/overview` })"
+        ></back-button>
         <h4>{{ detail?.name }}</h4>
         <div v-if="showHistory && disablePublic">
           <el-text type="info" class="ml-16 color-secondary"
-            >{{ $t('views.applicationWorkflow.info.previewVersion') }}
+            >预览版本：
             {{ currentVersion.name || datetimeFormat(currentVersion.update_time) }}</el-text
           >
         </div>
         <el-text type="info" class="ml-16 color-secondary" v-else-if="saveTime"
-          >{{ $t('views.applicationWorkflow.info.saveTime')
-          }}{{ datetimeFormat(saveTime) }}</el-text
+          >保存时间：{{ datetimeFormat(saveTime) }}</el-text
         >
       </div>
       <div v-if="showHistory && disablePublic">
-        <el-button type="primary" class="mr-8" @click="refreshVersion()">
-          {{ $t('views.applicationWorkflow.setting.restoreVersion') }}
-        </el-button>
+        <el-button type="primary" class="mr-8" @click="refreshVersion()"> 恢复版本 </el-button>
         <el-divider direction="vertical" />
         <el-button text @click="closeHistory">
           <el-icon><Close /></el-icon>
         </el-button>
       </div>
       <div v-else>
-        <el-button icon="Plus" @click="showPopover = !showPopover">
-          {{ $t('views.applicationWorkflow.setting.addComponent') }}
-        </el-button>
+        <el-button icon="Plus" @click="showPopover = !showPopover"> 添加组件 </el-button>
         <el-button @click="clickShowDebug" :disabled="showDebug">
           <AppIcon iconName="app-play-outlined" class="mr-4"></AppIcon>
-          {{ $t('views.applicationWorkflow.setting.debug') }}</el-button
+          调试</el-button
         >
         <el-button @click="saveApplication(true)">
           <AppIcon iconName="app-save-outlined" class="mr-4"></AppIcon>
-          {{ $t('common.save') }}
+          保存
         </el-button>
-        <el-button type="primary" @click="publicHandle">
-          {{ $t('views.applicationWorkflow.setting.public') }}
-        </el-button>
+        <el-button type="primary" @click="publicHandle"> 发布 </el-button>
 
         <el-dropdown trigger="click">
           <el-button text @click.stop class="ml-8 mt-4">
@@ -48,11 +43,11 @@
             <el-dropdown-menu>
               <el-dropdown-item @click="openHistory">
                 <AppIcon iconName="app-history-outlined"></AppIcon>
-                {{ $t('views.applicationWorkflow.setting.releaseHistory') }}
+                发布历史
               </el-dropdown-item>
               <el-dropdown-item>
                 <AppIcon iconName="app-save-outlined"></AppIcon>
-                {{ $t('views.applicationWorkflow.setting.autoSave') }}
+                自动保存
                 <div class="ml-4">
                   <el-switch size="small" v-model="isSave" @change="changeSave" />
                 </div>
@@ -79,7 +74,12 @@
     </div>
     <!-- 调试 -->
     <el-collapse-transition>
-      <div class="workflow-debug-container" :class="enlarge ? 'enlarge' : ''" v-if="showDebug">
+      <div
+        v-click-outside="clickoutsideDebug"
+        class="workflow-debug-container"
+        :class="enlarge ? 'enlarge' : ''"
+        v-if="showDebug"
+      >
         <div class="workflow-debug-header" :class="!isDefaultTheme ? 'custom-header' : ''">
           <div class="flex-between">
             <div class="flex align-center">
@@ -136,18 +136,16 @@
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount, computed, nextTick } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import type { Action } from 'element-plus'
 import Workflow from '@/workflow/index.vue'
 import DropdownMenu from '@/views/application-workflow/component/DropdownMenu.vue'
 import PublishHistory from '@/views/application-workflow/component/PublishHistory.vue'
 import applicationApi from '@/api/application'
 import { isAppIcon } from '@/utils/application'
-import { MsgSuccess, MsgError, MsgConfirm } from '@/utils/message'
+import { MsgSuccess, MsgError } from '@/utils/message'
 import { datetimeFormat } from '@/utils/time'
 import useStore from '@/stores'
 import { WorkFlowInstance } from '@/workflow/common/validate'
 import { hasPermission } from '@/utils/permission'
-import { t } from '@/locales'
 
 const { user, application } = useStore()
 const router = useRouter()
@@ -174,26 +172,7 @@ const isSave = ref(false)
 const showHistory = ref(false)
 const disablePublic = ref(false)
 const currentVersion = ref<any>({})
-const cloneWorkFlow = ref(null)
 
-function back() {
-  if (JSON.stringify(cloneWorkFlow.value) !== JSON.stringify(getGraphData())) {
-    MsgConfirm(t('common.tip'), t('views.applicationWorkflow.tip.saveMessage'), {
-      confirmButtonText: t('views.applicationWorkflow.setting.exitSave'),
-      cancelButtonText: t('views.applicationWorkflow.setting.exit'),
-      type: 'warning',
-      distinguishCancelAndClose: true
-    })
-      .then(() => {
-        saveApplication(true, true)
-      })
-      .catch((action: Action) => {
-        action === 'cancel' && router.push({ path: `/application/${id}/WORK_FLOW/overview` })
-      })
-  } else {
-    router.push({ path: `/application/${id}/WORK_FLOW/overview` })
-  }
-}
 function clickoutsideHistory() {
   if (!disablePublic.value) {
     showHistory.value = false
@@ -279,25 +258,17 @@ async function publicHandle() {
         return
       }
       applicationApi.putPublishApplication(id as String, obj, loading).then(() => {
-        MsgSuccess(t('views.applicationWorkflow.tip.publicSuccess'))
+        MsgSuccess('发布成功')
       })
     })
     .catch((res: any) => {
       const node = res.node
       const err_message = res.errMessage
       if (typeof err_message == 'string') {
-        MsgError(
-          res.node.properties?.stepName +
-            ` ${t('views.applicationWorkflow.node').toLowerCase()} ` +
-            err_message.toLowerCase()
-        )
+        MsgError(res.node.properties?.stepName + '节点 ' + err_message)
       } else {
         const keys = Object.keys(err_message)
-        MsgError(
-          node.properties?.stepName +
-            ` ${t('views.applicationWorkflow.node').toLowerCase()} ` +
-            err_message[keys[0]]?.[0]?.message.toLowerCase()
-        )
+        MsgError(node.properties?.stepName + '节点 ' + err_message[keys[0]]?.[0]?.message)
       }
     })
 }
@@ -326,24 +297,18 @@ const clickShowDebug = () => {
       const node = res.node
       const err_message = res.errMessage
       if (typeof err_message == 'string') {
-        MsgError(
-          res.node.properties?.stepName + ` ${t('views.applicationWorkflow.node')}，` + err_message
-        )
+        MsgError(res.node.properties?.stepName + '节点 ' + err_message)
       } else {
         const keys = Object.keys(err_message)
-        MsgError(
-          node.properties?.stepName +
-            ` ${t('views.applicationWorkflow.node')}，` +
-            err_message[keys[0]]?.[0]?.message
-        )
+        MsgError(node.properties?.stepName + '节点 ' + err_message[keys[0]]?.[0]?.message)
       }
     })
 }
-// function clickoutsideDebug(e: any) {
-//   if (workflowMainRef.value && e && e.target && workflowMainRef.value.contains(e?.target)) {
-//     showDebug.value = false
-//   }
-// }
+function clickoutsideDebug(e: any) {
+  if (workflowMainRef.value && e && e.target && workflowMainRef.value.contains(e?.target)) {
+    showDebug.value = false
+  }
+}
 
 function getGraphData() {
   return workflowRef.value?.getGraphData()
@@ -361,32 +326,21 @@ function getDetail() {
     saveTime.value = res.data?.update_time
     workflowRef.value?.clearGraphData()
     nextTick(() => {
-      workflowRef.value?.render(detail.value.work_flow)
-      cloneWorkFlow.value = getGraphData()
+      workflowRef.value?.renderGraphData(detail.value.work_flow)
     })
   })
 }
 
-function saveApplication(bool?: boolean, back?: boolean) {
+function saveApplication(bool?: boolean) {
   const obj = {
     work_flow: getGraphData()
   }
-  loading.value = back || false
-  application
-    .asyncPutApplication(id, obj)
-    .then((res) => {
-      saveTime.value = new Date()
-      if (bool) {
-        cloneWorkFlow.value = getGraphData()
-        MsgSuccess(t('common.saveSuccess'))
-        if (back) {
-          router.push({ path: `/application/${id}/WORK_FLOW/overview` })
-        }
-      }
-    })
-    .catch(() => {
-      loading.value = false
-    })
+  application.asyncPutApplication(id, obj).then((res) => {
+    saveTime.value = new Date()
+    if (bool) {
+      MsgSuccess('保存成功')
+    }
+  })
 }
 
 /**

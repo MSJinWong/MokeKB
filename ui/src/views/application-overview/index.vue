@@ -62,21 +62,13 @@
                 <span class="vertical-middle lighter break-all ellipsis-1">
                   {{ shareUrl }}
                 </span>
-                <el-tooltip effect="dark" :content="$t('common.copy')" placement="top">
-                  <el-button type="primary" text @click="copyClick(shareUrl)">
-                    <AppIcon iconName="app-copy"></AppIcon>
-                  </el-button>
-                </el-tooltip>
-                <el-tooltip effect="dark" :content="$t('common.refresh')" placement="top">
-                  <el-button
-                    @click="refreshAccessToken"
-                    type="primary"
-                    text
-                    style="margin-left: 1px"
-                  >
-                    <el-icon><RefreshRight /></el-icon>
-                  </el-button>
-                </el-tooltip>
+
+                <el-button type="primary" text @click="copyClick(shareUrl)">
+                  <AppIcon iconName="app-copy"></AppIcon>
+                </el-button>
+                <el-button @click="refreshAccessToken" type="primary" text style="margin-left: 1px">
+                  <el-icon><RefreshRight /></el-icon>
+                </el-button>
               </div>
               <div>
                 <el-button
@@ -93,10 +85,10 @@
                   {{ $t('views.applicationOverview.appInfo.demo') }}
                 </el-button>
                 <el-button :disabled="!accessToken?.is_active" @click="openDialog">
-                  {{ $t('views.applicationOverview.appInfo.embedInWebsite') }}
+                  {{ $t('views.applicationOverview.appInfo.embedThirdParty') }}
                 </el-button>
                 <el-button @click="openLimitDialog">
-                  {{ $t('views.applicationOverview.appInfo.accessControl') }}
+                  {{ $t('views.applicationOverview.appInfo.accessRestrictions') }}
                 </el-button>
                 <el-button @click="openDisplaySettingDialog">
                   {{ $t('views.applicationOverview.appInfo.displaySetting') }}
@@ -129,11 +121,10 @@
                   <span class="vertical-middle lighter break-all ellipsis-1">{{
                     baseUrl + id
                   }}</span>
-                  <el-tooltip effect="dark" :content="$t('common.copy')" placement="top">
-                    <el-button type="primary" text @click="copyClick(baseUrl + id)">
-                      <AppIcon iconName="app-copy"></AppIcon>
-                    </el-button>
-                  </el-tooltip>
+
+                  <el-button type="primary" text @click="copyClick(baseUrl + id)">
+                    <AppIcon iconName="app-copy"></AppIcon>
+                  </el-button>
                 </div>
               </div>
               <div>
@@ -148,7 +139,7 @@
           {{ $t('views.applicationOverview.monitor.monitoringStatistics') }}
         </h4>
         <div class="mb-16">
-          <el-select v-model="history_day" class="mr-12" @change="changeDayHandle" style="width:180px">
+          <el-select v-model="history_day" class="mr-12 w-120" @change="changeDayHandle">
             <el-option
               v-for="item in dayOptions"
               :key="item.value"
@@ -239,7 +230,7 @@ const dayOptions = [
   {
     value: 7,
     // @ts-ignore
-    label: t('views.applicationOverview.monitor.pastDayOptions.past7Days')
+    label: t('views.applicationOverview.monitor.pastDayOptions.past7Days') // 使用 t 方法来国际化显示文本
   },
   {
     value: 30,
@@ -284,7 +275,6 @@ function openDisplaySettingDialog() {
     XPackDisplaySettingDialogRef.value?.open(accessToken.value, detail.value)
   } else {
     DisplaySettingDialogRef.value?.open(accessToken.value, detail.value)
-    DisplaySettingDialogRef.value?.open(accessToken.value, detail.value)
   }
 }
 function openEditAvatar() {
@@ -316,8 +306,8 @@ function refreshAccessToken() {
     t('views.applicationOverview.appInfo.refreshToken.msgConfirm1'),
     t('views.applicationOverview.appInfo.refreshToken.msgConfirm2'),
     {
-      confirmButtonText: t('common.confirm'),
-      cancelButtonText: t('common.cancel')
+      confirmButtonText: t('views.applicationOverview.appInfo.refreshToken.confirm'),
+      cancelButtonText: t('views.applicationOverview.appInfo.refreshToken.cancel')
     }
   )
     .then(() => {
@@ -334,7 +324,9 @@ function changeState(bool: Boolean) {
   const obj = {
     is_active: bool
   }
-  const str = bool ? t('common.status.enableSuccess') : t('common.status.disableSuccess')
+  const str = bool
+    ? t('views.applicationOverview.appInfo.changeState.enableSuccess')
+    : t('views.applicationOverview.appInfo.changeState.disableSuccess')
   updateAccessToken(obj, str)
 }
 

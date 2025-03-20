@@ -1,10 +1,9 @@
 import Layout from '@/layout/layout-template/DetailLayout.vue'
 import { ComplexPermission } from '@/utils/permission/type'
-
 const applicationRouter = {
   path: '/application',
   name: 'application',
-  meta: { title: 'views.application.title', permission: 'APPLICATION:READ' },
+  meta: { title: '应用', permission: 'APPLICATION:READ' },
   redirect: '/application',
   component: () => import('@/layout/layout-template/AppLayout.vue'),
   children: [
@@ -27,7 +26,7 @@ const applicationRouter = {
           meta: {
             icon: 'app-all-menu',
             iconActive: 'app-all-menu-active',
-            title: 'views.applicationOverview.title',
+            title: '概览',
             active: 'overview',
             parentPath: '/application/:id/:type',
             parentName: 'ApplicationDetail'
@@ -40,7 +39,7 @@ const applicationRouter = {
           meta: {
             icon: 'app-setting',
             iconActive: 'app-setting-active',
-            title: 'common.setting',
+            title: '设置',
             active: 'setting',
             parentPath: '/application/:id/:type',
             parentName: 'ApplicationDetail'
@@ -53,7 +52,7 @@ const applicationRouter = {
           meta: {
             icon: 'app-access',
             iconActive: 'app-access-active',
-            title: 'views.application.applicationAccess.title',
+            title: '应用接入',
             active: 'access',
             parentPath: '/application/:id/:type',
             parentName: 'ApplicationDetail',
@@ -66,7 +65,7 @@ const applicationRouter = {
           name: 'AppHitTest',
           meta: {
             icon: 'app-hit-test',
-            title: 'views.application.hitTest.title',
+            title: '命中测试',
             active: 'hit-test',
             parentPath: '/application/:id/:type',
             parentName: 'ApplicationDetail'
@@ -79,7 +78,7 @@ const applicationRouter = {
           meta: {
             icon: 'app-document',
             iconActive: 'app-document-active',
-            title: 'views.log.title',
+            title: '对话日志',
             active: 'log',
             parentPath: '/application/:id/:type',
             parentName: 'ApplicationDetail'

@@ -7,22 +7,22 @@
     :rules="rules"
     @submit.prevent
   >
-    <el-form-item :label="$t('views.paragraph.form.paragraphTitle.label')">
+    <el-form-item label="分段标题">
       <el-input
         v-if="isEdit"
         v-model="form.title"
-        :placeholder="$t('views.paragraph.form.paragraphTitle.placeholder')"
+        placeholder="请输入分段标题"
         maxlength="256"
         show-word-limit
       >
       </el-input>
       <span class="lighter" v-else>{{ form.title || '-' }}</span>
     </el-form-item>
-    <el-form-item :label="$t('views.paragraph.form.content.label')" prop="content">
+    <el-form-item label="分段内容" prop="content">
       <MdEditor
         v-if="isEdit"
         v-model="form.content"
-        :placeholder="$t('views.paragraph.form.content.placeholder')"
+        placeholder="请输入分段内容"
         :maxLength="100000"
         :preview="false"
         :toolbars="toolbars"
@@ -48,7 +48,6 @@
 import { ref, reactive, onUnmounted, watch } from 'vue'
 import type { FormInstance, FormRules } from 'element-plus'
 import imageApi from '@/api/image'
-import { t } from '@/locales'
 const props = defineProps({
   data: {
     type: Object,
@@ -98,8 +97,8 @@ const form = ref<any>({
 
 const rules = reactive<FormRules>({
   content: [
-    { required: true, message: t('views.paragraph.form.content.requiredMessage1'), trigger: 'blur' },
-    { max: 100000, message: t('views.paragraph.form.content.requiredMessage2'), trigger: 'blur' }
+    { required: true, message: '请输入分段内容', trigger: 'blur' },
+    { max: 100000, message: '内容最多不超过 100000 个字', trigger: 'blur' }
   ]
 })
 

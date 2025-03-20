@@ -3,10 +3,10 @@
     <template #header>
       <div class="flex-between w-full">
         <h3>
-          {{ $t('common.setting') }}
+          {{ $t('views.application.applicationForm.title.edit') }}
         </h3>
         <el-button type="primary" @click="submit(applicationFormRef)" :disabled="loading">
-          {{ $t('views.application.applicationForm.buttons.publish') }}
+          保存并发布
         </el-button>
       </div>
     </template>
@@ -14,7 +14,7 @@
       <el-col :span="10">
         <div class="p-24 mb-16" style="padding-bottom: 0">
           <h4 class="title-decoration-1">
-            {{ $t('views.applicationOverview.appInfo.header') }}
+            {{ $t('views.application.applicationForm.title.info') }}
           </h4>
         </div>
         <div class="scrollbar-height-left">
@@ -65,64 +65,117 @@
                 <template #label>
                   <div class="flex-between">
                     <span>{{ $t('views.application.applicationForm.form.aiModel.label') }}</span>
-
                     <el-button
                       type="primary"
                       link
                       @click="openAIParamSettingDialog"
                       :disabled="!applicationForm.model_id"
                     >
-                      {{ $t('common.paramSetting') }}
+                      {{ $t('views.application.applicationForm.form.paramSetting') }}
                     </el-button>
                   </div>
                 </template>
-                <ModelSelect
+                <el-select
+                  @change="model_change"
                   v-model="applicationForm.model_id"
                   :placeholder="$t('views.application.applicationForm.form.aiModel.placeholder')"
-                  :options="modelOptions"
-                  @change="model_change"
-                  @submitModel="getModel"
-                  showFooter
-                ></ModelSelect>
+                  class="w-full"
+                  popper-class="select-model"
+                  :clearable="true"
+                >
+                  <el-option-group
+                    v-for="(value, label) in modelOptions"
+                    :key="value"
+                    :label="relatedObject(providerOptions, label, 'provider')?.name"
+                  >
+                    <el-option
+                      v-for="item in value.filter((v: any) => v.status === 'SUCCESS')"
+                      :key="item.id"
+                      :label="item.name"
+                      :value="item.id"
+                      class="flex-between"
+                    >
+                      <div class="flex align-center">
+                        <span
+                          v-html="relatedObject(providerOptions, label, 'provider')?.icon"
+                          class="model-icon mr-8"
+                        ></span>
+                        <span>{{ item.name }}</span>
+                        <el-tag
+                          v-if="item.permission_type === 'PUBLIC'"
+                          type="info"
+                          class="info-tag ml-8"
+                          >公用
+                        </el-tag>
+                      </div>
+                      <el-icon class="check-icon" v-if="item.id === applicationForm.model_id">
+                        <Check />
+                      </el-icon>
+                    </el-option>
+                    <!-- 不可用 -->
+                    <el-option
+                      v-for="item in value.filter((v: any) => v.status !== 'SUCCESS')"
+                      :key="item.id"
+                      :label="item.name"
+                      :value="item.id"
+                      class="flex-between"
+                      disabled
+                    >
+                      <div class="flex">
+                        <span
+                          v-html="relatedObject(providerOptions, label, 'provider')?.icon"
+                          class="model-icon mr-8"
+                        ></span>
+                        <span>{{ item.name }}</span>
+                        <span class="danger">{{
+                          $t('views.application.applicationForm.form.aiModel.unavailable')
+                        }}</span>
+                      </div>
+                      <el-icon class="check-icon" v-if="item.id === applicationForm.model_id">
+                        <Check />
+                      </el-icon>
+                    </el-option>
+                  </el-option-group>
+                  <template #footer>
+                    <div class="w-full text-left cursor" @click="openCreateModel()">
+                      <el-button type="primary" link>
+                        <el-icon class="mr-4">
+                          <Plus />
+                        </el-icon>
+                        {{ $t('views.application.applicationForm.form.addModel') }}
+                      </el-button>
+                    </div>
+                  </template>
+                </el-select>
               </el-form-item>
-              <el-form-item
-                :label="$t('views.application.applicationForm.form.roleSettings.label')"
-              >
+              <el-form-item label="角色设定">
                 <MdEditorMagnify
-                  :title="$t('views.application.applicationForm.form.roleSettings.label')"
+                  title="角色设定"
                   v-model="applicationForm.model_setting.system"
                   style="height: 120px"
                   @submitDialog="submitSystemDialog"
-                  :placeholder="
-                    $t('views.application.applicationForm.form.roleSettings.placeholder')
-                  "
+                  placeholder="你是 xxx 小助手"
                 />
               </el-form-item>
               <el-form-item
+                :label="$t('views.application.applicationForm.form.prompt.label')"
                 prop="model_setting.no_references_prompt"
                 :rules="{
                   required: applicationForm.model_id,
-                  message: $t('views.application.applicationForm.form.prompt.requiredMessage'),
+                  message: '请输入提示词',
                   trigger: 'blur'
                 }"
               >
                 <template #label>
                   <div class="flex align-center">
                     <span class="mr-4"
-                      >{{
-                        $t('views.application.applicationForm.form.prompt.label') +
-                        $t('views.application.applicationForm.form.prompt.noReferences')
-                      }}
+                      >{{ $t('views.application.applicationForm.form.prompt.label') }}
+                      (无引用知识库)
                     </span>
                     <el-tooltip
                       effect="dark"
-                      :content="
-                        $t('views.application.applicationForm.form.prompt.noReferencesTooltip', {
-                          question: '{question}'
-                        })
-                      "
+                      content="通过调整提示词内容，可以引导大模型聊天方向，该提示词会被固定在上下文的开头。可以使用变量：{question} 是用户提出问题的占位符。"
                       placement="right"
-                      popper-class="max-w-350"
                     >
                       <AppIcon iconName="app-warning" class="app-warning-icon"></AppIcon>
                     </el-tooltip>
@@ -131,20 +184,14 @@
                 </template>
 
                 <MdEditorMagnify
-                  :title="
-                    $t('views.application.applicationForm.form.prompt.label') +
-                    $t('views.application.applicationForm.form.prompt.noReferences')
-                  "
+                  title="提示词(无引用知识库)"
                   v-model="applicationForm.model_setting.no_references_prompt"
                   style="height: 120px"
                   @submitDialog="submitNoReferencesPromptDialog"
                   placeholder="{question}"
                 />
               </el-form-item>
-              <el-form-item
-                :label="$t('views.application.applicationForm.form.historyRecord.label')"
-                @click.prevent
-              >
+              <el-form-item label="历史聊天记录" @click.prevent>
                 <el-input-number
                   v-model="applicationForm.dialogue_number"
                   :min="0"
@@ -161,25 +208,25 @@
                 <template #label>
                   <div class="flex-between">
                     <span>{{
-                      $t('views.application.applicationForm.form.relatedKnowledge.label')
+                      $t('views.application.applicationForm.form.relatedKnowledgeBase')
                     }}</span>
                     <div>
                       <el-button type="primary" link @click="openParamSettingDialog">
                         <AppIcon iconName="app-operation" class="mr-4"></AppIcon>
-                        {{ $t('common.paramSetting') }}
+                        {{ $t('views.application.applicationForm.form.paramSetting') }}
                       </el-button>
                       <el-button type="primary" link @click="openDatasetDialog">
                         <el-icon class="mr-4">
                           <Plus />
                         </el-icon>
-                        {{ $t('common.add') }}
+                        {{ $t('views.application.applicationForm.form.add') }}
                       </el-button>
                     </div>
                   </div>
                 </template>
                 <div class="w-full">
                   <el-text type="info" v-if="applicationForm.dataset_id_list?.length === 0"
-                    >{{ $t('views.application.applicationForm.form.relatedKnowledge.placeholder') }}
+                    >{{ $t('views.application.applicationForm.form.relatedKnowledgeBaseWhere') }}
                   </el-text>
                   <el-row :gutter="12" v-else>
                     <el-col
@@ -231,7 +278,7 @@
                 prop="model_setting.prompt"
                 :rules="{
                   required: applicationForm.model_id,
-                  message: $t('views.application.applicationForm.form.prompt.requiredMessage'),
+                  message: '请输入提示词',
                   trigger: 'blur'
                 }"
               >
@@ -239,17 +286,11 @@
                   <div class="flex align-center">
                     <span class="mr-4">
                       {{ $t('views.application.applicationForm.form.prompt.label') }}
-                      {{ $t('views.application.applicationForm.form.prompt.references') }}
+                      (引用知识库)
                     </span>
                     <el-tooltip
                       effect="dark"
-                      :content="
-                        $t('views.application.applicationForm.form.prompt.referencesTooltip', {
-                          data: '{data}',
-                          question: '{question}'
-                        })
-                      "
-                      popper-class="max-w-350"
+                      content="通过调整提示词内容，可以引导大模型聊天方向，该提示词会被固定在上下文的开头。可以使用变量：{data} 是引用知识库中分段的占位符；{question} 是用户提出问题的占位符。"
                       placement="right"
                     >
                       <AppIcon iconName="app-warning" class="app-warning-icon"></AppIcon>
@@ -259,10 +300,7 @@
                 </template>
 
                 <MdEditorMagnify
-                  :title="
-                    $t('views.application.applicationForm.form.prompt.label') +
-                    $t('views.application.applicationForm.form.prompt.references')
-                  "
+                  title="提示词(引用知识库)"
                   v-model="applicationForm.model_setting.prompt"
                   style="height: 150px"
                   @submitDialog="submitPromptDialog"
@@ -271,103 +309,112 @@
               </el-form-item>
               <el-form-item :label="$t('views.application.applicationForm.form.prologue')">
                 <MdEditorMagnify
-                  :title="$t('views.application.applicationForm.form.prologue')"
+                  title="开场白"
                   v-model="applicationForm.prologue"
                   style="height: 150px"
                   @submitDialog="submitPrologueDialog"
                 />
               </el-form-item>
-              <el-form-item @click.prevent>
+
+              <el-form-item>
                 <template #label>
                   <div class="flex-between">
-                    <span class="mr-4">
-                      {{ $t('views.application.applicationForm.form.reasoningContent.label') }}
-                    </span>
-
-                    <div class="flex">
-                      <el-button type="primary" link @click="openReasoningParamSettingDialog">
-                        <el-icon><Setting /></el-icon>
-                      </el-button>
-                      <el-switch
-                        class="ml-8"
-                        size="small"
-                        v-model="applicationForm.model_setting.reasoning_content_enable"
-                        @change="sttModelEnableChange"
-                      />
-                    </div>
-                  </div>
-                </template>
-              </el-form-item>
-
-              <el-form-item
-                prop="stt_model_id"
-                :rules="{
-                  required: applicationForm.stt_model_enable,
-                  message: $t('views.application.applicationForm.form.voiceInput.requiredMessage'),
-                  trigger: 'change'
-                }"
-              >
-                <template #label>
-                  <div class="flex-between">
-                    <span class="mr-4">
-                      {{ $t('views.application.applicationForm.form.voiceInput.label') }}
-                      <span class="danger" v-if="applicationForm.stt_model_enable">*</span>
-                    </span>
-
-                    <div class="flex">
-                      <el-checkbox
-                        v-if="applicationForm.stt_model_enable"
-                        v-model="applicationForm.stt_autosend"
-                        >{{
-                          $t('views.application.applicationForm.form.voiceInput.autoSend')
-                        }}</el-checkbox
+                    <div class="flex align-center">
+                      <span class="mr-4">语音输入</span>
+                      <!-- <el-tooltip
+                        effect="dark"
+                        content="开启后，需要设定语音转文本模型，语音输入完成后会转化为文字直接发送提问"
+                        placement="right"
                       >
-                      <el-switch
-                        class="ml-8"
-                        size="small"
-                        v-model="applicationForm.stt_model_enable"
-                        @change="sttModelEnableChange"
-                      />
+                        <AppIcon iconName="app-warning" class="app-warning-icon"></AppIcon>
+                      </el-tooltip> -->
                     </div>
+                    <el-switch
+                      size="small"
+                      v-model="applicationForm.stt_model_enable"
+                      @change="sttModelEnableChange"
+                    />
                   </div>
                 </template>
-                <ModelSelect
+                <el-select
                   v-show="applicationForm.stt_model_enable"
                   v-model="applicationForm.stt_model_id"
-                  :placeholder="$t('views.application.applicationForm.form.voiceInput.placeholder')"
-                  :options="sttModelOptions"
-                ></ModelSelect>
+                  class="w-full"
+                  popper-class="select-model"
+                  placeholder="请选择语音识别模型"
+                >
+                  <el-option-group
+                    v-for="(value, label) in sttModelOptions"
+                    :key="value"
+                    :label="relatedObject(providerOptions, label, 'provider')?.name"
+                  >
+                    <el-option
+                      v-for="(item, index) in value?.filter((v: any) => v.status === 'SUCCESS')"
+                      :key="index"
+                      :label="item.name"
+                      :value="item.id"
+                      class="flex-between"
+                    >
+                      <div class="flex align-center">
+                        <span
+                          v-html="relatedObject(providerOptions, label, 'provider')?.icon"
+                          class="model-icon mr-8"
+                        ></span>
+                        <span>{{ item.name }}</span>
+                        <el-tag
+                          v-if="item.permission_type === 'PUBLIC'"
+                          type="info"
+                          class="info-tag ml-8"
+                          >公用
+                        </el-tag>
+                      </div>
+                      <el-icon class="check-icon" v-if="item?.id === applicationForm.stt_model_id">
+                        <Check />
+                      </el-icon>
+                    </el-option>
+                    <!-- 不可用 -->
+                    <el-option
+                      v-for="(item, index) in value?.filter((v: any) => v.status !== 'SUCCESS')"
+                      :key="index"
+                      :label="item.name"
+                      :value="item.id"
+                      class="flex-between"
+                      disabled
+                    >
+                      <div class="flex">
+                        <span
+                          v-html="relatedObject(providerOptions, label, 'provider')?.icon"
+                          class="model-icon mr-8"
+                        ></span>
+                        <span>{{ item.name }}</span>
+                        <span class="danger">{{
+                          $t('views.application.applicationForm.form.aiModel.unavailable')
+                        }}</span>
+                      </div>
+                      <el-icon class="check-icon" v-if="item?.id === applicationForm.stt_model_id">
+                        <Check />
+                      </el-icon>
+                    </el-option>
+                  </el-option-group>
+                </el-select>
               </el-form-item>
-              <el-form-item
-                prop="tts_model_id"
-                :rules="{
-                  required: applicationForm.tts_type === 'TTS' && applicationForm.tts_model_enable,
-                  message: $t('views.application.applicationForm.form.voicePlay.requiredMessage'),
-                  trigger: 'change'
-                }"
-              >
+              <el-form-item>
                 <template #label>
                   <div class="flex-between">
-                    <span class="mr-4"
-                      >{{ $t('views.application.applicationForm.form.voicePlay.label') }}
-                      <span
-                        class="danger"
-                        v-if="
-                          applicationForm.tts_type === 'TTS' && applicationForm.tts_model_enable
-                        "
-                        >*</span
+                    <span class="mr-4">语音播放</span>
+                    <div>
+                      <el-button
+                        v-if="applicationForm.tts_type === 'TTS'"
+                        type="primary"
+                        link
+                        @click="openTTSParamSettingDialog"
+                        :disabled="!applicationForm.tts_model_id"
+                        class="mr-8"
                       >
-                    </span>
-                    <div class="flex">
-                      <el-checkbox
-                        v-if="applicationForm.tts_model_enable"
-                        v-model="applicationForm.tts_autoplay"
-                        >{{
-                          $t('views.application.applicationForm.form.voicePlay.autoPlay')
-                        }}</el-checkbox
-                      >
+                        <el-icon class="mr-4"><Setting /></el-icon>
+                        设置
+                      </el-button>
                       <el-switch
-                        class="ml-8"
                         size="small"
                         v-model="applicationForm.tts_model_enable"
                         @change="ttsModelEnableChange"
@@ -375,40 +422,76 @@
                     </div>
                   </div>
                 </template>
-                <div class="w-full">
-                  <el-radio-group
-                    v-model="applicationForm.tts_type"
-                    v-show="applicationForm.tts_model_enable"
-                    class="mb-8"
+                <el-radio-group
+                  v-model="applicationForm.tts_type"
+                  v-show="applicationForm.tts_model_enable"
+                  class="mb-8"
+                >
+                  <el-radio value="BROWSER">浏览器播放(免费)</el-radio>
+                  <el-radio value="TTS">TTS模型</el-radio>
+                </el-radio-group>
+                <el-select
+                  v-if="applicationForm.tts_type === 'TTS' && applicationForm.tts_model_enable"
+                  v-model="applicationForm.tts_model_id"
+                  class="w-full"
+                  popper-class="select-model"
+                  @change="ttsModelChange()"
+                  placeholder="请选择语音合成模型"
+                >
+                  <el-option-group
+                    v-for="(value, label) in ttsModelOptions"
+                    :key="value"
+                    :label="relatedObject(providerOptions, label, 'provider')?.name"
                   >
-                    <el-radio value="BROWSER">{{
-                      $t('views.application.applicationForm.form.voicePlay.browser')
-                    }}</el-radio>
-                    <el-radio value="TTS">{{
-                      $t('views.application.applicationForm.form.voicePlay.tts')
-                    }}</el-radio>
-                  </el-radio-group>
-                </div>
-                <div class="flex-between w-full">
-                  <ModelSelect
-                    v-if="applicationForm.tts_type === 'TTS' && applicationForm.tts_model_enable"
-                    v-model="applicationForm.tts_model_id"
-                    :placeholder="
-                      $t('views.application.applicationForm.form.voicePlay.placeholder')
-                    "
-                    :options="ttsModelOptions"
-                    @change="ttsModelChange()"
-                  ></ModelSelect>
-
-                  <el-button
-                    v-if="applicationForm.tts_type === 'TTS'"
-                    @click="openTTSParamSettingDialog"
-                    :disabled="!applicationForm.tts_model_id"
-                    class="ml-8"
-                  >
-                    <el-icon><Operation /></el-icon>
-                  </el-button>
-                </div>
+                    <el-option
+                      v-for="item in value.filter((v: any) => v.status === 'SUCCESS')"
+                      :key="item.id"
+                      :label="item.name"
+                      :value="item.id"
+                      class="flex-between"
+                    >
+                      <div class="flex align-center">
+                        <span
+                          v-html="relatedObject(providerOptions, label, 'provider')?.icon"
+                          class="model-icon mr-8"
+                        ></span>
+                        <span>{{ item.name }}</span>
+                        <el-tag
+                          v-if="item.permission_type === 'PUBLIC'"
+                          type="info"
+                          class="info-tag ml-8"
+                          >公用
+                        </el-tag>
+                      </div>
+                      <el-icon class="check-icon" v-if="item.id === applicationForm.tts_model_id">
+                        <Check />
+                      </el-icon>
+                    </el-option>
+                    <!-- 不可用 -->
+                    <el-option
+                      v-for="item in value.filter((v: any) => v.status !== 'SUCCESS')"
+                      :key="item.id"
+                      :label="item.name"
+                      :value="item.id"
+                      class="flex-between"
+                      disabled
+                    >
+                      <div class="flex">
+                        <span
+                          v-html="relatedObject(providerOptions, label, 'provider')?.icon"
+                          class="model-icon mr-8"
+                        ></span>
+                        <span>{{ item.name }}</span>
+                        <span class="danger">{{
+                          $t('views.application.applicationForm.form.aiModel.unavailable')
+                        }}</span>
+                      </div>
+                      <el-icon class="check-icon" v-if="item.id === applicationForm.tts_model_id">
+                        <Check />
+                      </el-icon>
+                    </el-option>
+                  </el-option-group>
+                </el-select>
               </el-form-item>
             </el-form>
           </el-scrollbar>
@@ -416,7 +499,7 @@
       </el-col>
       <el-col :span="14" class="p-24 border-l">
         <h4 class="title-decoration-1 mb-16">
-          {{ $t('views.application.applicationForm.title.appTest') }}
+          {{ $t('views.application.applicationForm.form.apptest') }}
         </h4>
         <div class="dialog-bg">
           <div class="flex align-center p-24">
@@ -474,11 +557,14 @@
       :loading="datasetLoading"
     />
 
+    <!-- 添加模版 -->
+    <CreateModelDialog
+      ref="createModelRef"
+      @submit="getModel"
+      @change="openCreateModel($event)"
+    ></CreateModelDialog>
+    <SelectProviderDialog ref="selectProviderRef" @change="openCreateModel($event)" />
     <EditAvatarDialog ref="EditAvatarDialogRef" @refresh="refreshIcon" />
-    <ReasoningParamSettingDialog
-      ref="ReasoningParamSettingDialogRef"
-      @refresh="submitReasoningDialog"
-    />
   </LayoutContainer>
 </template>
 <script setup lang="ts">
@@ -488,17 +574,20 @@ import { groupBy } from 'lodash'
 import AIModeParamSettingDialog from './component/AIModeParamSettingDialog.vue'
 import ParamSettingDialog from './component/ParamSettingDialog.vue'
 import AddDatasetDialog from './component/AddDatasetDialog.vue'
+import CreateModelDialog from '@/views/template/component/CreateModelDialog.vue'
+import SelectProviderDialog from '@/views/template/component/SelectProviderDialog.vue'
+
 import EditAvatarDialog from '@/views/application-overview/component/EditAvatarDialog.vue'
 import applicationApi from '@/api/application'
 import { isAppIcon } from '@/utils/application'
 import type { FormInstance, FormRules } from 'element-plus'
 import type { ApplicationFormType } from '@/api/type/application'
+import type { Provider } from '@/api/type/model'
 import { relatedObject } from '@/utils/utils'
 import { MsgSuccess, MsgWarning } from '@/utils/message'
 import useStore from '@/stores'
 import { t } from '@/locales'
 import TTSModeParamSettingDialog from './component/TTSModeParamSettingDialog.vue'
-import ReasoningParamSettingDialog from './component/ReasoningParamSettingDialog.vue'
 
 const { model, application } = useStore()
 
@@ -507,22 +596,16 @@ const {
   params: { id }
 } = route as any
 // @ts-ignore
-const defaultPrompt = t('views.application.applicationForm.form.prompt.defaultPrompt', {
+const defaultPrompt = t('views.application.prompt.defaultPrompt', {
   data: '{data}',
   question: '{question}'
 })
 
-const optimizationPrompt =
-  t('views.application.applicationForm.dialog.defaultPrompt1', {
-    question: '{question}'
-  }) +
-  '<data></data>' +
-  t('views.application.applicationForm.dialog.defaultPrompt2')
-
 const AIModeParamSettingDialogRef = ref<InstanceType<typeof AIModeParamSettingDialog>>()
-const ReasoningParamSettingDialogRef = ref<InstanceType<typeof ReasoningParamSettingDialog>>()
 const TTSModeParamSettingDialogRef = ref<InstanceType<typeof TTSModeParamSettingDialog>>()
 const ParamSettingDialogRef = ref<InstanceType<typeof ParamSettingDialog>>()
+const createModelRef = ref<InstanceType<typeof CreateModelDialog>>()
+const selectProviderRef = ref<InstanceType<typeof SelectProviderDialog>>()
 
 const applicationFormRef = ref<FormInstance>()
 const AddDatasetDialogRef = ref()
@@ -535,7 +618,7 @@ const applicationForm = ref<ApplicationFormType>({
   desc: '',
   model_id: '',
   dialogue_number: 1,
-  prologue: t('views.application.applicationForm.form.defaultPrologue'),
+  prologue: t('views.application.prompt.defaultPrologue'),
   dataset_id_list: [],
   dataset_setting: {
     top_n: 3,
@@ -549,13 +632,13 @@ const applicationForm = ref<ApplicationFormType>({
   },
   model_setting: {
     prompt: defaultPrompt,
-    system: t('views.application.applicationForm.form.roleSettings.placeholder'),
-    no_references_prompt: '{question}',
-    reasoning_content_enable: false,
+    system: '你是 xxx 小助手',
+    no_references_prompt: '{question}'
   },
   model_params_setting: {},
   problem_optimization: false,
-  problem_optimization_prompt: optimizationPrompt,
+  problem_optimization_prompt:
+    '()里面是用户问题,根据上下文回答揣测用户问题({question}) 要求: 输出一个补全问题,并且放在<data></data>标签中',
   stt_model_id: '',
   tts_model_id: '',
   stt_model_enable: false,
@@ -574,6 +657,7 @@ const rules = reactive<FormRules<ApplicationFormType>>({
   ]
 })
 const modelOptions = ref<any>(null)
+const providerOptions = ref<Array<Provider>>([])
 const datasetList = ref([])
 const sttModelOptions = ref<any>(null)
 const ttsModelOptions = ref<any>(null)
@@ -591,25 +675,30 @@ function submitNoReferencesPromptDialog(val: string) {
 function submitSystemDialog(val: string) {
   applicationForm.value.model_setting.system = val
 }
-function submitReasoningDialog(val: any) {
-  applicationForm.value.model_setting = {
-    ...applicationForm.value.model_setting,
-    ...val
-  }
-}
 
 const submit = async (formEl: FormInstance | undefined) => {
+  if (
+    applicationForm.value.tts_model_enable &&
+    !applicationForm.value.tts_model_id &&
+    applicationForm.value.tts_type === 'TTS'
+  ) {
+    MsgWarning(t('请选择语音播放模型'))
+    return
+  }
+  if (applicationForm.value.stt_model_enable && !applicationForm.value.stt_model_id) {
+    MsgWarning(t('请选择语音输入模型'))
+    return
+  }
   if (!formEl) return
   await formEl.validate((valid, fields) => {
     if (valid) {
       application.asyncPutApplication(id, applicationForm.value, loading).then((res) => {
-        MsgSuccess(t('common.saveSuccess'))
+        MsgSuccess(t('views.application.applicationForm.buttons.saveSuccess'))
       })
     }
   })
 }
 const model_change = (model_id?: string) => {
-  applicationForm.value.model_id = model_id
   if (model_id) {
     AIModeParamSettingDialogRef.value?.reset_default(model_id, id)
   } else {
@@ -617,27 +706,25 @@ const model_change = (model_id?: string) => {
   }
 }
 const openAIParamSettingDialog = () => {
-  if (applicationForm.value.model_id) {
-    AIModeParamSettingDialogRef.value?.open(
-      applicationForm.value.model_id,
-      id,
-      applicationForm.value.model_params_setting
-    )
+  const model_id = applicationForm.value.model_id
+  if (!model_id) {
+    MsgSuccess(t('请选择AI 模型'))
+    return
   }
-}
-
-const openReasoningParamSettingDialog = () => {
-  ReasoningParamSettingDialogRef.value?.open(applicationForm.value.model_setting)
+  AIModeParamSettingDialogRef.value?.open(model_id, id, applicationForm.value.model_params_setting)
 }
 
 const openTTSParamSettingDialog = () => {
-  if (applicationForm.value.tts_model_id) {
-    TTSModeParamSettingDialogRef.value?.open(
-      applicationForm.value.tts_model_id,
-      id,
-      applicationForm.value.tts_model_params_setting
-    )
+  const model_id = applicationForm.value.tts_model_id
+  if (!model_id) {
+    MsgSuccess(t('请选择语音播放模型'))
+    return
   }
+  TTSModeParamSettingDialogRef.value?.open(
+    model_id,
+    id,
+    applicationForm.value.tts_model_params_setting
+  )
 }
 
 const openParamSettingDialog = () => {
@@ -654,6 +741,14 @@ function refreshForm(data: any) {
 
 function refreshTTSForm(data: any) {
   applicationForm.value.tts_model_params_setting = data
+}
+
+const openCreateModel = (provider?: Provider) => {
+  if (provider && provider.provider) {
+    createModelRef.value?.open(provider)
+  } else {
+    selectProviderRef.value?.open()
+  }
 }
 
 function removeDataset(id: any) {
@@ -751,6 +846,19 @@ function sttModelEnableChange() {
   }
 }
 
+function getProvider() {
+  loading.value = true
+  model
+    .asyncGetProvider()
+    .then((res: any) => {
+      providerOptions.value = res?.data
+      loading.value = false
+    })
+    .catch(() => {
+      loading.value = false
+    })
+}
+
 function openEditAvatar() {
   EditAvatarDialogRef.value.open(applicationForm.value)
 }
@@ -763,6 +871,7 @@ function refresh() {
 }
 
 onMounted(() => {
+  getProvider()
   getModel()
   getDataset()
   getDetail()

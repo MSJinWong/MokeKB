@@ -1,13 +1,13 @@
 <template>
   <el-drawer v-model="visible" size="60%" @close="closeHandle">
     <template #header>
-      <h4>{{ $t('views.problem.detailProblem') }}</h4>
+      <h4>问题详情</h4>
     </template>
     <div>
       <el-scrollbar>
         <div class="p-8">
           <el-form label-position="top" v-loading="loading" @submit.prevent>
-            <el-form-item :label="$t('views.problem.title')">
+            <el-form-item label="问题">
               <ReadWrite
                 @change="editName"
                 :data="currentContent"
@@ -15,7 +15,7 @@
                 :maxlength="256"
               />
             </el-form-item>
-            <el-form-item :label="$t('views.problem.relateParagraph.title')">
+            <el-form-item label="关联分段">
               <template v-for="(item, index) in paragraphList" :key="index">
                 <CardBox
                   :title="item.title || '-'"
@@ -25,11 +25,7 @@
                 >
                   <div class="active-button">
                     <span class="mr-4">
-                      <el-tooltip
-                        effect="dark"
-                        :content="$t('views.problem.setting.cancelRelated')"
-                        placement="top"
-                      >
+                      <el-tooltip effect="dark" content="取消关联" placement="top">
                         <el-button type="primary" text @click.stop="disassociation(item)">
                           <AppIcon iconName="app-quxiaoguanlian"></AppIcon>
                         </el-button>
@@ -57,24 +53,14 @@
           </el-form>
         </div>
       </el-scrollbar>
-      <ParagraphDialog
-        ref="ParagraphDialogRef"
-        :title="$t('views.paragraph.editParagraph')"
-        @refresh="refresh"
-      />
+      <ParagraphDialog ref="ParagraphDialogRef" title="编辑分段" @refresh="refresh" />
       <RelateProblemDialog ref="RelateProblemDialogRef" @refresh="refresh" />
     </div>
     <template #footer>
       <div>
-        <el-button @click="relateProblem">{{
-          $t('views.problem.relateParagraph.title')
-        }}</el-button>
-        <el-button @click="pre" :disabled="pre_disable || loading">{{
-          $t('views.log.buttons.prev')
-        }}</el-button>
-        <el-button @click="next" :disabled="next_disable || loading">{{
-          $t('views.log.buttons.next')
-        }}</el-button>
+        <el-button @click="relateProblem">关联分段</el-button>
+        <el-button @click="pre" :disabled="pre_disable || loading">上一条</el-button>
+        <el-button @click="next" :disabled="next_disable || loading">下一条</el-button>
       </div>
     </template>
   </el-drawer>
@@ -88,7 +74,7 @@ import ParagraphDialog from '@/views/paragraph/component/ParagraphDialog.vue'
 import RelateProblemDialog from './RelateProblemDialog.vue'
 import { MsgSuccess, MsgConfirm, MsgError } from '@/utils/message'
 import useStore from '@/stores'
-import { t } from '@/locales'
+
 const props = withDefaults(
   defineProps<{
     /**
@@ -155,10 +141,10 @@ function editName(val: string) {
     }
     problemApi.putProblems(id as string, props.currentId, obj, loading).then(() => {
       emit('update:currentContent', val)
-      MsgSuccess(t('common.modifySuccess'))
+      MsgSuccess('修改成功')
     })
   } else {
-    MsgError(t('views.problem.tip.errorMessage'))
+    MsgError('问题不能为空！')
   }
 }
 

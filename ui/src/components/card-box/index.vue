@@ -2,13 +2,13 @@
   <el-card shadow="hover" class="card-box" @mouseenter="cardEnter()" @mouseleave="cardLeave()">
     <div class="card-header">
       <slot name="header">
-        <div class="title flex align-center" :class="$slots.subTitle?'mt-4':''">
+        <div class="title flex" :class="$slots.subTitle ? '' : 'align-center'">
           <slot name="icon">
             <AppAvatar v-if="showIcon" class="mr-12 avatar-blue" shape="square" :size="32">
               <img src="@/assets/icon_document.svg" style="width: 58%" alt="" />
             </AppAvatar>
           </slot>
-          <div style="width: 90%;">
+          <div style="width: 90%;margin-top: -5px;">
             <auto-tooltip :content="title" style="width: 65%; height: 22px">
               {{ title }}
             </auto-tooltip>
@@ -39,7 +39,7 @@
 </template>
 <script setup lang="ts">
 import { ref, useSlots } from 'vue'
-import { t } from '@/locales'
+
 defineOptions({ name: 'CardBox' })
 const props = withDefaults(
   defineProps<{
@@ -56,7 +56,7 @@ const props = withDefaults(
      */
     showIcon?: boolean
   }>(),
-  { title: t('common.title'), description: '', showIcon: true, border: true }
+  { title: '标题', description: '', showIcon: true, border: true }
 )
 
 const show = ref(false)

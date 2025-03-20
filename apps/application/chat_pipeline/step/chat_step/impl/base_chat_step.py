@@ -14,7 +14,6 @@ from typing import List
 
 from django.db.models import QuerySet
 from django.http import StreamingHttpResponse
-from django.utils.translation import gettext as _
 from langchain.chat_models.base import BaseChatModel
 from langchain.schema import BaseMessage
 from langchain.schema.messages import HumanMessage, AIMessage
@@ -24,7 +23,6 @@ from rest_framework import status
 from application.chat_pipeline.I_base_chat_pipeline import ParagraphPipelineModel
 from application.chat_pipeline.pipeline_manage import PipelineManage
 from application.chat_pipeline.step.chat_step.i_chat_step import IChatStep, PostResponseHandler
-from application.flow.tools import Reasoning
 from application.models.api_key_model import ApplicationPublicAccessClient
 from common.constants.authentication_type import AuthenticationType
 from setting.models_provider.tools import get_model_instance_by_model_user_id
@@ -64,54 +62,17 @@ def event_content(response,
                   problem_text: str,
                   padding_problem_text: str = None,
                   client_id=None, client_type=None,
-                  is_ai_chat: bool = None,
-                  model_setting=None):
-    if model_setting is None:
-        model_setting = {}
-    reasoning_content_enable = model_setting.get('reasoning_content_enable', False)
-    reasoning_content_start = model_setting.get('reasoning_content_start', '<think>')
-    reasoning_content_end = model_setting.get('reasoning_content_end', '</think>')
-    reasoning = Reasoning(reasoning_content_start,
-                          reasoning_content_end)
+                  is_ai_chat: bool = None):
     all_text = ''
-    reasoning_content = ''
     try:
-        response_reasoning_content = False
         for chunk in response:
-            reasoning_chunk = reasoning.get_reasoning_content(chunk)
-            content_chunk = reasoning_chunk.get('content')
-            if 'reasoning_content' in chunk.additional_kwargs:
-                response_reasoning_content = True
-                reasoning_content_chunk = chunk.additional_kwargs.get('reasoning_content', '')
-            else:
-                reasoning_content_chunk = reasoning_chunk.get('reasoning_content')
-            all_text += content_chunk
-            if reasoning_content_chunk is None:
-                reasoning_content_chunk = ''
-            reasoning_content += reasoning_content_chunk
+            all_text += chunk.content
             yield manage.get_base_to_response().to_stream_chunk_response(chat_id, str(chat_record_id), 'ai-chat-node',
-                                                                         [], content_chunk,
+                                                                         [], chunk.content,
                                                                          False,
                                                                          0, 0, {'node_is_end': False,
                                                                                 'view_type': 'many_view',
-                                                                                'node_type': 'ai-chat-node',
-                                                                                'real_node_id': 'ai-chat-node',
-                                                                                'reasoning_content': reasoning_content_chunk if reasoning_content_enable else ''})
-        reasoning_chunk = reasoning.get_end_reasoning_content()
-        all_text += reasoning_chunk.get('content')
-        reasoning_content_chunk = ""
-        if not response_reasoning_content:
-            reasoning_content_chunk = reasoning_chunk.get(
-                'reasoning_content')
-        yield manage.get_base_to_response().to_stream_chunk_response(chat_id, str(chat_record_id), 'ai-chat-node',
-                                                                     [], reasoning_chunk.get('content'),
-                                                                     False,
-                                                                     0, 0, {'node_is_end': False,
-                                                                            'view_type': 'many_view',
-                                                                            'node_type': 'ai-chat-node',
-                                                                            'real_node_id': 'ai-chat-node',
-                                                                            'reasoning_content'
-                                                                            : reasoning_content_chunk if reasoning_content_enable else ''})
+                                                                                'node_type': 'ai-chat-node'})
         # 获取token
         if is_ai_chat:
             try:
@@ -125,8 +86,7 @@ def event_content(response,
             response_token = 0
         write_context(step, manage, request_token, response_token, all_text)
         post_response_handler.handler(chat_id, chat_record_id, paragraph_list, problem_text,
-                                      all_text, manage, step, padding_problem_text, client_id,
-                                      reasoning_content=reasoning_content if reasoning_content_enable else '')
+                                      all_text, manage, step, padding_problem_text, client_id)
         yield manage.get_base_to_response().to_stream_chunk_response(chat_id, str(chat_record_id), 'ai-chat-node',
                                                                      [], '', True,
                                                                      request_token, response_token,
@@ -161,20 +121,17 @@ class BaseChatStep(IChatStep):
                 client_id=None, client_type=None,
                 no_references_setting=None,
                 model_params_setting=None,
-                model_setting=None,
                 **kwargs):
         chat_model = get_model_instance_by_model_user_id(model_id, user_id,
                                                          **model_params_setting) if model_id is not None else None
         if stream:
             return self.execute_stream(message_list, chat_id, problem_text, post_response_handler, chat_model,
                                        paragraph_list,
-                                       manage, padding_problem_text, client_id, client_type, no_references_setting,
-                                       model_setting)
+                                       manage, padding_problem_text, client_id, client_type, no_references_setting)
         else:
             return self.execute_block(message_list, chat_id, problem_text, post_response_handler, chat_model,
                                       paragraph_list,
-                                      manage, padding_problem_text, client_id, client_type, no_references_setting,
-                                      model_setting)
+                                      manage, padding_problem_text, client_id, client_type, no_references_setting)
 
     def get_details(self, manage, **kwargs):
         return {
@@ -215,8 +172,7 @@ class BaseChatStep(IChatStep):
             return iter(
                 [AIMessageChunk(content=no_references_setting.get('value').replace('{question}', problem_text))]), False
         if chat_model is None:
-            return iter([AIMessageChunk(
-                _('Sorry, the AI model is not configured. Please go to the application to set up the AI model first.'))]), False
+            return iter([AIMessageChunk('抱歉，没有配置 AI 模型，请先去应用中设置 AI 模型。')]), False
         else:
             return chat_model.stream(message_list), True
 
@@ -229,15 +185,14 @@ class BaseChatStep(IChatStep):
                        manage: PipelineManage = None,
                        padding_problem_text: str = None,
                        client_id=None, client_type=None,
-                       no_references_setting=None,
-                       model_setting=None):
+                       no_references_setting=None):
         chat_result, is_ai_chat = self.get_stream_result(message_list, chat_model, paragraph_list,
                                                          no_references_setting, problem_text)
         chat_record_id = uuid.uuid1()
         r = StreamingHttpResponse(
             streaming_content=event_content(chat_result, chat_id, chat_record_id, paragraph_list,
                                             post_response_handler, manage, self, chat_model, message_list, problem_text,
-                                            padding_problem_text, client_id, client_type, is_ai_chat, model_setting),
+                                            padding_problem_text, client_id, client_type, is_ai_chat),
             content_type='text/event-stream;charset=utf-8')
 
         r['Cache-Control'] = 'no-cache'
@@ -251,17 +206,17 @@ class BaseChatStep(IChatStep):
                          problem_text=None):
         if paragraph_list is None:
             paragraph_list = []
-        directly_return_chunk_list = [AIMessageChunk(content=paragraph.content)
-                                      for paragraph in paragraph_list if (
-                                              paragraph.hit_handling_method == 'directly_return' and paragraph.similarity >= paragraph.directly_return_similarity)]
+
+        directly_return_chunk_list = [AIMessage(content=paragraph.content)
+                                      for paragraph in paragraph_list if
+                                      paragraph.hit_handling_method == 'directly_return']
         if directly_return_chunk_list is not None and len(directly_return_chunk_list) > 0:
             return directly_return_chunk_list[0], False
         elif len(paragraph_list) == 0 and no_references_setting.get(
                 'status') == 'designated_answer':
             return AIMessage(no_references_setting.get('value').replace('{question}', problem_text)), False
         if chat_model is None:
-            return AIMessage(
-                _('Sorry, the AI model is not configured. Please go to the application to set up the AI model first.')), False
+            return AIMessage('抱歉，没有配置 AI 模型，请先去应用中设置 AI 模型。'), False
         else:
             return chat_model.invoke(message_list), True
 
@@ -273,13 +228,7 @@ class BaseChatStep(IChatStep):
                       paragraph_list=None,
                       manage: PipelineManage = None,
                       padding_problem_text: str = None,
-                      client_id=None, client_type=None, no_references_setting=None,
-                      model_setting=None):
-        reasoning_content_enable = model_setting.get('reasoning_content_enable', False)
-        reasoning_content_start = model_setting.get('reasoning_content_start', '<think>')
-        reasoning_content_end = model_setting.get('reasoning_content_end', '</think>')
-        reasoning = Reasoning(reasoning_content_start,
-                              reasoning_content_end)
+                      client_id=None, client_type=None, no_references_setting=None):
         chat_record_id = uuid.uuid1()
         # 调用模型
         try:
@@ -292,29 +241,14 @@ class BaseChatStep(IChatStep):
                 request_token = 0
                 response_token = 0
             write_context(self, manage, request_token, response_token, chat_result.content)
-            reasoning_result = reasoning.get_reasoning_content(chat_result)
-            reasoning_result_end = reasoning.get_end_reasoning_content()
-            content = reasoning_result.get('content') + reasoning_result_end.get('content')
-            if 'reasoning_content' in chat_result.response_metadata:
-                reasoning_content = chat_result.response_metadata.get('reasoning_content', '')
-            else:
-                reasoning_content = reasoning_result.get('reasoning_content') + reasoning_result_end.get(
-                    'reasoning_content')
             post_response_handler.handler(chat_id, chat_record_id, paragraph_list, problem_text,
-                                          content, manage, self, padding_problem_text, client_id,
-                                          reasoning_content=reasoning_content if reasoning_content_enable else '')
+                                          chat_result.content, manage, self, padding_problem_text, client_id)
             add_access_num(client_id, client_type, manage.context.get('application_id'))
             return manage.get_base_to_response().to_block_response(str(chat_id), str(chat_record_id),
-                                                                   content, True,
-                                                                   request_token, response_token,
-                                                                   {
-                                                                       'reasoning_content': reasoning_content if reasoning_content_enable else '',
-                                                                       'answer_list': [{
-                                                                           'content': content,
-                                                                           'reasoning_content': reasoning_content if reasoning_content_enable else ''
-                                                                       }]})
+                                                                   chat_result.content, True,
+                                                                   request_token, response_token)
         except Exception as e:
-            all_text = 'Exception:' + str(e)
+            all_text = '异常' + str(e)
             write_context(self, manage, 0, 0, all_text)
             post_response_handler.handler(chat_id, chat_record_id, paragraph_list, problem_text,
                                           all_text, manage, self, padding_problem_text, client_id)

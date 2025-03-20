@@ -50,12 +50,10 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    'django.middleware.locale.LocaleMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    'common.middleware.gzip.GZipMiddleware',
     'common.middleware.static_headers_middleware.StaticHeadersMiddleware',
     'common.middleware.cross_domain_middleware.CrossDomainMiddleware'
 
@@ -174,31 +172,13 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
 
+LANGUAGE_CODE = 'en-us'
+
 TIME_ZONE = CONFIG.get_time_zone()
 
-# 启用国际化
 USE_I18N = True
 
-# 启用本地化
-USE_L10N = True
-
-# 启用时区
-USE_TZ = True
-
-# 默认语言
-LANGUAGE_CODE = CONFIG.get("LANGUAGE_CODE")
-
-# 支持的语言
-LANGUAGES = [
-    ('en', 'English'),
-    ('zh', '中文简体'),
-    ('zh-hant', '中文繁体')
-]
-
-# 翻译文件路径
-LOCALE_PATHS = [
-    os.path.join(BASE_DIR.parent, 'locales')
-]
+USE_TZ = False
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/

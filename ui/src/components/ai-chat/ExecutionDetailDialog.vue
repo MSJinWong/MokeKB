@@ -1,7 +1,7 @@
 <template>
   <el-dialog
-    class="execution-details-dialog responsive-dialog"
-    :title="$t('chat.executionDetails.title')"
+    class="execution-details-dialog"
+    title="执行详情"
     v-model="dialogVisible"
     destroy-on-close
     append-to-body
@@ -56,26 +56,17 @@
                     "
                   >
                     <div class="card-never border-r-4">
-                      <h5 class="p-8-12">
-                        {{ $t('common.param.inputParam') }}
-                      </h5>
-
+                      <h5 class="p-8-12">参数输入</h5>
                       <div class="p-8-12 border-t-dashed lighter">
                         <div class="mb-8">
-                          <span class="color-secondary">
-                            {{ $t('chat.paragraphSource.question') }}:</span
-                          >
-
+                          <span class="color-secondary">用户问题:</span>
                           {{ item.question || '-' }}
                         </div>
-
                         <div v-for="(f, i) in item.global_fields" :key="i" class="mb-8">
                           <span class="color-secondary">{{ f.label }}:</span> {{ f.value }}
                         </div>
                         <div v-if="item.document_list?.length > 0">
-                          <p class="mb-8 color-secondary">
-                            {{ $t('common.fileUpload.document') }}:
-                          </p>
+                          <p class="mb-8 color-secondary">文档:</p>
 
                           <el-space wrap>
                             <template v-for="(f, i) in item.document_list" :key="i">
@@ -95,7 +86,7 @@
                           </el-space>
                         </div>
                         <div v-if="item.image_list?.length > 0">
-                          <p class="mb-8 color-secondary">{{ $t('common.fileUpload.image') }}:</p>
+                          <p class="mb-8 color-secondary">图片:</p>
 
                           <el-space wrap>
                             <template v-for="(f, i) in item.image_list" :key="i">
@@ -110,9 +101,7 @@
                           </el-space>
                         </div>
                         <div v-if="item.audio_list?.length > 0">
-                          <p class="mb-8 color-secondary">
-                            {{ $t('chat.executionDetails.audioFile') }}:
-                          </p>
+                          <p class="mb-8 color-secondary">语音文件:</p>
 
                           <el-space wrap>
                             <template v-for="(f, i) in item.audio_list" :key="i">
@@ -131,15 +120,11 @@
                   <!-- 知识库检索 -->
                   <template v-if="item.type == WorkflowType.SearchDataset">
                     <div class="card-never border-r-4">
-                      <h5 class="p-8-12">
-                        {{ $t('chat.executionDetails.searchContent') }}
-                      </h5>
+                      <h5 class="p-8-12">检索内容</h5>
                       <div class="p-8-12 border-t-dashed lighter">{{ item.question || '-' }}</div>
                     </div>
                     <div class="card-never border-r-4 mt-8">
-                      <h5 class="p-8-12">
-                        {{ $t('chat.executionDetails.searchResult') }}
-                      </h5>
+                      <h5 class="p-8-12">检索结果</h5>
                       <div class="p-8-12 border-t-dashed lighter">
                         <template v-if="item.paragraph_list?.length > 0">
                           <template
@@ -150,11 +135,7 @@
                             )"
                             :key="paragraphIndex"
                           >
-                            <ParagraphCard
-                              :data="paragraph"
-                              :content="paragraph.content"
-                              :index="paragraphIndex"
-                            />
+                            <ParagraphCard :data="paragraph" :index="paragraphIndex" />
                           </template>
                         </template>
                         <template v-else> -</template>
@@ -164,9 +145,7 @@
                   <!-- 判断器 -->
                   <template v-if="item.type == WorkflowType.Condition">
                     <div class="card-never border-r-4">
-                      <h5 class="p-8-12">
-                        {{ $t('chat.executionDetails.conditionResult') }}
-                      </h5>
+                      <h5 class="p-8-12">判断结果</h5>
                       <div class="p-8-12 border-t-dashed lighter">
                         {{ item.branch_name || '-' }}
                       </div>
@@ -184,9 +163,7 @@
                       class="card-never border-r-4"
                       v-if="item.type !== WorkflowType.Application"
                     >
-                      <h5 class="p-8-12">
-                        {{ $t('views.application.applicationForm.form.roleSettings.label') }}
-                      </h5>
+                      <h5 class="p-8-12">角色设定 (System)</h5>
                       <div class="p-8-12 border-t-dashed lighter">
                         {{ item.system || '-' }}
                       </div>
@@ -195,7 +172,7 @@
                       class="card-never border-r-4 mt-8"
                       v-if="item.type !== WorkflowType.Application"
                     >
-                      <h5 class="p-8-12">{{ $t('chat.history') }}</h5>
+                      <h5 class="p-8-12">历史记录</h5>
                       <div class="p-8-12 border-t-dashed lighter">
                         <template v-if="item.history_message?.length > 0">
                           <p
@@ -214,28 +191,14 @@
                       class="card-never border-r-4 mt-8"
                       v-if="item.type !== WorkflowType.Application"
                     >
-                      <h5 class="p-8-12">
-                        {{ $t('chat.executionDetails.currentChat') }}
-                      </h5>
+                      <h5 class="p-8-12">本次对话</h5>
                       <div class="p-8-12 border-t-dashed lighter pre-wrap">
                         {{ item.question || '-' }}
                       </div>
                     </div>
-                    <div class="card-never border-r-4 mt-8" v-if="item.type == WorkflowType.AiChat">
-                      <h5 class="p-8-12">
-                        {{ $t('views.applicationWorkflow.nodes.aiChatNode.think') }}
-                      </h5>
-                      <div class="p-8-12 border-t-dashed lighter pre-wrap">
-                        {{ item.reasoning_content || '-' }}
-                      </div>
-                    </div>
                     <div class="card-never border-r-4 mt-8">
                       <h5 class="p-8-12">
-                        {{
-                          item.type == WorkflowType.Application
-                            ? $t('common.param.outputParam')
-                            : $t('chat.executionDetails.answer')
-                        }}
+                        {{ item.type == WorkflowType.Application ? '参数输出' : 'AI 回答' }}
                       </h5>
                       <div class="p-8-12 border-t-dashed lighter">
                         <MdPreview
@@ -244,7 +207,6 @@
                           editorId="preview-only"
                           :modelValue="item.answer"
                           style="background: none"
-                          noImgZoomIn
                         />
                         <template v-else> -</template>
                       </div>
@@ -254,9 +216,7 @@
                   <!-- 指定回复 -->
                   <template v-if="item.type === WorkflowType.Reply">
                     <div class="card-never border-r-4">
-                      <h5 class="p-8-12">
-                        {{ $t('chat.executionDetails.replyContent') }}
-                      </h5>
+                      <h5 class="p-8-12">回复内容</h5>
                       <div class="p-8-12 border-t-dashed lighter">
                         <el-scrollbar height="150">
                           <MdPreview
@@ -265,7 +225,6 @@
                             editorId="preview-only"
                             :modelValue="item.answer"
                             style="background: none"
-                            noImgZoomIn
                           />
                           <template v-else> -</template>
                         </el-scrollbar>
@@ -277,11 +236,11 @@
                   <template v-if="item.type === WorkflowType.DocumentExtractNode">
                     <div class="card-never border-r-4">
                       <h5 class="p-8-12 flex align-center">
-                        <span class="mr-4"> {{ $t('common.param.outputParam') }}</span>
+                        <span class="mr-4">参数输出</span>
 
                         <el-tooltip
                           effect="dark"
-                          :content="$t('chat.executionDetails.paramOutputTooltip')"
+                          content="每个文档仅支持预览500字"
                           placement="right"
                         >
                           <AppIcon iconName="app-warning" class="app-warning-icon"></AppIcon>
@@ -302,7 +261,6 @@
                               editorId="preview-only"
                               :modelValue="file_content"
                               style="background: none"
-                              noImgZoomIn
                             />
                             <template v-else> -</template>
                           </el-card>
@@ -312,15 +270,11 @@
                   </template>
                   <template v-if="item.type === WorkflowType.SpeechToTextNode">
                     <div class="card-never border-r-4">
-                      <h5 class="p-8-12">
-                        {{ $t('common.param.inputParam') }}
-                      </h5>
+                      <h5 class="p-8-12">参数输入</h5>
                       <div class="p-8-12 border-t-dashed lighter">
                         <div class="mb-8">
                           <div v-if="item.audio_list?.length > 0">
-                            <p class="mb-8 color-secondary">
-                              {{ $t('chat.executionDetails.audioFile') }}:
-                            </p>
+                            <p class="mb-8 color-secondary">语音文件:</p>
 
                             <el-space wrap>
                               <template v-for="(f, i) in item.audio_list" :key="i">
@@ -337,9 +291,7 @@
                       </div>
                     </div>
                     <div class="card-never border-r-4">
-                      <h5 class="p-8-12">
-                        {{ $t('common.param.outputParam') }}
-                      </h5>
+                      <h5 class="p-8-12">参数输出</h5>
                       <div class="p-8-12 border-t-dashed lighter">
                         <el-card
                           shadow="never"
@@ -354,7 +306,6 @@
                             editorId="preview-only"
                             :modelValue="file_content"
                             style="background: none"
-                            noImgZoomIn
                           />
                           <template v-else> -</template>
                         </el-card>
@@ -364,34 +315,25 @@
 
                   <template v-if="item.type === WorkflowType.TextToSpeechNode">
                     <div class="card-never border-r-4">
-                      <h5 class="p-8-12">
-                        {{ $t('common.param.inputParam') }}
-                      </h5>
+                      <h5 class="p-8-12">参数输入</h5>
                       <div class="p-8-12 border-t-dashed lighter">
                         <div class="p-8-12 border-t-dashed lighter">
-                          <p class="mb-8 color-secondary">
-                            {{ $t('chat.executionDetails.textContent') }}:
-                          </p>
+                          <p class="mb-8 color-secondary">文本内容:</p>
                           <div v-if="item.content">
                             <MdPreview
                               ref="editorRef"
                               editorId="preview-only"
                               :modelValue="item.content"
                               style="background: none"
-                              noImgZoomIn
                             />
                           </div>
                         </div>
                       </div>
                     </div>
                     <div class="card-never border-r-4">
-                      <h5 class="p-8-12">
-                        {{ $t('common.param.outputParam') }}
-                      </h5>
+                      <h5 class="p-8-12">参数输出</h5>
                       <div class="p-8-12 border-t-dashed lighter">
-                        <p class="mb-8 color-secondary">
-                          {{ $t('chat.executionDetails.audioFile') }}:
-                        </p>
+                        <p class="mb-8 color-secondary">语音文件:</p>
                         <div v-if="item.answer" v-html="item.answer"></div>
                       </div>
                     </div>
@@ -405,13 +347,13 @@
                     "
                   >
                     <div class="card-never border-r-4 mt-8">
-                      <h5 class="p-8-12">{{ $t('chat.executionDetails.input') }}</h5>
+                      <h5 class="p-8-12">输入</h5>
                       <div class="p-8-12 border-t-dashed lighter pre-wrap">
                         {{ item.params || '-' }}
                       </div>
                     </div>
                     <div class="card-never border-r-4 mt-8">
-                      <h5 class="p-8-12">{{ $t('chat.executionDetails.output') }}</h5>
+                      <h5 class="p-8-12">输出</h5>
                       <div class="p-8-12 border-t-dashed lighter pre-wrap">
                         {{ item.result || '-' }}
                       </div>
@@ -420,47 +362,62 @@
                   <!-- 多路召回 -->
                   <template v-if="item.type == WorkflowType.RrerankerNode">
                     <div class="card-never border-r-4">
-                      <h5 class="p-8-12">
-                        {{ $t('chat.executionDetails.searchContent') }}
-                      </h5>
+                      <h5 class="p-8-12">检索内容</h5>
                       <div class="p-8-12 border-t-dashed lighter">{{ item.question || '-' }}</div>
                     </div>
                     <div class="card-never border-r-4 mt-8">
-                      <h5 class="p-8-12">
-                        {{ $t('chat.executionDetails.rerankerContent') }}
-                      </h5>
+                      <h5 class="p-8-12">重排内容</h5>
                       <div class="p-8-12 border-t-dashed lighter">
                         <template v-if="item.document_list?.length > 0">
                           <template
                             v-for="(paragraph, paragraphIndex) in item.document_list"
                             :key="paragraphIndex"
                           >
-                            <ParagraphCard
-                              :data="paragraph.metadata"
-                              :content="paragraph.page_content"
-                              :index="paragraphIndex"
-                            />
+                            <CardBox shadow="never" title="" class="cursor mb-8" :showIcon="false">
+                              <template #description>
+                                <el-scrollbar max-height="150">
+                                  <MdPreview
+                                    ref="editorRef"
+                                    editorId="preview-only"
+                                    :modelValue="paragraph"
+                                  />
+                                </el-scrollbar>
+                              </template>
+                            </CardBox>
                           </template>
                         </template>
                         <template v-else> -</template>
                       </div>
                     </div>
                     <div class="card-never border-r-4 mt-8">
-                      <h5 class="p-8-12">
-                        {{ $t('chat.executionDetails.rerankerResult') }}
-                      </h5>
+                      <h5 class="p-8-12">重排结果</h5>
                       <div class="p-8-12 border-t-dashed lighter">
                         <template v-if="item.result_list?.length > 0">
                           <template
                             v-for="(paragraph, paragraphIndex) in item.result_list"
                             :key="paragraphIndex"
                           >
-                            <ParagraphCard
-                              :data="paragraph.metadata"
-                              :content="paragraph.page_content"
-                              :index="paragraphIndex"
-                              :score="paragraph.metadata?.relevance_score"
-                            />
+                            <CardBox
+                              shadow="never"
+                              :title="`分段${paragraphIndex + 1}`"
+                              class="paragraph-source-card cursor mb-8 paragraph-source-card-height"
+                              :showIcon="false"
+                            >
+                              <div class="active-button primary">
+                                {{ paragraph.metadata.relevance_score?.toFixed(3) }}
+                              </div>
+                              <template #description>
+                                <div class="mt-8">
+                                  <el-scrollbar height="150">
+                                    <MdPreview
+                                      ref="editorRef"
+                                      editorId="preview-only"
+                                      :modelValue="paragraph.page_content"
+                                    />
+                                  </el-scrollbar>
+                                </div>
+                              </template>
+                            </CardBox>
                           </template>
                         </template>
                         <template v-else> -</template>
@@ -472,9 +429,8 @@
                   <template v-if="item.type === WorkflowType.FormNode">
                     <div class="card-never border-r-4">
                       <h5 class="p-8-12">
-                        {{ $t('common.param.outputParam')
-                        }}<span style="color: #f54a45">{{
-                          item.is_submit ? '' : `(${$t('chat.executionDetails.noSubmit')})`
+                        参数输出<span style="color: #f54a45">{{
+                          item.is_submit ? '' : '(用户未提交)'
                         }}</span>
                       </h5>
 
@@ -498,9 +454,7 @@
                       class="card-never border-r-4"
                       v-if="item.type !== WorkflowType.Application"
                     >
-                      <h5 class="p-8-12">
-                        {{ $t('views.application.applicationForm.form.roleSettings.label') }}
-                      </h5>
+                      <h5 class="p-8-12">角色设定 (System)</h5>
                       <div class="p-8-12 border-t-dashed lighter">
                         {{ item.system || '-' }}
                       </div>
@@ -509,7 +463,7 @@
                       class="card-never border-r-4 mt-8"
                       v-if="item.type !== WorkflowType.Application"
                     >
-                      <h5 class="p-8-12">{{ $t('chat.history') }}</h5>
+                      <h5 class="p-8-12">历史记录</h5>
                       <div class="p-8-12 border-t-dashed lighter">
                         <template v-if="item.history_message?.length > 0">
                           <p
@@ -541,9 +495,7 @@
                       </div>
                     </div>
                     <div class="card-never border-r-4 mt-8">
-                      <h5 class="p-8-12">
-                        {{ $t('chat.executionDetails.currentChat') }}
-                      </h5>
+                      <h5 class="p-8-12">本次对话</h5>
                       <div class="p-8-12 border-t-dashed lighter pre-wrap">
                         <div v-if="item.image_list?.length > 0">
                           <el-space wrap>
@@ -565,11 +517,7 @@
                     </div>
                     <div class="card-never border-r-4 mt-8">
                       <h5 class="p-8-12">
-                        {{
-                          item.type == WorkflowType.Application
-                            ? $t('common.param.outputParam')
-                            : $t('chat.executionDetails.answer')
-                        }}
+                        {{ item.type == WorkflowType.Application ? '参数输出' : 'AI 回答' }}
                       </h5>
                       <div class="p-8-12 border-t-dashed lighter">
                         <MdPreview
@@ -578,7 +526,6 @@
                           editorId="preview-only"
                           :modelValue="item.answer"
                           style="background: none"
-                          noImgZoomIn
                         />
                         <template v-else> -</template>
                       </div>
@@ -587,20 +534,14 @@
                   <!-- 图片生成 -->
                   <template v-if="item.type == WorkflowType.ImageGenerateNode">
                     <div class="card-never border-r-4 mt-8">
-                      <h5 class="p-8-12">
-                        {{ $t('chat.executionDetails.currentChat') }}
-                      </h5>
+                      <h5 class="p-8-12">本次对话</h5>
                       <div class="p-8-12 border-t-dashed lighter pre-wrap">
                         {{ item.question || '-' }}
                       </div>
                     </div>
                     <div class="card-never border-r-4 mt-8">
                       <h5 class="p-8-12">
-                        {{
-                          item.type == WorkflowType.Application
-                            ? $t('common.param.outputParam')
-                            : $t('chat.executionDetails.answer')
-                        }}
+                        {{ item.type == WorkflowType.Application ? '参数输出' : 'AI 回答' }}
                       </h5>
                       <div class="p-8-12 border-t-dashed lighter">
                         <MdPreview
@@ -609,40 +550,15 @@
                           editorId="preview-only"
                           :modelValue="item.answer"
                           style="background: none"
-                          noImgZoomIn
                         />
                         <template v-else> -</template>
-                      </div>
-                    </div>
-                  </template>
-
-                  <!-- 变量赋值 -->
-                  <template v-if="item.type === WorkflowType.VariableAssignNode">
-                    <div class="card-never border-r-4">
-                      <h5 class="p-8-12">
-                        {{ $t('common.param.inputParam') }}
-                      </h5>
-                      <div class="p-8-12 border-t-dashed lighter">
-                        <div v-for="(f, i) in item.result_list" :key="i" class="mb-8">
-                          <span class="color-secondary">{{ f.name }}:</span> {{ f.input_value }}
-                        </div>
-                      </div>
-                    </div>
-                    <div class="card-never border-r-4">
-                      <h5 class="p-8-12">
-                        {{ $t('common.param.outputParam') }}
-                      </h5>
-                      <div class="p-8-12 border-t-dashed lighter">
-                        <div v-for="(f, i) in item.result_list" :key="i" class="mb-8">
-                          <span class="color-secondary">{{ f.name }}:</span> {{ f.output_value }}
-                        </div>
                       </div>
                     </div>
                   </template>
                 </template>
                 <template v-else>
                   <div class="card-never border-r-4">
-                    <h5 class="p-8-12">{{ $t('chat.executionDetails.errMessage') }}</h5>
+                    <h5 class="p-8-12">错误日志</h5>
                     <div class="p-8-12 border-t-dashed lighter">{{ item.err_message || '-' }}</div>
                   </div>
                 </template>
@@ -705,5 +621,9 @@ defineExpose({ open })
   }
 }
 
-
+@media only screen and (max-width: 768px) {
+  .execution-details-dialog {
+    width: 90% !important;
+  }
+}
 </style>

@@ -1,7 +1,7 @@
 <template>
-  <login-layout v-if="!loading" v-loading="loading">
-    <LoginContainer :subTitle="user.themeInfo?.slogan || $t('views.system.theme.defaultSlogan')">
-      <h2 class="mb-24" v-if="!showQrCodeTab">{{ loginMode || $t('views.login.title') }}</h2>
+  <login-layout v-if="user.isEnterprise() ? user.themeInfo : true" v-loading="loading">
+    <LoginContainer :subTitle="user.themeInfo?.slogan || '欢迎使用 MaxKB 智能知识库问答系统'">
+      <h2 class="mb-24" v-if="!showQrCodeTab">{{ loginMode || '普通登录' }}</h2>
       <div v-if="!showQrCodeTab">
         <el-form
           class="login-form"
@@ -16,7 +16,7 @@
                 size="large"
                 class="input-item"
                 v-model="loginForm.username"
-                :placeholder="$t('views.user.userForm.form.username.placeholder')"
+                placeholder="请输入用户名"
               >
               </el-input>
             </el-form-item>
@@ -28,7 +28,7 @@
                 size="large"
                 class="input-item"
                 v-model="loginForm.password"
-                :placeholder="$t('views.user.userForm.form.password.placeholder')"
+                placeholder="请输入密码"
                 show-password
               >
               </el-input>
@@ -36,9 +36,7 @@
           </div>
         </el-form>
 
-        <el-button size="large" type="primary" class="w-full" @click="login">{{
-          $t('views.login.buttons.login')
-        }}</el-button>
+        <el-button size="large" type="primary" class="w-full" @click="login">登录</el-button>
         <div class="operate-container flex-between mt-12">
           <!-- <el-button class="register" @click="router.push('/register')" link type="primary">
           注册
@@ -49,7 +47,7 @@
             link
             type="primary"
           >
-            {{ $t('views.login.forgotPassword') }}?
+            忘记密码?
           </el-button>
         </div>
       </div>
@@ -58,7 +56,7 @@
       </div>
 
       <div class="login-gradient-divider lighter mt-24" v-if="modeList.length > 1">
-        <span>{{ $t('views.login.moreMethod') }}</span>
+        <span>更多登录方式</span>
       </div>
       <div class="text-center mt-16">
         <template v-for="item in modeList">
@@ -108,11 +106,8 @@ import type { FormInstance, FormRules } from 'element-plus'
 import useStore from '@/stores'
 import authApi from '@/api/auth-setting'
 import { MsgConfirm, MsgSuccess } from '@/utils/message'
-
-import { t, getBrowserLang } from '@/locales'
+import { t } from '@/locales'
 import QrCodeTab from '@/views/login/components/QrCodeTab.vue'
-import { useI18n } from 'vue-i18n'
-const { locale } = useI18n({ useScope: 'global' })
 const loading = ref<boolean>(false)
 const { user } = useStore()
 const router = useRouter()
@@ -125,14 +120,14 @@ const rules = ref<FormRules<LoginRequest>>({
   username: [
     {
       required: true,
-      message: t('views.user.userForm.form.username.requiredMessage'),
+      message: '请输入用户名',
       trigger: 'blur'
     }
   ],
   password: [
     {
       required: true,
-      message: t('views.user.userForm.form.password.requiredMessage'),
+      message: '请输入密码',
       trigger: 'blur'
     }
   ]
@@ -156,9 +151,9 @@ function redirectAuth(authType: string) {
     if (!res.data) {
       return
     }
-    MsgConfirm(t('views.login.jump_tip'), '', {
-      confirmButtonText: t('views.login.jump'),
-      cancelButtonText: t('common.cancel'),
+    MsgConfirm(`${t('login.jump_tip')}`, t(''), {
+      confirmButtonText: t('login.jump'),
+      cancelButtonText: t('views.applicationOverview.appInfo.APIKeyDialog.cancel'),
       confirmButtonClass: ''
     })
       .then(() => {
@@ -177,10 +172,9 @@ function redirectAuth(authType: string) {
           }
         }
         if (authType === 'OIDC') {
-          const scope = config.scope || 'openid+profile+email'
-          url = `${config.authEndpoint}?client_id=${config.clientId}&redirect_uri=${redirectUrl}&response_type=code&scope=${scope}`
+          url = `${config.authEndpoint}?client_id=${config.clientId}&redirect_uri=${redirectUrl}&response_type=code&scope=openid+profile+email`
         }
-        if (authType === 'OAuth2') {
+        if (authType === 'OAUTH2') {
           url =
             `${config.authEndpoint}?client_id=${config.clientId}&response_type=code` +
             `&redirect_uri=${redirectUrl}&state=${res.data.id}`
@@ -218,17 +212,16 @@ const login = () => {
     user
       .login(loginMode.value, loginForm.value.username, loginForm.value.password)
       .then(() => {
-        locale.value = localStorage.getItem('MaxKB-locale') || getBrowserLang() || 'en-US'
         router.push({ name: 'home' })
       })
       .finally(() => (loading.value = false))
   })
 }
 
-onBeforeMount(() => {
-  loading.value = true
+onMounted(() => {
   user.asyncGetProfile().then((res) => {
     if (user.isEnterprise()) {
+      loading.value = true
       user
         .getAuthType()
         .then((res) => {
@@ -250,19 +243,12 @@ onBeforeMount(() => {
             QrList.value.forEach((item) => {
               orgOptions.value.push({
                 key: item,
-                value:
-                  item === 'wecom'
-                    ? t('views.system.authentication.scanTheQRCode.wecom')
-                    : item === 'dingtalk'
-                      ? t('views.system.authentication.scanTheQRCode.dingtalk')
-                      : t('views.system.authentication.scanTheQRCode.lark')
+                value: item === 'wecom' ? '企业微信' : item === 'dingtalk' ? '钉钉' : '飞书'
               })
             })
           }
         })
         .finally(() => (loading.value = false))
-    } else {
-      loading.value = false
     }
   })
 })

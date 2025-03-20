@@ -60,18 +60,6 @@ const useLogStore = defineStore({
             reject(error)
           })
       })
-    },
-    async asyncPutChatClientLog(id: string, chatId: string, data: any, loading?: Ref<boolean>) {
-      return new Promise((resolve, reject) => {
-        logApi
-          .putChatClientLog(id, chatId, data, loading)
-          .then((data) => {
-            resolve(data)
-          })
-          .catch((error) => {
-            reject(error)
-          })
-      })
     }
   }
 })

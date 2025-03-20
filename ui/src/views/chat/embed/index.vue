@@ -1,7 +1,6 @@
 <template>
   <div
     class="chat-embed layout-bg"
-    :class="{ 'chat-embed--popup': isPopup }"
     v-loading="loading"
     :style="{
       '--el-color-primary': applicationDetail?.custom_theme?.theme_color,
@@ -9,7 +8,7 @@
     }"
   >
     <div class="chat-embed__header" :style="customStyle">
-      <div class="flex align-center">
+      <div class="chat-width flex align-center">
         <div class="mr-12 ml-24 flex">
           <AppAvatar
             v-if="isAppIcon(applicationDetail?.icon)"
@@ -46,9 +45,9 @@
           class="AiChat-embed"
         >
           <template #operateBefore>
-            <div>
+            <div class="chat-width">
               <el-button type="primary" link class="new-chat-button mb-8" @click="newChat">
-                <el-icon><Plus /></el-icon><span class="ml-4">{{ $t('chat.createChat') }}</span>
+                <el-icon><Plus /></el-icon><span class="ml-4">新建对话</span>
               </el-button>
             </div>
           </template>
@@ -72,7 +71,7 @@
       <el-collapse-transition>
         <div v-show="show" class="chat-popover w-full" v-click-outside="clickoutside">
           <div class="border-b p-16-24">
-            <span>{{ $t('chat.history') }}</span>
+            <span>历史记录</span>
           </div>
 
           <el-scrollbar max-height="300">
@@ -88,22 +87,10 @@
               >
                 <template #default="{ row }">
                   <div class="flex-between">
-                    <ReadWrite
-                      @change="editName($event, row)"
-                      :data="row.abstract"
-                      trigger="manual"
-                      :write="row.writeStatus"
-                      @close="closeWrite(row)"
-                      :maxlength="1024"
-                    />
-                    <div
-                      @click.stop
-                      v-if="mouseId === row.id && row.id !== 'new' && !row.writeStatus"
-                      class="flex"
-                    >
-                      <el-button style="padding: 0" link @click.stop="openWrite(row)">
-                        <el-icon><EditPen /></el-icon>
-                      </el-button>
+                    <auto-tooltip :content="row.abstract">
+                      {{ row.abstract }}
+                    </auto-tooltip>
+                    <div @click.stop v-if="mouseId === row.id && row.id !== 'new'">
                       <el-button style="padding: 0" link @click.stop="deleteLog(row)">
                         <el-icon><Delete /></el-icon>
                       </el-button>
@@ -112,13 +99,13 @@
                 </template>
                 <template #empty>
                   <div class="text-center mt-24">
-                    <el-text type="info">{{ $t('chat.noHistory') }}</el-text>
+                    <el-text type="info">暂无历史记录</el-text>
                   </div>
                 </template>
               </common-list>
             </div>
             <div v-if="chatLogData.length" class="gradient-divider lighter mt-8">
-              <span>{{ $t('chat.only20history') }}</span>
+              <span>仅显示最近 20 条对话</span>
             </div>
           </el-scrollbar>
         </div>
@@ -129,18 +116,12 @@
 </template>
 <script setup lang="ts">
 import { ref, onMounted, reactive, nextTick, computed } from 'vue'
-import { useRoute } from 'vue-router'
 import { isAppIcon } from '@/utils/application'
 import { hexToRgba } from '@/utils/theme'
-import { MsgError } from '@/utils/message'
 import useStore from '@/stores'
-import { t } from '@/locales'
-const { user, log } = useStore()
-const route = useRoute()
 
-const isPopup = computed(() => {
-  return route.query.popup !== 'no'
-})
+const { user, log } = useStore()
+
 const AiChatRef = ref()
 const loading = ref(false)
 const left_loading = ref(false)
@@ -173,32 +154,6 @@ const customStyle = computed(() => {
     color: applicationDetail.value?.custom_theme?.header_font_color
   }
 })
-
-function editName(val: string, item: any) {
-  if (val) {
-    const obj = {
-      abstract: val
-    }
-
-    log.asyncPutChatClientLog(applicationDetail.value.id, item.id, obj, loading).then(() => {
-      const find = chatLogData.value.find((item: any) => item.id == item.id)
-      if (find) {
-        find.abstract = val
-      }
-      item['writeStatus'] = false
-    })
-  } else {
-    MsgError(t('views.applicationWorkflow.tip.nameMessage'))
-  }
-}
-
-function openWrite(item: any) {
-  item['writeStatus'] = true
-}
-
-function closeWrite(item: any) {
-  item['writeStatus'] = false
-}
 
 function mouseenter(row: any) {
   mouseId.value = row.id
@@ -247,13 +202,6 @@ function getChatLog(id: string) {
 
   log.asyncGetChatLogClient(id, page, left_loading).then((res: any) => {
     chatLogData.value = res.data.records
-    paginationConfig.current_page = 1
-    paginationConfig.total = 0
-    currentRecordList.value = []
-    currentChatId.value = chatLogData.value?.[0]?.id || 'new'
-    if (currentChatId.value !== 'new') {
-      getChatRecord()
-    }
   })
 }
 
@@ -349,13 +297,8 @@ onMounted(() => {
     z-index: 2009;
     position: absolute;
     top: 16px;
-    right: 16px;
+    right: 85px;
     font-size: 22px;
-  }
-  &.chat-embed--popup {
-    .chat-popover-button {
-      right: 85px;
-    }
   }
   .chat-popover-mask {
     background-color: var(--el-overlay-color-lighter);
@@ -395,6 +338,10 @@ onMounted(() => {
     .ai-chat__operate {
       padding-top: 12px;
     }
+  }
+  .chat-width {
+    max-width: var(--app-chat-width, 860px);
+    margin: 0 auto;
   }
 }
 </style>

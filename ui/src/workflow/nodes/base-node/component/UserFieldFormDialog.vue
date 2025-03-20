@@ -1,10 +1,6 @@
 <template>
   <el-dialog
-    :title="
-      isEdit
-        ? $t('views.template.templateForm.title.editParam')
-        : $t('views.template.templateForm.title.addParam')
-    "
+    :title="isEdit ? '编辑参数' : '添加参数'"
     v-model="dialogVisible"
     :close-on-click-modal="false"
     :close-on-press-escape="false"
@@ -21,9 +17,9 @@
     ></DynamicsFormConstructor>
     <template #footer>
       <span class="dialog-footer">
-        <el-button @click.prevent="close"> {{ $t('common.cancel') }} </el-button>
+        <el-button @click.prevent="close"> 取消 </el-button>
         <el-button type="primary" @click="submit()" :loading="loading">
-          {{ isEdit ? $t('common.save') : $t('common.add') }}
+          {{ isEdit ? '保存' : '添加' }}
         </el-button>
       </span>
     </template>
@@ -35,7 +31,6 @@ import { cloneDeep } from 'lodash'
 import DynamicsFormConstructor from '@/components/dynamics-form/constructor/index.vue'
 import type { FormField } from '@/components/dynamics-form/type'
 import _ from 'lodash'
-import { t } from '@/locales'
 const emit = defineEmits(['refresh'])
 
 const DynamicsFormConstructorRef = ref()
@@ -77,11 +72,9 @@ const currentRow = computed(() => {
           label: row.label || row.name,
           default_value: row.default_value,
           required: row.required != undefined ? row.required : row.is_required,
-          option_list: row.option_list
-            ? row.option_list
-            : row.optionList.map((o: any) => {
-                return { key: o, value: o }
-              })
+          option_list: row.option_list ? row.option_list: row.optionList.map((o: any) => {
+            return { key: o, value: o }
+          })
         }
 
       case 'date':
@@ -122,13 +115,11 @@ const currentRow = computed(() => {
 })
 const currentIndex = ref(null)
 const inputTypeList = ref([
-  { label: t('dynamicsForm.input_type_list.TextInput'), value: 'TextInputConstructor' },
-  { label: t('dynamicsForm.input_type_list.PasswordInput'), value: 'PasswordInputConstructor' },
-  { label: t('dynamicsForm.input_type_list.SingleSelect'), value: 'SingleSelectConstructor' },
-  { label: t('dynamicsForm.input_type_list.MultiSelect'), value: 'MultiSelectConstructor' },
-  { label: t('dynamicsForm.input_type_list.RadioCard'), value: 'RadioCardConstructor' },
-  { label: t('dynamicsForm.input_type_list.DatePicker'), value: 'DatePickerConstructor' },
-  { label: t('dynamicsForm.input_type_list.SwitchInput'), value: 'SwitchInputConstructor' },
+  { label: '文本框', value: 'TextInputConstructor' },
+  { label: '单选框', value: 'SingleSelectConstructor' },
+  { label: '多选框', value: 'MultiSelectConstructor' },
+  { label: '选项卡', value: 'RadioCardConstructor' },
+  { label: '日期', value: 'DatePickerConstructor' }
 ])
 
 const dialogVisible = ref<boolean>(false)

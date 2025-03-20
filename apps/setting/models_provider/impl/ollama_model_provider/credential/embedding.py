@@ -8,8 +8,6 @@
 """
 from typing import Dict
 
-from django.utils.translation import gettext as _
-
 from common import forms
 from common.exception.app_exception import AppApiException
 from common.forms import BaseForm
@@ -22,19 +20,17 @@ class OllamaEmbeddingModelCredential(BaseForm, BaseModelCredential):
                  raise_exception=False):
         model_type_list = provider.get_model_type_list()
         if not any(list(filter(lambda mt: mt.get('value') == model_type, model_type_list))):
-            raise AppApiException(ValidCode.valid_error.value,
-                                  _('{model_type} Model type is not supported').format(model_type=model_type))
+            raise AppApiException(ValidCode.valid_error.value, f'{model_type} 模型类型不支持')
         try:
             model_list = provider.get_base_model_list(model_credential.get('api_base'))
         except Exception as e:
-            raise AppApiException(ValidCode.valid_error.value, _('API domain name is invalid'))
+            raise AppApiException(ValidCode.valid_error.value, "API 域名无效")
         exist = [model for model in (model_list.get('models') if model_list.get('models') is not None else []) if
                  model.get('model') == model_name or model.get('model').replace(":latest", "") == model_name]
         if len(exist) == 0:
-            raise AppApiException(ValidCode.model_not_fount,
-                                  _('The model does not exist, please download the model first'))
+            raise AppApiException(ValidCode.model_not_fount, "模型不存在,请先下载模型")
         model: LocalEmbedding = provider.get_model(model_type, model_name, model_credential)
-        model.embed_query(_('Hello'))
+        model.embed_query('你好')
         return True
 
     def encryption_dict(self, model_info: Dict[str, object]):
@@ -43,7 +39,7 @@ class OllamaEmbeddingModelCredential(BaseForm, BaseModelCredential):
     def build_model(self, model_info: Dict[str, object]):
         for key in ['model']:
             if key not in model_info:
-                raise AppApiException(500, _('{key}  is required').format(key=key))
+                raise AppApiException(500, f'{key} 字段为必填字段')
         return self
 
-    api_base = forms.TextInputField('API URL', required=True)
+    api_base = forms.TextInputField('API 域名', required=True)

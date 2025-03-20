@@ -2,8 +2,6 @@ import '@/styles/index.scss'
 import ElementPlus from 'element-plus'
 import * as ElementPlusIcons from '@element-plus/icons-vue'
 import zhCn from 'element-plus/dist/locale/zh-cn.mjs'
-import enUs from 'element-plus/dist/locale/en.mjs'
-import zhTW from 'element-plus/dist/locale/zh-tw.mjs'
 import { createApp } from 'vue'
 import { store } from '@/stores'
 import directives from '@/directives'
@@ -12,6 +10,7 @@ import router from '@/router'
 import Components from '@/components'
 import i18n from './locales'
 import { config } from 'md-editor-v3'
+
 import screenfull from 'screenfull'
 
 import katex from 'katex'
@@ -52,13 +51,8 @@ app.use(directives)
 for (const [key, component] of Object.entries(ElementPlusIcons)) {
   app.component(key, component)
 }
-const locale_map: any = {
-  'zh-CN': zhCn,
-  'zh-Hant': zhTW,
-  'en-US': enUs
-}
 app.use(ElementPlus, {
-  locale: locale_map[localStorage.getItem('MaxKB-locale') || navigator.language || 'en-US']
+  locale: zhCn
 })
 
 app.use(router)

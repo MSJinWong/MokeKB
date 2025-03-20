@@ -1,9 +1,9 @@
 <template>
-  <LayoutContainer :header="$t('views.team.title')">
+  <LayoutContainer header="团队成员">
     <div class="team-manage flex main-calc-height">
       <div class="team-member p-8 border-r">
         <div class="flex-between p-16">
-          <h4>{{ $t('views.team.member') }}</h4>
+          <h4>成员</h4>
           <el-button type="primary" link @click="addMember">
             <AppIcon iconName="app-add-users" class="add-user-icon" />
           </el-button>
@@ -11,7 +11,7 @@
         <div class="team-member-input">
           <el-input
             v-model="filterText"
-            :placeholder="$t('views.team.searchBar.placeholder')"
+            placeholder="请输入用户名搜索"
             prefix-icon="Search"
             clearable
           />
@@ -29,9 +29,7 @@
                 <div class="flex-between">
                   <div>
                     <span class="mr-8">{{ row.username }}</span>
-                    <el-tag v-if="isManage(row.type)" class="default-tag">{{
-                      $t('views.team.manage')
-                    }}</el-tag>
+                    <el-tag v-if="isManage(row.type)" class="default-tag">所有者</el-tag>
                   </div>
                   <div @click.stop style="margin-top: 5px">
                     <el-dropdown trigger="click" v-if="!isManage(row.type)">
@@ -40,9 +38,9 @@
                       </span>
                       <template #dropdown>
                         <el-dropdown-menu>
-                          <el-dropdown-item @click.prevent="deleteMember(row)">{{
-                            $t('views.team.delete.button')
-                          }}</el-dropdown-item>
+                          <el-dropdown-item @click.prevent="deleteMember(row)"
+                            >移除</el-dropdown-item
+                          >
                         </el-dropdown-menu>
                       </template>
                     </el-dropdown>
@@ -55,7 +53,7 @@
       </div>
       <div class="permission-setting flex" v-loading="rLoading">
         <div class="team-manage__table">
-          <h4 class="p-24 pb-0 mb-4">{{ $t('views.team.permissionSetting') }}</h4>
+          <h4 class="p-24 pb-0 mb-4">权限设置</h4>
           <el-tabs v-model="activeName" class="team-manage__tabs">
             <el-tab-pane
               v-for="(item, index) in settingTags"
@@ -75,7 +73,7 @@
         </div>
 
         <div class="submit-button">
-          <el-button type="primary" @click="submitPermissions">{{ $t('common.save') }}</el-button>
+          <el-button type="primary" @click="submitPermissions">保存</el-button>
         </div>
       </div>
     </div>
@@ -91,7 +89,7 @@ import CreateMemberDialog from './component/CreateMemberDialog.vue'
 import PermissionSetting from './component/PermissionSetting.vue'
 import { MsgSuccess, MsgConfirm } from '@/utils/message'
 import { TeamEnum } from '@/enums/team'
-import { t } from '@/locales'
+
 const CreateMemberRef = ref<InstanceType<typeof CreateMemberDialog>>()
 const loading = ref(false)
 const rLoading = ref(false)
@@ -107,12 +105,12 @@ const tableHeight = ref(0)
 
 const settingTags = reactive([
   {
-    label: t('views.dataset.title'),
+    label: '知识库',
     value: TeamEnum.DATASET,
     data: [] as any
   },
   {
-    label: t('views.application.title'),
+    label: '应用',
     value: TeamEnum.APPLICATION,
     data: [] as any
   }
@@ -120,9 +118,7 @@ const settingTags = reactive([
 
 watch(filterText, (val) => {
   if (val) {
-    filterMember.value = memberList.value.filter((v) =>
-      v.username.toLowerCase().includes(val.toLowerCase())
-    )
+    filterMember.value = memberList.value.filter((v) => v.username.includes(val))
   } else {
     filterMember.value = memberList.value
   }
@@ -148,7 +144,7 @@ function submitPermissions() {
   })
   TeamApi.putMemberPermissions(currentUser.value, obj)
     .then(() => {
-      MsgSuccess(t('common.submitSuccess'))
+      MsgSuccess('提交成功')
       MemberPermissions(currentUser.value)
     })
     .catch(() => {
@@ -176,11 +172,11 @@ function MemberPermissions(id: String) {
 
 function deleteMember(row: TeamMember) {
   MsgConfirm(
-    `${t('views.team.delete.confirmTitle')}${row.username}?`,
-    t('views.team.delete.confirmMessage'),
+    `是否移除成员：${row.username}?`,
+    '移除后将会取消成员拥有的知识库和应用权限。',
 
     {
-      confirmButtonText: t('common.confirm'),
+      confirmButtonText: '移除',
       confirmButtonClass: 'danger'
     }
   )
@@ -188,7 +184,7 @@ function deleteMember(row: TeamMember) {
       loading.value = true
       TeamApi.delTeamMember(row.id)
         .then(() => {
-          MsgSuccess(t('common.deleteSuccess'))
+          MsgSuccess('删除成功')
           getMember()
         })
         .catch(() => {

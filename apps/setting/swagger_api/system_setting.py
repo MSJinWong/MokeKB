@@ -9,70 +9,69 @@
 from drf_yasg import openapi
 
 from common.mixins.api_mixin import ApiMixin
-from django.utils.translation import gettext_lazy as _
 
 
 class SystemSettingEmailApi(ApiMixin):
     @staticmethod
     def get_request_body_api():
         return openapi.Schema(type=openapi.TYPE_OBJECT,
-                              title=_('Email related parameters'),
-                              description=_('Email related parameters'),
+                              title="邮箱相关参数",
+                              description="邮箱相关参数",
                               required=['email_host', 'email_port', 'email_host_user', 'email_host_password',
                                         'email_use_tls', 'email_use_ssl', 'from_email'],
                               properties={
                                   'email_host': openapi.Schema(type=openapi.TYPE_STRING,
-                                                               title=_('SMTP host'),
-                                                               description=_('SMTP host')),
+                                                               title="SMTP 主机",
+                                                               description="SMTP 主机"),
                                   'email_port': openapi.Schema(type=openapi.TYPE_NUMBER,
-                                                               title=_('SMTP port'),
-                                                               description=_('SMTP port')),
+                                                               title="SMTP 端口",
+                                                               description="SMTP 端口"),
                                   'email_host_user': openapi.Schema(type=openapi.TYPE_STRING,
-                                                                    title=_('Sender\'s email'),
-                                                                    description=_('Sender\'s email')),
+                                                                    title="发件人邮箱",
+                                                                    description="发件人邮箱"),
                                   'email_host_password': openapi.Schema(type=openapi.TYPE_STRING,
-                                                                        title=_('Password'),
-                                                                        description=_('Password')),
+                                                                        title="密码",
+                                                                        description="密码"),
                                   'email_use_tls': openapi.Schema(type=openapi.TYPE_BOOLEAN,
-                                                                  title=_('Whether to enable TLS'),
-                                                                  description=_('Whether to enable TLS')),
+                                                                  title="是否开启TLS",
+                                                                  description="是否开启TLS"),
                                   'email_use_ssl': openapi.Schema(type=openapi.TYPE_BOOLEAN,
-                                                                  title=_('Whether to enable SSL'),
-                                                                  description=_('Whether to enable SSL')),
+                                                                  title="是否开启SSL",
+                                                                  description="是否开启SSL"),
                                   'from_email': openapi.Schema(type=openapi.TYPE_STRING,
-                                                               title=_('Sender\'s email'),
-                                                               description=_('Sender\'s email'))
+                                                               title="发送人邮箱",
+                                                               description="发送人邮箱")
                               }
                               )
 
     @staticmethod
     def get_response_body_api():
         return openapi.Schema(type=openapi.TYPE_OBJECT,
-                              title=_('Email related parameters'),
-                              description=_('Email related parameters'),
+                              title="邮箱相关参数",
+                              description="邮箱相关参数",
                               required=['email_host', 'email_port', 'email_host_user', 'email_host_password',
                                         'email_use_tls', 'email_use_ssl', 'from_email'],
                               properties={
                                   'email_host': openapi.Schema(type=openapi.TYPE_STRING,
-                                                               title=_('SMTP host'),
-                                                               description=_('SMTP host')),
+                                                               title="SMTP 主机",
+                                                               description="SMTP 主机"),
                                   'email_port': openapi.Schema(type=openapi.TYPE_NUMBER,
-                                                               title=_('SMTP port'),
-                                                               description=_('SMTP port')),
+                                                               title="SMTP 端口",
+                                                               description="SMTP 端口"),
                                   'email_host_user': openapi.Schema(type=openapi.TYPE_STRING,
-                                                                    title=_('Sender\'s email'),
-                                                                    description=_('Sender\'s email')),
+                                                                    title="发件人邮箱",
+                                                                    description="发件人邮箱"),
                                   'email_host_password': openapi.Schema(type=openapi.TYPE_STRING,
-                                                                        title=_('Password'),
-                                                                        description=_('Password')),
+                                                                        title="密码",
+                                                                        description="密码"),
                                   'email_use_tls': openapi.Schema(type=openapi.TYPE_BOOLEAN,
-                                                                  title=_('Whether to enable TLS'),
-                                                                  description=_('Whether to enable TLS')),
+                                                                  title="是否开启TLS",
+                                                                  description="是否开启TLS"),
                                   'email_use_ssl': openapi.Schema(type=openapi.TYPE_BOOLEAN,
-                                                                  title=_('Whether to enable SSL'),
-                                                                  description=_('Whether to enable SSL')),
+                                                                  title="是否开启SSL",
+                                                                  description="是否开启SSL"),
                                   'from_email': openapi.Schema(type=openapi.TYPE_STRING,
-                                                               title=_('Sender\'s email'),
-                                                               description=_('Sender\'s email'))
+                                                               title="发送人邮箱",
+                                                               description="发送人邮箱")
                               }
                               )

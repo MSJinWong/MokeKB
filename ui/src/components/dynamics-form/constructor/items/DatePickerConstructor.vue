@@ -1,10 +1,6 @@
 <template>
-  <el-form-item :label="$t('dynamicsForm.DatePicker.dataType.label')" required>
-    <el-select
-      @change="type_change"
-      v-model="formValue.type"
-      :placeholder="$t('dynamicsForm.DatePicker.dataType.placeholder')"
-    >
+  <el-form-item label="时间类型" required>
+    <el-select @change="type_change" v-model="formValue.type" placeholder="请选择时间类型">
       <el-option
         v-for="input_type in type_list"
         :key="input_type.value"
@@ -13,13 +9,13 @@
       />
     </el-select>
   </el-form-item>
-  <el-form-item :label="$t('dynamicsForm.DatePicker.format.label')" required>
+  <el-form-item label="格式" required>
     <el-select
       v-model="formValue.format"
       filterable
       default-first-option
       allow-create
-      :placeholder="$t('dynamicsForm.DatePicker.format.placeholder')"
+      placeholder="请选择格式"
     >
       <el-option
         v-for="input_type in type_dict[formValue.type]"
@@ -33,23 +29,16 @@
     class="defaultValueItem"
     :required="formValue.required"
     prop="default_value"
-    :label="$t('dynamicsForm.default.label')"
-    :rules="
-      formValue.required
-        ? [{ required: true, message: `${$t('dynamicsForm.default.label')}${$t('dynamicsForm.default.requiredMessage')}` }]
-        : []
-    "
+    label="默认值"
+    :rules="formValue.required ? [{ required: true, message: '默认值 为必填属性' }] : []"
   >
     <div class="defaultValueCheckbox">
-      <el-checkbox
-        v-model="formValue.show_default_value"
-        :label="$t('dynamicsForm.default.show')"
-      />
+      <el-checkbox v-model="formValue.show_default_value" label="显示默认值" />
     </div>
     <el-date-picker
       v-model="formValue.default_value"
       :type="formValue.type"
-      :placeholder="$t('dynamicsForm.DatePicker.placeholder')"
+      placeholder="选择日期"
       :format="formValue.format"
       :value-format="formValue.format"
     />
@@ -57,22 +46,21 @@
 </template>
 <script setup lang="ts">
 import { computed, onBeforeMount } from 'vue'
-import { t } from '@/locales'
 const type_list = [
   {
-    label: t('dynamicsForm.DatePicker.year'),
+    label: '年',
     value: 'year'
   },
   {
-    label: t('dynamicsForm.DatePicker.month'),
+    label: '月',
     value: 'month'
   },
   {
-    label: t('dynamicsForm.DatePicker.date'),
+    label: '日期',
     value: 'date'
   },
   {
-    label: t('dynamicsForm.DatePicker.datetime'),
+    label: '日期时间',
     value: 'datetime'
   }
 ]

@@ -22,7 +22,7 @@
           <el-input
             ref="inputRef"
             v-model="writeValue"
-            :placeholder="$t('common.inputPlaceholder')"
+            placeholder="请输入"
             autofocus
             :maxlength="maxlength || '-'"
             :show-word-limit="maxlength ? true : false"

@@ -1,6 +1,6 @@
 <template>
   <NodeContainer :node-model="nodeModel">
-    <h5 class="title-decoration-1 mb-8">{{ $t('views.applicationWorkflow.nodeSetting') }}</h5>
+    <h5 class="title-decoration-1 mb-8">节点设置</h5>
     <el-card shadow="never" class="card-never">
       <el-form
         @submit.prevent
@@ -12,23 +12,18 @@
         hide-required-asterisk
       >
         <el-form-item
-          :label="$t('views.applicationWorkflow.nodes.imageUnderstandNode.model.label')"
+          label="图片理解模型"
           prop="model_id"
           :rules="{
             required: true,
-            message: $t(
-              'views.applicationWorkflow.nodes.imageUnderstandNode.model.requiredMessage'
-            ),
+            message: '请选择图片理解模型',
             trigger: 'change'
           }"
         >
           <template #label>
             <div class="flex-between w-full">
               <div>
-                <span
-                  >{{ t('views.applicationWorkflow.nodes.imageUnderstandNode.model.label')
-                  }}<span class="danger">*</span></span
-                >
+                <span>图片理解模型<span class="danger">*</span></span>
               </div>
               <el-button
                 :disabled="!form_data.model_id"
@@ -37,51 +32,97 @@
                 @click="openAIParamSettingDialog(form_data.model_id)"
                 @refreshForm="refreshParam"
               >
-                <el-icon><Setting /></el-icon>
+                {{ $t('views.application.applicationForm.form.paramSetting') }}
               </el-button>
             </div>
           </template>
-
-          <ModelSelect
+          <el-select
+            @change="model_change"
             @wheel="wheel"
             :teleported="false"
             v-model="form_data.model_id"
-            :placeholder="
-              $t('views.applicationWorkflow.nodes.imageUnderstandNode.model.requiredMessage')
-            "
-            :options="modelOptions"
-          ></ModelSelect>
+            placeholder="请选择图片理解模型"
+            class="w-full"
+            popper-class="select-model"
+            :clearable="true"
+          >
+            <el-option-group
+              v-for="(value, label) in modelOptions"
+              :key="value"
+              :label="relatedObject(providerOptions, label, 'provider')?.name"
+            >
+              <el-option
+                v-for="item in value.filter((v: any) => v.status === 'SUCCESS')"
+                :key="item.id"
+                :label="item.name"
+                :value="item.id"
+                class="flex-between"
+              >
+                <div class="flex align-center">
+                  <span
+                    v-html="relatedObject(providerOptions, label, 'provider')?.icon"
+                    class="model-icon mr-8"
+                  ></span>
+                  <span>{{ item.name }}</span>
+                  <el-tag v-if="item.permission_type === 'PUBLIC'" type="info" class="info-tag ml-8"
+                    >公用
+                  </el-tag>
+                </div>
+                <el-icon class="check-icon" v-if="item.id === form_data.model_id">
+                  <Check />
+                </el-icon>
+              </el-option>
+              <!-- 不可用 -->
+              <el-option
+                v-for="item in value.filter((v: any) => v.status !== 'SUCCESS')"
+                :key="item.id"
+                :label="item.name"
+                :value="item.id"
+                class="flex-between"
+                disabled
+              >
+                <div class="flex">
+                  <span
+                    v-html="relatedObject(providerOptions, label, 'provider')?.icon"
+                    class="model-icon mr-8"
+                  ></span>
+                  <span>{{ item.name }}</span>
+                  <span class="danger">（不可用）</span>
+                </div>
+                <el-icon class="check-icon" v-if="item.id === form_data.model_id">
+                  <Check />
+                </el-icon>
+              </el-option>
+            </el-option-group>
+          </el-select>
         </el-form-item>
 
-        <el-form-item :label="$t('views.application.applicationForm.form.roleSettings.label')">
+        <el-form-item label="角色设定">
           <MdEditorMagnify
-            :title="$t('views.application.applicationForm.form.roleSettings.label')"
+            title="角色设定"
             v-model="form_data.system"
             style="height: 100px"
             @submitDialog="submitSystemDialog"
-            :placeholder="$t('views.application.applicationForm.form.roleSettings.label')"
+            placeholder="角色设定"
           />
         </el-form-item>
         <el-form-item
-          :label="$t('views.application.applicationForm.form.prompt.label')"
+          label="提示词"
           prop="prompt"
           :rules="{
             required: true,
-            message: $t('views.application.applicationForm.form.prompt.requiredMessage'),
+            message: '请输入提示词',
             trigger: 'blur'
           }"
         >
           <template #label>
             <div class="flex align-center">
               <div class="mr-4">
-                <span
-                  >{{ $t('views.application.applicationForm.form.prompt.label')
-                  }}<span class="danger">*</span></span
-                >
+                <span>提示词<span class="danger">*</span></span>
               </div>
               <el-tooltip effect="dark" placement="right" popper-class="max-w-200">
                 <template #content
-                  >{{ $t('views.application.applicationForm.form.prompt.tooltip') }}
+                  >通过调整提示词内容，可以引导大模型聊天方向，该提示词会被固定在上下文的开头，可以使用变量。
                 </template>
                 <AppIcon iconName="app-warning" class="app-warning-icon"></AppIcon>
               </el-tooltip>
@@ -89,7 +130,7 @@
           </template>
           <MdEditorMagnify
             @wheel="wheel"
-            :title="$t('views.application.applicationForm.form.prompt.label')"
+            title="提示词"
             v-model="form_data.prompt"
             style="height: 150px"
             @submitDialog="submitDialog"
@@ -98,10 +139,10 @@
         <el-form-item>
           <template #label>
             <div class="flex-between">
-              <div>{{ $t('views.application.applicationForm.form.historyRecord.label') }}</div>
+              <div>历史聊天记录</div>
               <el-select v-model="form_data.dialogue_type" type="small" style="width: 100px">
-                <el-option :label="$t('views.applicationWorkflow.node')" value="NODE" />
-                <el-option :label="$t('views.applicationWorkflow.workflow')" value="WORKFLOW" />
+                <el-option label="节点" value="NODE" />
+                <el-option label="工作流" value="WORKFLOW" />
               </el-select>
             </div>
           </template>
@@ -116,45 +157,33 @@
           />
         </el-form-item>
         <el-form-item
-          :label="$t('views.applicationWorkflow.nodes.imageUnderstandNode.image.label')"
+          label="选择图片"
           :rules="{
             type: 'array',
             required: true,
-            message: $t(
-              'views.applicationWorkflow.nodes.imageUnderstandNode.image.requiredMessage'
-            ),
+            message: '请选择图片',
             trigger: 'change'
           }"
         >
-          <template #label
-            >{{ $t('views.applicationWorkflow.nodes.imageUnderstandNode.image.label')
-            }}<span class="danger">*</span></template
-          >
+          <template #label>选择图片<span class="danger">*</span></template>
           <NodeCascader
             ref="nodeCascaderRef"
             :nodeModel="nodeModel"
             class="w-full"
-            :placeholder="
-              $t('views.applicationWorkflow.nodes.imageUnderstandNode.image.requiredMessage')
-            "
+            placeholder="请选择图片"
             v-model="form_data.image_list"
           />
         </el-form-item>
-        <el-form-item
-          :label="$t('views.applicationWorkflow.nodes.aiChatNode.returnContent.label')"
-          @click.prevent
-        >
+        <el-form-item label="返回内容" @click.prevent>
           <template #label>
             <div class="flex align-center">
               <div class="mr-4">
-                <span
-                  >{{ $t('views.applicationWorkflow.nodes.aiChatNode.returnContent.label')
-                  }}<span class="danger">*</span></span
-                >
+                <span>返回内容<span class="danger">*</span></span>
               </div>
               <el-tooltip effect="dark" placement="right" popper-class="max-w-200">
                 <template #content>
-                  {{ $t('views.applicationWorkflow.nodes.aiChatNode.returnContent.tooltip') }}
+                  关闭后该节点的内容则不输出给用户。
+                  如果你想让用户看到该节点的输出内容，请打开开关。
                 </template>
                 <AppIcon iconName="app-warning" class="app-warning-icon"></AppIcon>
               </el-tooltip>
@@ -172,13 +201,15 @@
 import NodeContainer from '@/workflow/common/NodeContainer.vue'
 import { computed, onMounted, ref } from 'vue'
 import { groupBy, set } from 'lodash'
+import { relatedObject } from '@/utils/utils'
+import type { Provider } from '@/api/type/model'
 import applicationApi from '@/api/application'
 import { app } from '@/main'
 import useStore from '@/stores'
 import NodeCascader from '@/workflow/common/NodeCascader.vue'
 import type { FormInstance } from 'element-plus'
 import AIModeParamSettingDialog from '@/views/application/component/AIModeParamSettingDialog.vue'
-import { t } from '@/locales'
+
 const { model } = useStore()
 
 const {
@@ -187,12 +218,13 @@ const {
 
 const props = defineProps<{ nodeModel: any }>()
 const modelOptions = ref<any>(null)
+const providerOptions = ref<Array<Provider>>([])
 const AIModeParamSettingDialogRef = ref<InstanceType<typeof AIModeParamSettingDialog>>()
 
 const aiChatNodeFormRef = ref<FormInstance>()
 const nodeCascaderRef = ref()
 const validate = () => {
-  return Promise.all([
+    return Promise.all([
     nodeCascaderRef.value ? nodeCascaderRef.value.validate() : Promise.resolve(''),
     aiChatNodeFormRef.value?.validate()
   ]).catch((err: any) => {
@@ -210,7 +242,7 @@ const wheel = (e: any) => {
   }
 }
 
-const defaultPrompt = `{{${t('views.applicationWorkflow.nodes.startNode.label')}.question}}`
+const defaultPrompt = `{{开始.question}}`
 
 const form = {
   model_id: '',
@@ -250,6 +282,14 @@ function getModel() {
   }
 }
 
+function getProvider() {
+  model.asyncGetProvider().then((res: any) => {
+    providerOptions.value = res?.data
+  })
+}
+
+const model_change = (model_id?: string) => {}
+
 function submitSystemDialog(val: string) {
   set(props.nodeModel.properties.node_data, 'system', val)
 }
@@ -270,6 +310,7 @@ function refreshParam(data: any) {
 
 onMounted(() => {
   getModel()
+  getProvider()
 
   set(props.nodeModel, 'validate', validate)
 })

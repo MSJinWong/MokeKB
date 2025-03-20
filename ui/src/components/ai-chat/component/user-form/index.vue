@@ -7,22 +7,16 @@
     class="mb-16"
     style="padding: 0 24px"
   >
-    <el-card shadow="always" class="border-r-8" style="--el-card-padding: 16px 8px">
-      <div
-        class="flex align-center cursor w-full"
-        style="padding: 0 8px"
-        @click="showUserInput = !showUserInput"
-      >
+    <el-card shadow="always" class="dialog-card" style="--el-card-padding: 16px 8px">
+      <div class="flex align-center cursor w-full" style="padding: 0 8px;" @click="showUserInput = !showUserInput">
         <el-icon class="mr-8 arrow-icon" :class="showUserInput ? 'rotate-90' : ''"
           ><CaretRight
         /></el-icon>
-        <span class="break-all ellipsis-1 mr-16" :title="inputFieldConfig.title">
-        {{ inputFieldConfig.title }}
-        </span>
+        用户输入
       </div>
       <el-scrollbar max-height="160">
         <el-collapse-transition>
-          <div v-show="showUserInput" class="mt-16" style="padding: 0 8px">
+          <div v-show="showUserInput" class="mt-16" style="padding: 0 8px;">
             <DynamicsForm
               :key="dynamicsFormRefresh"
               v-model="form_data_context"
@@ -53,7 +47,6 @@ import DynamicsForm from '@/components/dynamics-form/index.vue'
 import type { FormField } from '@/components/dynamics-form/type'
 import { useRoute } from 'vue-router'
 import { MsgWarning } from '@/utils/message'
-import { t } from '@/locales'
 const route = useRoute()
 const props = defineProps<{
   application: any
@@ -65,7 +58,6 @@ const props = defineProps<{
 const dynamicsFormRefresh = ref(0)
 const inputFieldList = ref<FormField[]>([])
 const apiInputFieldList = ref<FormField[]>([])
-const inputFieldConfig = ref({ title: t('chat.userInput') })
 const showUserInput = ref(true)
 const emit = defineEmits(['update:api_form_data', 'update:form_data'])
 
@@ -263,11 +255,6 @@ function handleInputFieldList() {
                 }
               })
           : []
-
-      //
-      inputFieldConfig.value = v.properties.user_input_config?.title
-        ? v.properties.user_input_config
-        : { title: t('chat.userInput') }
     })
 }
 /**
@@ -280,7 +267,7 @@ const checkInputParam = () => {
       inputFieldList.value[i].required &&
       !form_data_context.value[inputFieldList.value[i].field]
     ) {
-      MsgWarning(t('chat.tip.requiredMessage'))
+      MsgWarning('请填写所有必填字段')
       return false
     }
   }
@@ -288,41 +275,17 @@ const checkInputParam = () => {
   let msg = []
   for (let f of apiInputFieldList.value) {
     if (!api_form_data_context.value[f.field]) {
-      let _value = route.query[f.field]
-      if (_value != null) {
-        if (_value instanceof Array) {
-          _value = _value
-            .map((item) => {
-              if (item != null) {
-                return decodeQuery(item)
-              }
-              return null
-            })
-            .filter((item) => item != null)
-        } else {
-          _value = decodeQuery(_value)
-        }
-        api_form_data_context.value[f.field] = _value
-      }
+      api_form_data_context.value[f.field] = route.query[f.field]
     }
     if (f.required && !api_form_data_context.value[f.field]) {
       msg.push(f.field)
     }
   }
   if (msg.length > 0) {
-    MsgWarning(
-      `${t('chat.tip.inputParamMessage1')} ${msg.join('、')}${t('chat.tip.inputParamMessage2')}`
-    )
+    MsgWarning(`请在URL中填写参数 ${msg.join('、')}的值`)
     return false
   }
   return true
-}
-const decodeQuery = (query: string) => {
-  try {
-    return decodeURIComponent(query)
-  } catch (e) {
-    return query
-  }
 }
 defineExpose({ checkInputParam })
 onMounted(() => {

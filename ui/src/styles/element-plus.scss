@@ -102,7 +102,6 @@
 }
 .el-message-box {
   --el-messagebox-font-size: 16px;
-  --el-messagebox-width: 475px;
   padding: 24px;
   .el-message-box__header {
     padding: 0;
@@ -417,8 +416,4 @@
 
 .el-checkbox__input.is-checked + .el-checkbox__label {
   color: var(--el-checkbox-text-color);
-}
-
-.el-table .el-popper {
-  max-width: 500px !important;
 }

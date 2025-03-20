@@ -1,8 +1,7 @@
 from typing import Dict
 
 import dashscope
-
-from django.utils.translation import gettext as _
+from dashscope.audio.tts_v2 import *
 
 from common.util.common import _remove_empty_lines
 from setting.models_provider.base_model_provider import MaxKBBaseModel
@@ -34,18 +33,13 @@ class AliyunBaiLianTextToSpeech(MaxKBBaseModel, BaseTextToSpeech):
         )
 
     def check_auth(self):
-        self.text_to_speech(_('Hello'))
+        self.text_to_speech('你好')
 
     def text_to_speech(self, text):
         dashscope.api_key = self.api_key
+        synthesizer = SpeechSynthesizer(model=self.model, **self.params)
         text = _remove_empty_lines(text)
-        if 'sambert' in self.model:
-            from dashscope.audio.tts import SpeechSynthesizer
-            audio = SpeechSynthesizer.call(model=self.model, text=text, **self.params).get_audio_data()
-        else:
-            from dashscope.audio.tts_v2 import SpeechSynthesizer
-            synthesizer = SpeechSynthesizer(model=self.model, **self.params)
-            audio = synthesizer.call(text)
+        audio = synthesizer.call(text)
         if type(audio) == str:
             print(audio)
             raise Exception(audio)

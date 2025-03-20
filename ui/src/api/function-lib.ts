@@ -1,5 +1,5 @@
 import { Result } from '@/request/Result'
-import { get, post, del, put, exportFile } from '@/request/index'
+import { get, post, del, put } from '@/request/index'
 import type { pageRequest } from '@/api/type/common'
 import type { functionLibData } from '@/api/type/function-lib'
 import { type Ref } from 'vue'
@@ -99,25 +99,6 @@ const pylint: (code: string, loading?: Ref<boolean>) => Promise<Result<any>> = (
   return post(`${prefix}/pylint`, { code }, {}, loading)
 }
 
-const exportFunctionLib = (
-  id: string,
-  name: string,
-  loading?: Ref<boolean>
-) => {
-  return exportFile(
-    name + '.fx',
-    `${prefix}/${id}/export`,
-    undefined,
-    loading
-  )
-}
-
-const importFunctionLib: (data: any, loading?: Ref<boolean>) => Promise<Result<any>> = (
-  data,
-  loading
-) => {
-  return post(`${prefix}/import`, data, undefined, loading)
-}
 export default {
   getFunctionLib,
   postFunctionLib,
@@ -126,7 +107,5 @@ export default {
   getAllFunctionLib,
   delFunctionLib,
   getFunctionLibById,
-  exportFunctionLib,
-  importFunctionLib,
   pylint
 }

@@ -1,43 +1,38 @@
-import { t } from '@/locales'
 const input_type_list = [
   {
-    label: t('dynamicsForm.input_type_list.TextInput'),
+    label: '文本框',
     value: 'TextInput'
   },
   {
-    label: t('dynamicsForm.input_type_list.PasswordInput'),
-    value: 'PasswordInput'
-  },
-  {
-    label: t('dynamicsForm.input_type_list.Slider'),
+    label: '滑块',
     value: 'Slider'
   },
   {
-    label: t('dynamicsForm.input_type_list.SwitchInput'),
+    label: '开关',
     value: 'SwitchInput'
   },
   {
-    label: t('dynamicsForm.input_type_list.SingleSelect'),
+    label: '单选框',
     value: 'SingleSelect'
   },
   {
-    label: t('dynamicsForm.input_type_list.MultiSelect'),
+    label: '多选框',
     value: 'MultiSelect'
   },
   {
-    label: t('dynamicsForm.input_type_list.DatePicker'),
+    label: '日期',
     value: 'DatePicker'
   },
   {
-    label: t('dynamicsForm.input_type_list.JsonInput'),
+    label: 'JSON文本框',
     value: 'JsonInput'
   },
   {
-    label: t('dynamicsForm.input_type_list.RadioCard'),
+    label: '选项卡',
     value: 'RadioCard'
   },
   {
-    label: t('dynamicsForm.input_type_list.RadioRow'),
+    label: '单行选项卡',
     value: 'RadioRow'
   }
 ]

@@ -10,8 +10,6 @@ import os
 from typing import List, Dict
 
 from django.db.models import QuerySet
-from django.utils.translation import gettext_lazy as _
-from rest_framework.utils.formatting import lazy_format
 
 from application.chat_pipeline.I_base_chat_pipeline import ParagraphPipelineModel
 from application.chat_pipeline.step.search_dataset_step.i_search_dataset_step import ISearchDatasetStep
@@ -28,19 +26,18 @@ from smartdoc.conf import PROJECT_DIR
 def get_model_by_id(_id, user_id):
     model = QuerySet(Model).filter(id=_id).first()
     if model is None:
-        raise Exception(_("Model does not exist"))
+        raise Exception("模型不存在")
     if model.permission_type == 'PRIVATE' and str(model.user_id) != str(user_id):
-        message = lazy_format(_('No permission to use this model {model_name}'), model_name=model.name)
-        raise Exception(message)
+        raise Exception(f"无权限使用此模型:{model.name}")
     return model
 
 
 def get_embedding_id(dataset_id_list):
     dataset_list = QuerySet(DataSet).filter(id__in=dataset_id_list)
     if len(set([dataset.embedding_mode_id for dataset in dataset_list])) > 1:
-        raise Exception(_("The vector model of the associated knowledge base is inconsistent and the segmentation cannot be recalled."))
+        raise Exception("关联知识库的向量模型不一致，无法召回分段。")
     if len(dataset_list) == 0:
-        raise Exception(_("The knowledge base setting is wrong, please reset the knowledge base"))
+        raise Exception("知识库设置错误,请重新设置知识库")
     return dataset_list[0].embedding_mode_id
 
 

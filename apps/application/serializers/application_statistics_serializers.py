@@ -19,13 +19,12 @@ from common.db.search import native_search, get_dynamics_model
 from common.util.field_message import ErrMessage
 from common.util.file_util import get_file_content
 from smartdoc.conf import PROJECT_DIR
-from django.utils.translation import gettext_lazy as _
 
 
 class ApplicationStatisticsSerializer(serializers.Serializer):
-    application_id = serializers.UUIDField(required=True, error_messages=ErrMessage.char(_("Application ID")))
-    start_time = serializers.DateField(format='%Y-%m-%d', error_messages=ErrMessage.date(_("Start time")))
-    end_time = serializers.DateField(format='%Y-%m-%d', error_messages=ErrMessage.date(_("End time")))
+    application_id = serializers.UUIDField(required=True, error_messages=ErrMessage.char("应用id"))
+    start_time = serializers.DateField(format='%Y-%m-%d', error_messages=ErrMessage.date("开始时间"))
+    end_time = serializers.DateField(format='%Y-%m-%d', error_messages=ErrMessage.date("结束时间"))
 
     def get_end_time(self):
         return datetime.datetime.combine(

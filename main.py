@@ -120,4 +120,3 @@ if __name__ == '__main__':
         collect_static()
         perform_db_migrate()
         start_services()
-

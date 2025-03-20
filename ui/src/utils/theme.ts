@@ -1,28 +1,26 @@
-import { t } from '@/locales'
-
 export const themeList = [
   {
-    label: t('views.system.theme.default'),
+    label: '默认',
     value: '#3370FF',
     loginBackground: 'default'
   },
   {
-    label: t('views.system.theme.orange'),
+    label: '活力橙',
     value: '#FF8800',
     loginBackground: 'orange'
   },
   {
-    label: t('views.system.theme.green'),
+    label: '松石绿',
     value: '#00B69D',
     loginBackground: 'green'
   },
   {
-    label: t('views.system.theme.purple'),
+    label: '神秘紫',
     value: '#7F3BF5',
     loginBackground: 'purple'
   },
   {
-    label: t('views.system.theme.red'),
+    label: '胭脂红',
     value: '#F01D94',
     loginBackground: 'red'
   }
@@ -37,14 +35,14 @@ export const defaultSetting = {
   loginLogo: '',
   loginImage: '',
   title: 'MaxKB',
-  slogan: t('views.system.theme.defaultSlogan')
+  slogan: '欢迎使用 MaxKB 智能知识库问答系统'
 }
 
 export const defaultPlatformSetting = {
   showUserManual: true,
-  userManualUrl: t('layout.userManualUrl'),
+  userManualUrl: 'https://maxkb.cn/docs/',
   showForum: true,
-  forumUrl: t('layout.forumUrl'),
+  forumUrl: 'https://bbs.fit2cloud.com/c/mk/11',
   showProject: true,
   projectUrl: 'https://github.com/1Panel-dev/MaxKB'
 }
