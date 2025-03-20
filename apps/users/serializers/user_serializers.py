@@ -772,7 +772,7 @@ class UserManageSerializer(serializers.Serializer):
             if self.data.get('password') != self.data.get('re_password'):
                 raise ExceptionCodeConstants.PASSWORD_NOT_EQ_RE_PASSWORD.value.to_app_api_exception()
 
-    @valid_license(model=User, count=2000
+    @valid_license(model=User, count=2000,
                    message=_(
                        'current version support 2000 users'))
     @transaction.atomic

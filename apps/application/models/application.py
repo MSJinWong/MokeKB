@@ -130,9 +130,9 @@ class Chat(AppModelMixin):
 
 class VoteChoices(models.TextChoices):
     """订单类型"""
-    UN_VOTE = -1, '未投票'
-    STAR = 0, '赞同'
-    TRAMPLE = 1, '反对'
+    UN_VOTE = '-1', '未投票'
+    STAR = '0', '赞同'
+    TRAMPLE = '1', '反对'
 
 
 class DateEncoder(json.JSONEncoder):
