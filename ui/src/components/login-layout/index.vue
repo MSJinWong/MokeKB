@@ -1,11 +1,8 @@
 <template>
   <div class="login-warp flex-center">
     <div class="login-container w-full h-full">
-      <el-row class="container w-full h-full">
-        <el-col :xs="0" :sm="0" :md="10" :lg="10" :xl="10" class="left-container">
-          <div class="login-image" :style="{ backgroundImage: `url(${loginImage})` }"></div>
-        </el-col>
-        <el-col :xs="24" :sm="24" :md="14" :lg="14" :xl="14" class="right-container flex-center">
+      <el-row class="container w-full h-full flex-center">
+        <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24" class="right-container flex-center">
           <el-dropdown trigger="click" type="primary" class="lang" v-if="lang">
             <template #dropdown>
               <el-dropdown-menu style="width: 180px">
@@ -39,18 +36,21 @@
     </div>
   </div>
 </template>
+
 <script setup lang="ts">
 import { computed } from 'vue'
 import { getThemeImg } from '@/utils/theme'
 import useStore from '@/stores'
 import { useLocalStorage } from '@vueuse/core'
 import { langList, localeConfigKey, getBrowserLang } from '@/locales/index'
+
 defineProps({
   lang: {
     type: Boolean,
     default: true
   }
 })
+
 defineOptions({ name: 'LoginLayout' })
 const { user } = useStore()
 
@@ -84,19 +84,19 @@ const loginImage = computed(() => {
   }
 })
 </script>
+
 <style lang="scss" scope>
 .login-warp {
   height: 100vh;
-
-  .login-image {
-    background-repeat: no-repeat;
-    background-position: center;
-    background-size: cover;
-    width: 100%;
-    height: 100%;
-  }
+  background-color: var(--el-bg-color);
+  
   .right-container {
     position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    
     .lang {
       position: absolute;
       right: 20px;
