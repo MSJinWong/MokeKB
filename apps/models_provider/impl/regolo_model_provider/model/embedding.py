@@ -19,5 +19,5 @@ class RegoloEmbeddingModel(MaxKBBaseModel, OpenAIEmbeddings):
         return RegoloEmbeddingModel(
             api_key=model_credential.get('api_key'),
             model=model_name,
-            openai_api_base="https://api.regolo.ai/v1",
+            openai_api_base=model_credential.get('api_base') or "https://api.regolo.ai/v1",
         )

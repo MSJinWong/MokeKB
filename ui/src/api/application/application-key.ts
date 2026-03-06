@@ -1,12 +1,12 @@
-import { Result } from '@/request/Result'
-import { get, post, del, put } from '@/request/index'
+import {Result} from '@/request/Result'
+import {get, post, del, put} from '@/request/index'
 import useStore from '@/stores'
-import { type Ref } from 'vue'
+import {type Ref} from 'vue'
 
-const prefix: any = { _value: '/workspace/' }
+const prefix: any = {_value: '/workspace/'}
 Object.defineProperty(prefix, 'value', {
   get: function () {
-    const { user } = useStore()
+    const {user} = useStore()
     return this._value + user.getWorkspaceId() + '/application'
   },
 })
@@ -14,11 +14,14 @@ Object.defineProperty(prefix, 'value', {
  * API_KEY列表
  * @param 参数 application_id
  */
-const getAPIKey: (application_id: string, loading?: Ref<boolean>) => Promise<Result<any>> = (
+const getAPIKey: (application_id: string, current_page: number, page_size: number, params: any, loading?: Ref<boolean>) => Promise<Result<any>> = (
   application_id,
+  current_page,
+  page_size,
+  params,
   loading,
 ) => {
-  return get(`${prefix.value}/${application_id}/application_key`, undefined, loading)
+  return get(`${prefix.value}/${application_id}/application_key/${current_page}/${page_size}`, params, loading)
 }
 
 /**

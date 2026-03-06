@@ -41,7 +41,7 @@
         <el-card
           shadow="never"
           class="mb-16"
-          :class="form.authentication_value?.type === 'password' ? 'active' : ''"
+          :class="form.authentication_value?.type === 'password' ? 'border-active' : ''"
         >
           <el-radio value="password" size="large">
             <p class="mb-4 lighter">
@@ -49,43 +49,37 @@
             </p>
           </el-radio>
           <el-form-item class="ml-24" v-if="form.authentication_value.type === 'password'">
-            <el-input
-              class="authentication-append-input"
-              v-model="form.authentication_value.password_value"
-              readonly
-              style="width: 268px"
-            >
-              <template #append>
+            <div class="complex-input flex align-center">
+              <el-input
+                class="complex-input__left"
+                v-model="form.authentication_value.password_value"
+                readonly
+                style="width: 268px"
+              >
+              </el-input>
+              <div>
                 <el-tooltip :content="$t('common.copy')" placement="top">
-                  <el-button
-                    type="primary"
-                    text
-                    @click="copyClick(form.authentication_value.password_value)"
-                    style="margin: 0 0 0 4px !important"
-                  >
-                    <AppIcon iconName="app-copy"></AppIcon>
+                  <el-button text @click="copyClick(form.authentication_value.password_value)">
+                    <AppIcon iconName="app-copy" class="color-secondary"></AppIcon>
                   </el-button>
                 </el-tooltip>
                 <el-tooltip :content="$t('common.refresh')" placement="top">
                   <el-button
                     @click="refreshAuthentication"
-                    type="primary"
                     text
                     style="margin: 0 4px 0 0 !important"
                   >
-                    <el-icon>
-                      <RefreshRight />
-                    </el-icon>
+                    <AppIcon iconName="app-refresh" class="color-secondary"></AppIcon>
                   </el-button>
                 </el-tooltip>
-              </template>
-            </el-input>
+              </div>
+            </div>
           </el-form-item>
         </el-card>
         <el-card
           shadow="never"
           class="mb-16"
-          :class="form.authentication_value.type === 'login' ? 'active' : ''"
+          :class="form.authentication_value.type === 'login' ? 'border-active' : ''"
         >
           <el-radio value="login" size="large">
             <p class="mb-16 lighter flex align-center">
@@ -98,7 +92,12 @@
                 <AppIcon iconName="app-warning" class="app-warning-icon"></AppIcon>
               </el-tooltip>
 
-              <el-button v-if="form.authentication_value.type === 'login'" type="primary" link @click="router.push({ name: 'applicationChatUser' })">
+              <el-button
+                v-if="form.authentication_value.type === 'login'"
+                type="primary"
+                link
+                @click="router.push({ name: 'applicationChatUser' })"
+              >
                 {{ $t('views.applicationOverview.appInfo.LimitDialog.toSettingChatUser') }}
               </el-button>
             </p>
@@ -150,10 +149,10 @@
               :step="1"
               controls-position="right"
             />
-            <span style="margin-left: 8px; font-size: 13px">
+            <span class="ml-8" style="font-size: 13px">
               {{ $t('views.system.loginFailedMessage') }}
             </span>
-            <span style="margin-left: 8px; color: #909399; font-size: 12px">
+            <span class="ml-8 font-small" style="color: #909399">
               ({{ $t('views.system.display_codeTip') }})
             </span>
           </el-form-item>
@@ -307,10 +306,4 @@ function firstGeneration() {
 
 defineExpose({ open })
 </script>
-<style lang="scss" scoped>
-.authentication-append-input {
-  :deep(.el-input-group__append) {
-    padding: 0 !important;
-  }
-}
-</style>
+<style lang="scss" scoped></style>

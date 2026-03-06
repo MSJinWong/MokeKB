@@ -64,11 +64,9 @@
 
     <el-row style="width: 100%" :gutter="10">
       <el-col :span="10">
-        <div class="grid-content ep-bg-purple" />
         {{ $t('dynamicsForm.tag.label') }}
       </el-col>
       <el-col :span="12">
-        <div class="grid-content ep-bg-purple" />
         {{ $t('dynamicsForm.Select.label') }}
       </el-col>
     </el-row>
@@ -80,21 +78,18 @@
       class="mb-8"
     >
       <el-col :span="10">
-        <div class="grid-content ep-bg-purple" />
         <el-input
           v-model="formValue.option_list[$index].label"
           :placeholder="$t('dynamicsForm.tag.placeholder')"
         />
       </el-col>
       <el-col :span="12">
-        <div class="grid-content ep-bg-purple" />
         <el-input
           v-model="formValue.option_list[$index].value"
           :placeholder="$t('dynamicsForm.Select.label')"
         />
       </el-col>
       <el-col :span="1">
-        <div class="grid-content ep-bg-purple" />
         <el-button link class="ml-8" @click.stop="delOption($index)">
           <AppIcon iconName="app-delete"></AppIcon>
         </el-button>
@@ -242,11 +237,5 @@ onMounted(() => {
     top: -35px;
   }
 }
-:deep(.el-form-item__label) {
-  display: block;
-}
 
-:deep(.el-select-dropdown) {
-  max-width: 400px;
-}
 </style>

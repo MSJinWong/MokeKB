@@ -1,7 +1,7 @@
 export default {
   title: '知识库',
   document_count: '文档数',
-  relatedApp_count: '关联应用',
+  relatedApp_count: '关联智能体',
   setting: {
     vectorization: '向量化',
     sync: '同步',
@@ -15,7 +15,8 @@ export default {
   delete: {
     confirmTitle: '是否删除知识库：',
     confirmMessage1: '此知识库关联',
-    confirmMessage2: '个应用，删除后无法恢复，请谨慎操作。',
+    confirmMessage2: '个智能体，删除后无法恢复，请谨慎操作。',
+    resourceCountMessage: '此知识库关联 {count} 个资源，删除后无法使用，请谨慎操作。',
   },
   knowledgeType: {
     label: '知识库类型',
@@ -105,5 +106,15 @@ export default {
     complete: '整体同步',
     completeText: '先删除本地知识库所有文档，重新获取 Web 站点文档',
     tip: '注意：所有同步都会删除已有数据重新获取新数据，请谨慎操作。',
+  },
+
+  transform: {
+    button: '转换',
+    title: '转换为工作流知识库',
+    message1:
+      '您现在可以将现有知识库转换为工作流知识库 ——这是一种更开放、更灵活的知识库，通过拖拽节点的方式自主编排从不同数据源到知识库写入的全流程，满足企业个性化知识管理需求。可以使用我们工具中的数据源和工具。',
+    message2: '新的处理方式将应用到后续导入的所有文档。',
+    tip: '注意：转换后不可撤回。',
+    comfirm: '确定转换为工作流知识库？转换后无法回退，请谨慎操作。',
   },
 }

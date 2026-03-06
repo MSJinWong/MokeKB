@@ -11,6 +11,8 @@ export default {
   },
   operation: {
     toImportDoc: 'Go to Import Documents',
+    importWorkflow: 'Import Workflow',
+    exportWorkflow: 'Export Workflow',
   },
   setting: {
     restoreVersion: 'Restore Previous Version"',
@@ -23,6 +25,7 @@ export default {
     debug: 'Run',
     exit: 'Exit',
     exitSave: 'Save & Exit',
+    templateCenter: 'Template Center',
   },
   tip: {
     noData: 'No related results found',
@@ -30,7 +33,7 @@ export default {
     onlyRight: 'Connections can only be made from the right anchor',
     notRecyclable: 'Loop connections are not allowed',
     onlyLeft: 'Connections can only be made to the left anchor',
-    applicationNodeError: 'This application is unavailable',
+    applicationNodeError: 'This agent is unavailable',
     toolNodeError: 'This tool node is unavailable',
     repeatedNodeError: 'A node with this name already exists',
     cannotCopy: 'Cannot be copied',
@@ -52,6 +55,7 @@ export default {
   },
   variable: {
     global: 'Global Variable',
+    chat: 'Chat Variable',
     Referencing: 'Referenced Variable',
     ReferencingRequired: 'Referenced variable is required',
     ReferencingError: 'Invalid referenced variable',
@@ -116,13 +120,6 @@ export default {
       currentTime: 'Current Time',
     },
     baseNode: {
-      label: 'Base Information',
-      appName: {
-        label: 'App Name',
-      },
-      appDescription: {
-        label: 'App Description',
-      },
       fileUpload: {
         label: 'File Upload',
         tooltip: 'When enabled, the Q&A page will display a file upload button.',
@@ -165,6 +162,10 @@ export default {
       result: 'Search Result',
       directly_return: 'Content of segments that meet direct response criteria',
       searchParam: 'Retrieval Parameters',
+      showKnowledge: {
+        label: 'Results are displayed in the knowledge source',
+        requiredMessage: 'Please set parameters',
+      },
       searchQuestion: {
         label: 'Question',
         placeholder: 'Please select a search question',
@@ -186,10 +187,7 @@ export default {
       searchParam: 'Search Parameters',
       select_variable: 'Select Variable',
       valueMessage: `Value or name `,
-      showKnowledge: {
-        label: 'Results are displayed in the knowledge source',
-        requiredMessage: 'Please set parameters',
-      },
+
       searchQuestion: {
         label: 'Search Question',
         placeholder: 'Please select a search question',
@@ -309,7 +307,7 @@ You are a master of problem optimization, adept at accurately inferring user int
         label: 'Vision Model',
         requiredMessage: 'Please select a vision model',
       },
-      image: {
+      video: {
         label: 'Select Video',
         requiredMessage: 'Please select a video',
       },
@@ -333,7 +331,7 @@ You are a master of problem optimization, adept at accurately inferring user int
       editGroup: 'Edit Group',
     },
     mcpNode: {
-      label: 'MCP Node',
+      label: 'MCP Call',
       text: 'Call external MCP services to process data',
       getToolsSuccess: 'Tools fetched successfully',
       getTool: 'Fetch Tools',
@@ -451,10 +449,10 @@ You are a master of problem optimization, adept at accurately inferring user int
       },
     },
     applicationNode: {
-      label: 'APP Node',
+      label: 'Agent Node',
     },
     loopNode: {
-      label: 'Loop Node',
+      label: 'Loop',
       text: 'Repeat a series of tasks by setting the number of loops and logic',
       loopType: {
         label: 'Loop Type',
@@ -534,10 +532,11 @@ You are a master of problem optimization, adept at accurately inferring user int
     len_gt: 'Length greater than',
     len_le: 'Length less than or equal to',
     len_lt: 'Length less than',
+    is_true: 'Is true',
+    is_not_true: 'Is not true',
   },
   SystemPromptPlaceholder: 'System Prompt, can reference variables in the system, such as',
   UserPromptPlaceholder: 'User Prompt, can reference variables in the system, such as',
-  ExecutionRecord: 'Execution Record',
   initiator: 'Iniiator',
-  debug: {},
+  abnormalInformation: 'Abnormal Information',
 }

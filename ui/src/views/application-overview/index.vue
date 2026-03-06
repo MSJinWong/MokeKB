@@ -1,11 +1,11 @@
 <template>
-  <div class="p-16-24">
-    <h2 class="mb-16">{{ $t('views.applicationOverview.title') }}</h2>
+  <div class="p-16">
+    <h2 class="mb-16 ml-8">{{ $t('views.applicationOverview.title') }}</h2>
     <el-scrollbar>
-      <div class="main-calc-height">
+      <div class="main-calc-height p-8 pt-0">
         <el-card style="--el-card-padding: 24px">
           <h4 class="title-decoration-1 mb-16">
-            {{ $t('views.applicationOverview.appInfo.header') }}
+            {{ $t('common.info') }}
           </h4>
           <el-card shadow="never" class="overview-card" v-loading="loading">
             <div class="title flex align-center">
@@ -161,12 +161,7 @@
             {{ $t('views.applicationOverview.monitor.monitoringStatistics') }}
           </h4>
           <div class="mb-16">
-            <el-select
-              v-model="history_day"
-              class="mr-12"
-              @change="changeDayHandle"
-              style="width: 180px"
-            >
+            <el-select v-model="history_day" class="mr-12 w-180" @change="changeDayHandle">
               <el-option
                 v-for="item in dayOptions"
                 :key="item.value"
@@ -186,9 +181,14 @@
             />
           </div>
           <div v-loading="statisticsLoading">
-            <StatisticsCharts :data="statisticsData" />
+            <StatisticsCharts
+              :data="statisticsData"
+              :token-usage="tokenUsage"
+              :top-questions="topQuestions"
+            />
           </div>
         </el-card>
+        <br />
       </div>
     </el-scrollbar>
 

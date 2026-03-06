@@ -23,7 +23,7 @@ from django.utils.translation import gettext_lazy as _, gettext
 from openpyxl.cell.cell import ILLEGAL_CHARACTERS_RE
 from rest_framework import serializers
 
-from application.models import Chat, Application, ChatRecord
+from application.models import Chat, Application, ChatRecord, ChatSourceChoices
 from common.db.search import get_dynamics_model, native_search, native_page_search, native_page_handler
 from common.exception.app_exception import AppApiException
 from common.utils.common import get_file_content
@@ -155,7 +155,7 @@ class ApplicationChatQuerySerializers(serializers.Serializer):
                                         node.get("type") == 'question-node')
         search_dataset_node_list = [(key, node) for key, node in details.items() if
                                     node.get("type") == 'search-dataset-node' or node.get(
-                                        "step_type") == 'search_step']
+                                        "step_type") == 'search_step' or node.get("type") == 'search-knowledge-node']
         reference_paragraph_len = '\n'.join([str(len(node.get('paragraph_list',
                                                               []))) if key == 'search_step' else node.get(
             'name') + ':' + str(
@@ -169,14 +169,23 @@ class ApplicationChatQuerySerializers(serializers.Serializer):
              key, node in search_dataset_node_list])
         improve_paragraph_list = row.get('improve_paragraph_list') or []
         vote_status_map = {'-1': '未投票', '0': '赞同', '1': '反对'}
+        vote_reason_map = {'accurate': gettext('accurate'), 'complete': gettext('complete'),
+                           'inaccurate': gettext('inaccurate'), 'incomplete': gettext('incomplete'),
+                           'other': gettext('Other'), }
         return [str(row.get('chat_id')), row.get('abstract'), row.get('problem_text'), padding_problem_text,
-                row.get('answer_text'), vote_status_map.get(row.get('vote_status')), reference_paragraph_len,
+                row.get('answer_text'), vote_status_map.get(row.get('vote_status')),
+                vote_reason_map.get(row.get('vote_reason')),
+                row.get('vote_other_content'),
+                reference_paragraph_len,
                 reference_paragraph,
                 "\n".join([
                     f"{improve_paragraph_list[index].get('title')}\n{improve_paragraph_list[index].get('content')}"
                     for index in range(len(improve_paragraph_list))]),
                 row.get('asker').get('username'),
-                (row.get('message_tokens') or 0) + (row.get('answer_tokens') or 0), row.get('run_time'),
+                (row.get('message_tokens') or 0) + (row.get('answer_tokens') or 0),
+                row.get('ip_address') or '-',
+                get_source_display(row.get('source')),
+                row.get('run_time'),
                 str(row.get('create_time').astimezone(pytz.timezone(TIME_ZONE)).strftime('%Y-%m-%d %H:%M:%S')
                     if row.get('create_time') is not None else None)]
 
@@ -202,10 +211,12 @@ class ApplicationChatQuerySerializers(serializers.Serializer):
             page_size = 500
             headers = [gettext('Conversation ID'), gettext('summary'), gettext('User Questions'),
                        gettext('Problem after optimization'),
-                       gettext('answer'), gettext('User feedback'),
+                       gettext('answer'), gettext('User feedback'), gettext('Feedback reason'),
+                       gettext('Other reason content'),
                        gettext('Reference segment number'),
                        gettext('Section title + content'),
                        gettext('Annotation'), gettext('USER'), gettext('Consuming tokens'),
+                       gettext('Ip Address'), gettext('source'),
                        gettext('Time consumed (s)'),
                        gettext('Question Time')]
             worksheet.append(headers)
@@ -263,3 +274,24 @@ class ChatCountSerializer(serializers.Serializer):
                                                                       'chat_record_count', 0) or 0,
                                                                   mark_sum=count_chat_record.get('mark_sum', 0) or 0)
         return True
+
+
+def get_source_display(source):
+    if not source or not isinstance(source, dict) or 'type' not in source:
+        return '-'
+    source_type = source.get('type')
+
+    # 定义映射关系
+    source_mapping = {
+        ChatSourceChoices.ONLINE.value: gettext('Online Usage'),
+        ChatSourceChoices.API_CALL.value: gettext('API Call'),
+        ChatSourceChoices.ENTERPRISE_WECHAT.value: gettext('Enterprise WeChat'),
+        ChatSourceChoices.WECHAT_PUBLIC_ACCOUNT.value: gettext('WeChat Public Account'),
+        ChatSourceChoices.LARK.value: gettext('Lark'),
+        ChatSourceChoices.DINGTALK.value: gettext('DingTalk'),
+        ChatSourceChoices.ENTERPRISE_WECHAT_ROBOT.value: gettext('Enterprise WeChat Robot'),
+        ChatSourceChoices.TRIGGER.value: gettext('Trigger'),
+        ChatSourceChoices.SLACK.value: gettext('Slack'),
+    }
+
+    return source_mapping.get(source_type, str(source_type))

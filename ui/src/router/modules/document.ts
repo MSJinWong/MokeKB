@@ -197,17 +197,17 @@ const DocumentRouter = {
             }
           },
         ].map((p) => () => {
-          const to: any = get_next_route()
-          if (to.params.type !== '4') {
-            return false
-          }
+          // const to: any = get_next_route()
+          // if (to.params.type !== '4') {
+          //   return false
+          // }
           return p()
         }),
       },
-      redirect: (menu: any) => {
-        return `/knowledge/${menu.params.id}/${menu.params.folderId}/workflow`
-      },
-      component: () => import('@/views/knowledge/index.vue'),
+      // redirect: (menu: any) => {
+      // return `/knowledge/${menu.params.id}/${menu.params.folderId}/workflow`
+      // },
+      component: () => import('@/views/knowledge/WorkflowTransform.vue'),
     },
     {
       path: 'problem',

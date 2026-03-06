@@ -29,9 +29,11 @@
       />
     </div>
     <el-table
-      :data="tableData"
+      ref="tableRef"
+      :data="pagedTableData"
       :span-method="spanMethod"
       v-loading="loading"
+      :max-height="tableMaxHeight"
       @selection-change="handleSelectionChange"
       @cell-mouse-enter="cellMouseEnter"
       @cell-mouse-leave="cellMouseLeave"
@@ -114,13 +116,22 @@
         </template>
       </el-table-column>
     </el-table>
+    <div class="app-table__pagination mt-16">
+      <el-pagination
+        v-model:current-page="pageNum"
+        v-model:page-size="pageSize"
+        :total="groupedByKey.length"
+        layout="total, prev, pager, next, sizes"
+        :page-sizes="[10, 20, 50, 100]"
+      />
+    </div>
   </el-drawer>
   <CreateTagDialog ref="createTagDialogRef" @refresh="getList" />
   <EditTagDialog ref="editTagDialogRef" @refresh="getList" />
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
 import { loadSharedApi } from '@/utils/dynamics-api/shared-api.ts'
 import CreateTagDialog from './CreateTagDialog.vue'
@@ -159,6 +170,9 @@ const debugVisible = ref(false)
 const filterText = ref('')
 const tags = ref<Array<any>>([])
 const currentMouseId = ref<number | null>(null)
+const pageNum = ref(1)
+const pageSize = ref(20)
+const tableMaxHeight = computed(() => `calc(100vh - 260px)`)
 
 function cellMouseEnter(row: any) {
   currentMouseId.value = row.id
@@ -168,7 +182,7 @@ function cellMouseLeave() {
   currentMouseId.value = null
 }
 
-// 将原始数据转换为表格数据
+// 1) 仍然把后端全量 tags 转成“扁平行”，每行带上 keyIndex
 const tableData = computed(() => {
   const result: any[] = []
   tags.value.forEach((tag: any) => {
@@ -178,7 +192,7 @@ const tableData = computed(() => {
           id: value.id,
           key: tag.key,
           value: value.value,
-          keyIndex: index, // 用于判断是否为第一行
+          keyIndex: index, // 同一个 key 下第几行
         })
       })
     }
@@ -186,29 +200,78 @@ const tableData = computed(() => {
   return result
 })
 
-// 合并单元格方法
-const spanMethod = ({ row, column, rowIndex, columnIndex }: any) => {
+// 2) 按 key 分组（保持 key 的出现顺序）
+const groupedByKey = computed(() => {
+  const map = new Map<string, any[]>()
+  for (const row of tableData.value) {
+    if (!map.has(row.key)) map.set(row.key, [])
+    map.get(row.key)!.push(row)
+  }
+  // 每个元素代表一个 key 分组
+  return Array.from(map.entries()).map(([key, rows]) => ({ key, rows }))
+})
+
+// 3) 按“key 分组”做分页：每页 pageSize 个 key
+const pagedGroups = computed(() => {
+  const start = (pageNum.value - 1) * pageSize.value
+  const end = start + pageSize.value
+  return groupedByKey.value.slice(start, end)
+})
+
+// 4) 当前页表格数据：把当前页的若干个 key 分组展开为行
+const pagedTableData = computed(() => {
+  return pagedGroups.value.flatMap((g) => g.rows)
+})
+
+// 5) 合并单元格：只在当前页内合并，同一个 key 的第一行 rowspan=该 key 在当前页的行数
+const spanMethod = ({ row, columnIndex }: any) => {
+  // 注意：你现在有 selection 列，所以 key 列索引是 1；如需同时合并 value 列按需调整
   if (columnIndex === 0 || columnIndex === 1) {
-    // key列 (由于添加了选择列，索引变为1)
     if (row.keyIndex === 0) {
-      // 计算当前key有多少个值
-      const sameKeyCount = tableData.value.filter((item) => item.key === row.key).length
-      return {
-        rowspan: sameKeyCount,
-        colspan: 1,
-      }
-    } else {
-      return {
-        rowspan: 0,
-        colspan: 0,
-      }
+      const sameKeyCount = pagedTableData.value.filter((item) => item.key === row.key).length
+      return { rowspan: sameKeyCount, colspan: 1 }
     }
+    return { rowspan: 0, colspan: 0 }
   }
 }
 
 const multipleSelection = ref<any[]>([])
-const handleSelectionChange = (val: any[]) => {
-  multipleSelection.value = val
+const tableRef = ref<any>(null)
+const syncingSelection = ref(false)
+
+const handleSelectionChange = async (val: any[]) => {
+  if (syncingSelection.value) return
+
+  // 当前已选中的 id 集合（用于判断哪些行刚刚被取消）
+  const selectedIds = new Set(val.map((r) => r.id))
+
+  // 找出“刚被取消选中的行”
+  const deselectedRows = multipleSelection.value.filter((r) => !selectedIds.has(r.id))
+  if (deselectedRows.length === 0) {
+    multipleSelection.value = val
+    return
+  }
+
+  // 取消选中时：把同 key 分组里其它行也一并取消
+  syncingSelection.value = true
+  await nextTick()
+
+  for (const dr of deselectedRows) {
+    const sameGroupRows = pagedTableData.value.filter((r) => r.key === dr.key)
+    for (const r of sameGroupRows) {
+      if (!selectedIds.has(r.id)) continue
+      tableRef.value?.toggleRowSelection?.(r, false)
+    }
+  }
+
+  await nextTick()
+  syncingSelection.value = false
+
+  // 以表格最终状态为准更新缓存（这里直接用传入 val 可能已过期）
+  // 简化：重新从表格取 selection（Element Plus 有 store，没暴露就用 val\+补丁）
+  multipleSelection.value = pagedTableData.value.filter((r) =>
+    tableRef.value?.getSelectionRows ? tableRef.value.getSelectionRows().some((s: any) => s.id === r.id) : selectedIds.has(r.id)
+  )
 }
 
 const createTagDialogRef = ref()
@@ -281,12 +344,14 @@ function getList() {
     .getTags(id, params, loading)
     .then((res: any) => {
       tags.value = res.data
+      pageNum.value = 1
     })
 }
 
 const open = () => {
   filterText.value = ''
   debugVisible.value = true
+  pageNum.value = 1
   getList()
 }
 

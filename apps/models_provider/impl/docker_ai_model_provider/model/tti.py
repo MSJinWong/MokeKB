@@ -52,8 +52,12 @@ class DockerAITextToImage(MaxKBBaseModel, BaseTextToImage):
         chat = OpenAI(api_key=self.api_key, base_url=self.api_base)
         res = chat.images.generate(model=self.model, prompt=prompt, **self.params)
         file_urls = []
-        for content in res.data:
-            url = content.url
-            file_urls.append(url)
-
-        return file_urls
+        try:
+            for content in res.data:
+                if content.url:
+                    file_urls.append(content.url)
+                elif content.b64_json:
+                    file_urls.append(content.b64_json)
+            return file_urls
+        except Exception as e:
+            raise e

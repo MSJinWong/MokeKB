@@ -69,6 +69,7 @@ class ZhiPuLLMModelCredential(BaseForm, BaseModelCredential):
     def encryption_dict(self, model: Dict[str, object]):
         return {**model, 'api_key': super().encryption(model.get('api_key', ''))}
 
+    api_base = forms.TextInputField('API URL', required=True, default_value='https://open.bigmodel.cn/api/paas/v4')
     api_key = forms.PasswordInputField('API Key', required=True)
 
     def get_model_params_setting_form(self, model_name):

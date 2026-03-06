@@ -36,7 +36,12 @@
     :label="$t('dynamicsForm.default.label')"
     :rules="
       formValue.required
-        ? [{ required: true, message: `${$t('dynamicsForm.default.label')}${$t('dynamicsForm.default.requiredMessage')}` }]
+        ? [
+            {
+              required: true,
+              message: `${$t('dynamicsForm.default.label')}${$t('dynamicsForm.default.requiredMessage')}`,
+            },
+          ]
         : []
     "
   >
@@ -57,34 +62,36 @@
 </template>
 <script setup lang="ts">
 import { computed, onBeforeMount } from 'vue'
+import moment from 'moment'
 import { t } from '@/locales'
 const type_list = [
   {
     label: t('dynamicsForm.DatePicker.year'),
-    value: 'year'
+    value: 'year',
   },
   {
     label: t('dynamicsForm.DatePicker.month'),
-    value: 'month'
+    value: 'month',
   },
   {
     label: t('dynamicsForm.DatePicker.date'),
-    value: 'date'
+    value: 'date',
   },
   {
     label: t('dynamicsForm.DatePicker.datetime'),
-    value: 'datetime'
-  }
+    value: 'datetime',
+  },
 ]
 const type_dict: any = {
   year: [{ value: 'YYYY' }],
   month: [{ value: 'YYYY-MM' }],
   date: [{ value: 'YYYY-MM-DD' }],
-  datetime: [{ value: 'YYYY-MM-DD HH:mm:ss' }]
+  datetime: [{ value: 'YYYY-MM-DD HH:mm:ss' }],
 }
+
 const type_change = () => {
   formValue.value.format = type_dict[formValue.value.type][0].value
-  formValue.value.default_value = ''
+  formValue.value.default_value = moment().format(formValue.value.format)
 }
 const props = defineProps<{
   modelValue: any
@@ -96,7 +103,7 @@ const formValue = computed({
   },
   get: () => {
     return props.modelValue
-  }
+  },
 })
 
 const getData = () => {
@@ -105,22 +112,22 @@ const getData = () => {
     attrs: {
       type: formValue.value.type,
       format: formValue.value.format,
-      'value-format': formValue.value.format
+      'value-format': formValue.value.format,
     },
     default_value: formValue.value.default_value,
-    show_default_value: formValue.value.show_default_value
+    show_default_value: formValue.value.show_default_value,
   }
 }
 const rander = (form_data: any) => {
   formValue.value.type = form_data.attrs.type
   formValue.value.format = form_data.attrs?.format
-  formValue.value.default_value = form_data.default_value || ''
+  formValue.value.default_value = form_data.default_value
 }
 defineExpose({ getData, rander })
 onBeforeMount(() => {
   formValue.value.type = 'datetime'
   formValue.value.format = 'YYYY-MM-DD HH:mm:ss'
-  formValue.value.default_value = ''
+  formValue.value.default_value = moment().format(formValue.value.format)
   if (formValue.value.show_default_value === undefined) {
     formValue.value.show_default_value = true
   }

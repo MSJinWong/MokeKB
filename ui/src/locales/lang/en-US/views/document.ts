@@ -130,7 +130,6 @@ export default {
     PENDING: 'Queuing',
     GENERATE: 'Generating',
     SYNC: 'Syncing',
-    REVOKE: 'Cancelling',
     finish: 'Finish',
   },
   enableStatus: {
@@ -187,6 +186,8 @@ export default {
     title: 'Move position',
     moveUp: 'Move up',
     moveDown: 'Move down',
+    moveTop: 'Move top',
+    moveBottom: 'Move bottom',
   },
   generateQuestion: {
     title: 'Generate Questions',

@@ -45,27 +45,30 @@ const getResourceDetail = inject('getResourceDetail') as any
 const props = defineProps<{ nodeModel: any }>()
 
 const UserInputFieldTableFef = ref()
-
+const default_fields = [
+  {
+    label: '知识库',
+    value: 'knowledge',
+    globeLabel: `{{global.knowledge}}`,
+    globeValue: `{{context['global'].knowledge}}`,
+  },
+]
 const nodeFields = computed(() => {
   if (props.nodeModel.properties.user_input_field_list) {
     const fields = props.nodeModel.properties.user_input_field_list.map((item: any) => ({
       label: typeof item.label == 'string' ? item.label : item.label.label,
       value: item.field,
-      globeLabel: `{{global.${typeof item.label == 'string' ? item.label : item.label.label}}}`,
+      globeLabel: `{{global.${item.field}}}`,
       globeValue: `{{context['global'].${item.field}}}`,
     }))
-    set(props.nodeModel.properties.config, 'globalFields', fields)
-    return fields
+    set(props.nodeModel.properties.config, 'globalFields', [...fields, ...default_fields])
+    return [...fields, ...default_fields]
   }
-  set(props.nodeModel.properties.config, 'globalFields', [])
+  set(props.nodeModel.properties.config, 'globalFields', [default_fields])
   return []
 })
 const resource = getResourceDetail()
 
 onMounted(() => {})
 </script>
-<style lang="scss" scoped>
-:deep(.el-form-item__label) {
-  display: block;
-}
-</style>
+<style lang="scss" scoped></style>

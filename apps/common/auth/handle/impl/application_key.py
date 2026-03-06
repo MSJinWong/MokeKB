@@ -7,6 +7,7 @@
     @desc:  应用api key认证
 """
 from django.db.models import QuerySet
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from application.models import ApplicationApiKey, ChatUserType, ApplicationAccessToken
@@ -22,6 +23,8 @@ class ApplicationKey(AuthBaseHandle):
             raise AppAuthenticationFailed(500, _('Secret key is invalid'))
         if not application_api_key.is_active:
             raise AppAuthenticationFailed(500, _('Secret key is invalid'))
+        if application_api_key.is_permanent is False and application_api_key.expire_time < timezone.now():
+            raise AppAuthenticationFailed(500, _('Secret key is expired'))
         application_access_token = QuerySet(ApplicationAccessToken).filter(
             application_id=application_api_key.application_id).first()
         if application_access_token is not None:
@@ -36,7 +39,7 @@ class ApplicationKey(AuthBaseHandle):
                            operate=Operate.READ)],
             application_id=application_api_key.application_id,
             chat_user_id=str(application_api_key.id),
-            chat_user_type=ChatUserType.ANONYMOUS_USER.value)
+            chat_user_type=ChatUserType.APPLICATION_API_KEY.value)
 
     def support(self, request, token: str, get_token_details):
-        return str(token).startswith("application-")
+        return str(token).startswith("application-") or str(token).startswith('agent-')

@@ -12,8 +12,8 @@
               @change="search_type_change"
               style="width: 75px"
             >
-              <el-option :label="$t('views.chatLog.table.abstract')" value="abstract" />
-              <el-option :label="$t('views.chatLog.table.username')" value="username" />
+              <el-option :label="$t('views.chatLog.table.abstract')" value="abstract"/>
+              <el-option :label="$t('views.chatLog.table.username')" value="username"/>
             </el-select>
             <el-input
               v-model="search_form[search_type]"
@@ -25,9 +25,8 @@
           </div>
           <el-select
             v-model="history_day"
-            class="ml-12"
+            class="ml-12 w-180"
             @change="changeDayHandle"
-            style="width: 180px"
           >
             <el-option
               v-for="item in dayOptions"
@@ -60,7 +59,7 @@
             @click="openDocumentDialog"
             :disabled="multipleSelection.length === 0"
             v-if="permissionPrecise.chat_log_add_knowledge(id)"
-            >{{ $t('views.chatLog.addToKnowledge') }}
+          >{{ $t('views.chatLog.addToKnowledge') }}
           </el-button>
         </div>
       </div>
@@ -77,7 +76,7 @@
         class="log-table"
         ref="multipleTableRef"
       >
-        <el-table-column type="selection" width="55" />
+        <el-table-column type="selection" width="55"/>
         <el-table-column
           prop="abstract"
           :label="$t('views.chatLog.table.abstract')"
@@ -101,7 +100,7 @@
                     @click="popoverVisible = !popoverVisible"
                   >
                     <el-icon>
-                      <Filter />
+                      <Filter/>
                     </el-icon>
                   </el-button>
                 </template>
@@ -139,11 +138,13 @@
                 </div>
                 <div class="text-right">
                   <el-button size="small" @click="filterChange('clear')">{{
-                    $t('common.clear')
-                  }}</el-button>
+                      $t('common.clear')
+                    }}
+                  </el-button>
                   <el-button type="primary" @click="filterChange" size="small">{{
-                    $t('common.confirm')
-                  }}</el-button>
+                      $t('common.confirm')
+                    }}
+                  </el-button>
                 </div>
               </el-popover>
             </div>
@@ -162,10 +163,25 @@
             </span>
           </template>
         </el-table-column>
-        <el-table-column prop="mark_sum" :label="$t('views.chatLog.table.mark')" align="right" />
+        <el-table-column prop="mark_sum" :label="$t('views.chatLog.table.mark')" align="right"/>
         <el-table-column prop="asker" :label="$t('views.chatLog.table.user')">
           <template #default="{ row }">
             {{ row.asker?.username }}
+          </template>
+        </el-table-column>
+        <el-table-column
+          prop="ip_address"
+          :label="$t('views.operateLog.table.ip_address')"
+          width="120"
+        >
+          <template #default="{ row }">
+            {{ row.ip_address || '-' }}
+          </template>
+        </el-table-column>
+
+        <el-table-column prop="source" :label="$t('views.tool.form.source.label')">
+          <template #default="{ row }">
+            {{ getSourceTypeName(row.source?.type) }}
           </template>
         </el-table-column>
         <el-table-column :label="$t('views.chatLog.table.recenTimes')" width="180">
@@ -193,20 +209,42 @@
       :close-on-click-modal="false"
       :close-on-press-escape="false"
     >
-      <span>{{ $t('common.delete') }}</span>
-      <el-input-number
-        v-model="days"
-        controls-position="right"
-        :min="1"
-        :max="100000"
-        :value-on-clear="0"
-        step-strictly
-        style="width: 110px; margin-left: 8px; margin-right: 8px"
-      ></el-input-number>
-      <span>{{ $t('views.chatLog.daysText') }}</span>
+      <el-row :gutter="20">
+        <el-col :span="24">
+          <div class="mb-16">
+            <span>{{ $t('common.delete') }}</span>
+            <el-input-number
+              v-model="days"
+              controls-position="right"
+              :min="1"
+              :max="100000"
+              :value-on-clear="0"
+              step-strictly
+              style="width: 110px; margin-left: 8px; margin-right: 8px"
+            ></el-input-number>
+            <span>{{ $t('views.chatLog.daysText') }}</span>
+          </div>
+        </el-col>
+        <el-col :span="24">
+          <div>
+            <span>{{ $t('common.delete') }}</span>
+            <el-input-number
+              v-model="file_days"
+              controls-position="right"
+              :min="1"
+              :max="days"
+              :value-on-clear="0"
+              step-strictly
+              style="width: 110px; margin-left: 8px; margin-right: 8px"
+            ></el-input-number>
+            <span>{{ $t('views.chatLog.fileDaysText') }}</span>
+          </div>
+        </el-col>
+      </el-row>
+
       <template #footer>
         <div class="dialog-footer" style="margin-top: 16px">
-          <el-button @click="dialogVisible = false">{{ $t('common.cancel') }} </el-button>
+          <el-button @click="dialogVisible = false">{{ $t('common.cancel') }}</el-button>
           <el-button type="primary" @click="saveCleanTime">
             {{ $t('common.save') }}
           </el-button>
@@ -241,21 +279,21 @@
   </div>
 </template>
 <script setup lang="ts">
-import { ref, type Ref, onMounted, reactive, computed } from 'vue'
-import { useRoute } from 'vue-router'
-import { cloneDeep } from 'lodash'
+import {ref, type Ref, onMounted, reactive, computed} from 'vue'
+import {useRoute} from 'vue-router'
+import {cloneDeep} from 'lodash'
 import ChatRecordDrawer from './component/ChatRecordDrawer.vue'
 import SelectKnowledgeDocument from '@/components/select-knowledge-document/index.vue'
-import { MsgSuccess, MsgConfirm } from '@/utils/message'
-import { beforeDay, datetimeFormat, nowDate } from '@/utils/time'
-import type { Dict } from '@/api/type/common'
-import { t } from '@/locales'
-import { ElTable } from 'element-plus'
+import {MsgSuccess, MsgConfirm} from '@/utils/message'
+import {beforeDay, datetimeFormat, nowDate} from '@/utils/time'
+import type {Dict} from '@/api/type/common'
+import {t} from '@/locales'
+import {ElTable} from 'element-plus'
 import permissionMap from '@/permission'
-import { loadSharedApi } from '@/utils/dynamics-api/shared-api'
-import { Permission } from '@/utils/permission/type'
-import { hasPermission } from '@/utils/permission'
-import { PermissionConst, RoleConst } from '@/utils/permission/data'
+import {loadSharedApi} from '@/utils/dynamics-api/shared-api'
+import {Permission} from '@/utils/permission/type'
+import {hasPermission} from '@/utils/permission'
+import {PermissionConst, RoleConst} from '@/utils/permission/data'
 
 const route = useRoute()
 
@@ -271,7 +309,7 @@ const permissionPrecise = computed(() => {
 })
 
 const {
-  params: { id },
+  params: {id},
 } = route as any
 
 const emit = defineEmits(['refresh'])
@@ -283,7 +321,33 @@ const search_form = ref<any>({
 })
 
 const search_type_change = () => {
-  search_form.value = { abstract: '', username: '' }
+  search_form.value = {abstract: '', username: ''}
+}
+
+// 定义源类型枚举
+enum SourceType {
+  ONLINE = 'ONLINE',
+  API_CALL = 'API_CALL',
+  ENTERPRISE_WECHAT = 'ENTERPRISE_WECHAT',
+  WECHAT_PUBLIC_ACCOUNT = 'WECHAT_PUBLIC_ACCOUNT',
+  LARK = 'LARK',
+  DINGTALK = 'DINGTALK',
+  ENTERPRISE_WECHAT_ROBOT = 'ENTERPRISE_WECHAT_ROBOT',
+  TRIGGER = 'TRIGGER',
+  SLACK = 'SLACK'
+}
+
+// 创建国际化键值映射
+const SOURCE_TYPE_TRANSLATIONS: Record<SourceType, string> = {
+  [SourceType.ONLINE]: 'views.chatLog.online',
+  [SourceType.API_CALL]: 'views.chatLog.apiCall',
+  [SourceType.ENTERPRISE_WECHAT]: 'views.chatLog.enterpriseWeChat',
+  [SourceType.WECHAT_PUBLIC_ACCOUNT]: 'views.chatLog.wechatPublicAccount',
+  [SourceType.LARK]: 'views.chatLog.lark',
+  [SourceType.DINGTALK]: 'views.chatLog.dingtalk',
+  [SourceType.ENTERPRISE_WECHAT_ROBOT]: 'views.chatLog.enterpriseWeChatRobot',
+  [SourceType.TRIGGER]: 'views.trigger.title',
+  [SourceType.SLACK]: 'views.chatLog.slack'
 }
 
 const dayOptions = [
@@ -329,13 +393,14 @@ const paginationConfig = reactive({
 const dialogVisible = ref(false)
 const documentDialogVisible = ref(false)
 const days = ref<number>(180)
+const file_days = ref<number>(180)
 const tableData = ref<any[]>([])
 const tableIndexMap = computed<Dict<number>>(() => {
   return tableData.value
     .map((row, index) => ({
       [row.id]: index,
     }))
-    .reduce((pre, next) => ({ ...pre, ...next }), {})
+    .reduce((pre, next) => ({...pre, ...next}), {})
 })
 const history_day = ref<number | string>(7)
 
@@ -362,15 +427,16 @@ const postKnowledgeHandler = (knowledgeList: Array<any>) => {
       }
       if (item.resource_type === 'knowledge') {
         return hasPermission([RoleConst.WORKSPACE_MANAGE.getWorkspaceRole(),
-            new Permission("KNOWLEDGE_DOCUMENT:READ+EDIT").getWorkspacePermissionWorkspaceManageRole,
-            new Permission("KNOWLEDGE_DOCUMENT:READ+EDIT").getWorkspaceResourcePermission('KNOWLEDGE', item.id)], 'OR')
+          new Permission("KNOWLEDGE_DOCUMENT:READ+EDIT").getWorkspacePermissionWorkspaceManageRole,
+          new Permission("KNOWLEDGE_DOCUMENT:READ+EDIT").getWorkspaceResourcePermission('KNOWLEDGE', item.id)], 'OR')
       }
     } else if (apiType.value === 'systemManage') {
-      return hasPermission([RoleConst.ADMIN, PermissionConst.RESOURCE_KNOWLEDGE_DOCUMENT_EDIT],'OR')
+      return hasPermission([RoleConst.ADMIN, PermissionConst.RESOURCE_KNOWLEDGE_DOCUMENT_EDIT], 'OR')
     }
   })
 
 }
+
 function filterChange(val: string) {
   if (val === 'clear') {
     filter.value = cloneDeep(defaultFilter)
@@ -412,7 +478,7 @@ const next_disable = computed(() => {
   return (
     index >= tableData.value.length &&
     index + (paginationConfig.current_page - 1) * paginationConfig.page_size >=
-      paginationConfig.total - 1
+    paginationConfig.total - 1
   )
 })
 /**
@@ -446,7 +512,7 @@ function rowClickHandle(row: any, column?: any) {
   ChatRecordRef.value.open()
 }
 
-const setRowClass = ({ row }: any) => {
+const setRowClass = ({row}: any) => {
   return currentChatId.value === row?.id ? 'highlight' : ''
 }
 
@@ -463,7 +529,7 @@ function getList() {
   if (search_form.value[search_type.value]) {
     obj[search_type.value] = search_form.value[search_type.value]
   }
-  return loadSharedApi({ type: 'chatLog', systemType: apiType.value })
+  return loadSharedApi({type: 'chatLog', systemType: apiType.value})
     .getChatLog(id as string, paginationConfig, obj, loading)
     .then((res: any) => {
       tableData.value = res.data.records
@@ -475,11 +541,12 @@ function getList() {
 }
 
 function getDetail(isLoading = false) {
-  loadSharedApi({ type: 'application', systemType: apiType.value })
+  loadSharedApi({type: 'application', systemType: apiType.value})
     .getApplicationDetail(id as string, isLoading ? loading : undefined)
     .then((res: any) => {
       detail.value = res.data
       days.value = res.data.clean_time
+      file_days.value = res.data.file_clean_time
     })
 }
 
@@ -499,11 +566,11 @@ const exportLog = () => {
     if (search_form.value[search_type.value]) {
       obj[search_type.value] = search_form.value[search_type.value]
     }
-    loadSharedApi({ type: 'chatLog', systemType: apiType.value }).postExportChatLog(
+    loadSharedApi({type: 'chatLog', systemType: apiType.value}).postExportChatLog(
       detail.value.id,
       detail.value.name,
       obj,
-      { select_ids: arr },
+      {select_ids: arr},
       loading,
     )
   }
@@ -528,10 +595,14 @@ function changeDayHandle(val: number | string) {
 }
 
 function saveCleanTime() {
+  if (file_days.value > days.value) {
+    file_days.value = days.value
+  }
   const obj = {
     clean_time: days.value,
+    file_clean_time: file_days.value,
   }
-  loadSharedApi({ type: 'application', systemType: apiType.value })
+  loadSharedApi({type: 'application', systemType: apiType.value})
     .putApplication(id as string, obj, loading)
     .then(() => {
       MsgSuccess(t('common.saveSuccess'))
@@ -556,7 +627,7 @@ const submitForm = async () => {
       ...SelectKnowledgeDocumentRef.value.form,
       chat_ids: arr,
     }
-    loadSharedApi({ type: 'chatLog', systemType: apiType.value })
+    loadSharedApi({type: 'chatLog', systemType: apiType.value})
       .postChatLogAddKnowledge(id, obj, documentLoading)
       .then((res: any) => {
         multipleTableRef.value?.clearSelection()
@@ -568,6 +639,13 @@ const submitForm = async () => {
 function openDocumentDialog() {
   SelectKnowledgeDocumentRef.value?.clearValidate()
   documentDialogVisible.value = true
+}
+
+const getSourceTypeName = (sourceType: SourceType | undefined) => {
+  if (!sourceType) return '-'
+
+  const translationKey = SOURCE_TYPE_TRANSLATIONS[sourceType]
+  return translationKey ? t(translationKey) : '-'
 }
 
 onMounted(() => {

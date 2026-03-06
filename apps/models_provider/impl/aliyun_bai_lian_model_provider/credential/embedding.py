@@ -17,6 +17,7 @@ from models_provider.base_model_provider import BaseModelCredential, ValidCode
 from models_provider.impl.aliyun_bai_lian_model_provider.model.embedding import AliyunBaiLianEmbedding
 from common.utils.logger import maxkb_logger
 
+
 class BaiLianEmbeddingModelParams(BaseForm):
     dimensions = forms.SingleSelect(
         TooltipLabel(
@@ -55,7 +56,7 @@ class AliyunBaiLianEmbeddingCredential(BaseForm, BaseModelCredential):
                 ValidCode.valid_error.value,
                 f"{model_type} Model type is not supported"
             )
-        required_keys = ['dashscope_api_key']
+        required_keys = ['dashscope_api_key', 'api_base']
         missing_keys = [key for key in required_keys if key not in model_credential]
         if missing_keys:
             if raise_exception:
@@ -88,8 +89,9 @@ class AliyunBaiLianEmbeddingCredential(BaseForm, BaseModelCredential):
         api_key = model.get('dashscope_api_key', '')
         return {**model, 'dashscope_api_key': super().encryption(api_key)}
 
-
     def get_model_params_setting_form(self, model_name):
         return BaiLianEmbeddingModelParams()
 
+    api_base = forms.TextInputField(_('API URL'), required=True,
+                                    default_value='https://dashscope.aliyuncs.com/compatible-mode/v1')
     dashscope_api_key = forms.PasswordInputField('API Key', required=True)

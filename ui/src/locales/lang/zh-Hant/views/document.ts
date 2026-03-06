@@ -123,7 +123,6 @@ export default {
     PENDING: '排隊中',
     GENERATE: '生成中',
     SYNC: '同步中',
-    REVOKE: '取消中',
     finish: '完圓',
   },
   enableStatus: {
@@ -178,6 +177,8 @@ export default {
     title: '移動位置',
     moveUp: '上移',
     moveDown: '下移',
+    MoveTop: '頭部',
+    MoveBottom: '末尾',
   },
   generateQuestion: {
     title: '生成問題',

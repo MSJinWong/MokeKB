@@ -6,6 +6,7 @@
     @date：2023/10/18 19:16
     @desc:
 """
+import re
 import threading
 from abc import ABC, abstractmethod
 from functools import reduce
@@ -31,6 +32,26 @@ def chunk_data(data: Dict):
 def chunk_data_list(data_list: List[Dict]):
     result = [chunk_data(data) for data in data_list]
     return reduce(lambda x, y: [*x, *y], result, [])
+
+
+# 预编译正则，性能更好
+RE_EMOJI = re.compile(
+    r"[\U0001F300-\U0001FAFF]"  # Emoji
+    r"|[\u2600-\u27BF]"  # Dingbats / Symbols（⚓ 在这）
+    r"|[\uFE0E\uFE0F]",  # Variation Selectors
+    flags=re.UNICODE
+)
+
+RE_WHITESPACE = re.compile(r"\s+")
+
+
+def normalize_for_embedding(text: str) -> str:
+    if not text:
+        return ""
+
+    text = RE_EMOJI.sub("", text)
+    text = RE_WHITESPACE.sub(" ", text)
+    return text.strip()
 
 
 class BaseVectorStore(ABC):
@@ -121,6 +142,7 @@ class BaseVectorStore(ABC):
                embedding: Embeddings):
         if knowledge_id_list is None or len(knowledge_id_list) == 0:
             return []
+        query_text = normalize_for_embedding(query_text)
         embedding_query = embedding.embed_query(query_text)
         result = self.query(embedding_query, knowledge_id_list, exclude_document_id_list, exclude_paragraph_list,
                             is_active, 1, 3, 0.65)

@@ -53,7 +53,7 @@ class QwenVLModelCredential(BaseForm, BaseModelCredential):
                 ValidCode.valid_error.value,
                 gettext('{model_type} Model type is not supported').format(model_type=model_type)
             )
-        required_keys = ['api_key']
+        required_keys = ['api_key', 'api_base']
         for key in required_keys:
             if key not in model_credential:
                 if raise_exception:
@@ -84,6 +84,7 @@ class QwenVLModelCredential(BaseForm, BaseModelCredential):
     def encryption_dict(self, model: Dict[str, object]) -> Dict[str, object]:
         return {**model, 'api_key': super().encryption(model.get('api_key', ''))}
 
+    api_base = forms.TextInputField(_('API URL'), required=True, default_value='https://dashscope.aliyuncs.com/compatible-mode/v1')
     api_key = forms.PasswordInputField('API Key', required=True)
 
     def get_model_params_setting_form(self, model_name):

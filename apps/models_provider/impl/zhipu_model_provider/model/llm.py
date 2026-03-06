@@ -33,7 +33,7 @@ class ZhipuChatModel(MaxKBBaseModel, BaseChatOpenAI):
         zhipuai_chat = ZhipuChatModel(
             api_key=model_credential.get('api_key'),
             model=model_name,
-            base_url='https://open.bigmodel.cn/api/paas/v4',
+            base_url=model_credential.get('api_base') or 'https://open.bigmodel.cn/api/paas/v4',
             extra_body=optional_params,
             streaming=model_kwargs.get('streaming', False),
             custom_get_token_ids=custom_get_token_ids

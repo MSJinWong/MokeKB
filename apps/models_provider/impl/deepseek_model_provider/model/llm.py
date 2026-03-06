@@ -24,7 +24,7 @@ class DeepSeekChatModel(MaxKBBaseModel, BaseChatOpenAI):
 
         deepseek_chat_open_ai = DeepSeekChatModel(
             model=model_name,
-            openai_api_base='https://api.deepseek.com',
+            openai_api_base=model_credential.get('api_base') or 'https://api.deepseek.com',
             openai_api_key=model_credential.get('api_key'),
             extra_body=optional_params
         )

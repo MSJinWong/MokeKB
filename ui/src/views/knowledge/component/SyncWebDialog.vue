@@ -9,14 +9,14 @@
   >
     <p class="mb-8">{{ $t('views.knowledge.syncWeb.syncMethod') }}</p>
     <el-radio-group v-model="method" class="card__radio">
-      <el-card shadow="never" class="mb-16" :class="method === 'replace' ? 'active' : ''">
+      <el-card shadow="never" class="mb-16" :class="method === 'replace' ? 'border-active' : ''">
         <el-radio value="replace" size="large">
           <p class="mb-4">{{ $t('views.knowledge.syncWeb.replace') }}</p>
           <el-text type="info">{{ $t('views.knowledge.syncWeb.replaceText') }}</el-text>
         </el-radio>
       </el-card>
 
-      <el-card shadow="never" class="mb-16" :class="method === 'complete' ? 'active' : ''">
+      <el-card shadow="never" class="mb-16" :class="method === 'complete' ? 'border-active' : ''">
         <el-radio value="complete" size="large">
           <p class="mb-4">{{ $t('views.knowledge.syncWeb.complete') }}</p>
           <el-text type="info">{{ $t('views.knowledge.syncWeb.completeText') }}</el-text>

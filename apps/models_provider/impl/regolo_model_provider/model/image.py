@@ -15,7 +15,7 @@ class RegoloImage(MaxKBBaseModel, BaseChatOpenAI):
         optional_params = MaxKBBaseModel.filter_optional_params(model_kwargs)
         return RegoloImage(
             model_name=model_name,
-            openai_api_base="https://api.regolo.ai/v1",
+            openai_api_base=model_credential.get('api_base') or "https://api.regolo.ai/v1",
             openai_api_key=model_credential.get('api_key'),
             streaming=True,
             stream_usage=True,

@@ -105,6 +105,9 @@ h5 {
   font-size: 14px;
   font-weight: 500;
 }
+.font-small {
+  font-size: 12px;
+}
 
 .bold {
   font-weight: 600;
@@ -125,6 +128,10 @@ h5 {
 .w-120 {
   width: 120px;
 }
+.w-180 {
+  width: 180px;
+}
+
 .w-240 {
   width: 240px;
 }
@@ -332,7 +339,11 @@ h5 {
 }
 
 .border-none {
-  border: none;
+  border: none !important;
+}
+
+.border-active {
+  border-color: var(--el-color-primary) !important;
 }
 
 .cursor {
@@ -406,6 +417,9 @@ h5 {
 }
 .color-input-placeholder {
   color: var(--app-input-color-placeholder);
+}
+.color-organe {
+  color: #ff8800;
 }
 
 /*
@@ -532,4 +546,8 @@ h5 {
   background-repeat: no-repeat;
   background-position: center;
   background-size: cover;
+}
+
+.arrow-icon {
+  transition: 0.2s;
 }

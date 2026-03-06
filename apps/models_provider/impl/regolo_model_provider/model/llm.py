@@ -32,7 +32,7 @@ class RegoloChatModel(MaxKBBaseModel, BaseChatOpenAI):
         optional_params = MaxKBBaseModel.filter_optional_params(model_kwargs)
         return RegoloChatModel(
             model=model_name,
-            openai_api_base="https://api.regolo.ai/v1",
+            openai_api_base=model_credential.get('api_base') or "https://api.regolo.ai/v1",
             openai_api_key=model_credential.get('api_key'),
             extra_body=optional_params
         )

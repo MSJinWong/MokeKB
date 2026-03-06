@@ -66,12 +66,22 @@
           </div>
         </div>
       </div>
+      <div v-if="errStepMsg" class="card-never border-r-6 mb-12">
+        <h5 class="p-8-12">
+          {{ $t('chat.executionDetails.errLog') }}
+        </h5>
+        <div class="p-8-12 border-t-dashed lighter">
+          <div>
+            <span>{{ errStepMsg }}</span>
+          </div>
+        </div>
+      </div>
     </template>
   </div>
 </template>
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import ExecutionDetailCard from '@/components/ai-chat/component/knowledge-source-component/ExecutionDetailCard.vue'
+import ExecutionDetailCard from '@/components/execution-detail-card/index.vue'
 import { arraySort } from '@/utils/array'
 import { isWorkFlow } from '@/utils/application'
 
@@ -79,6 +89,14 @@ const props = defineProps<{
   detail?: any[]
   appType?: string
 }>()
+
+const errStepMsg = computed(() => {
+  const err_step = props.detail?.find((item) => item.status === 500)
+  if (err_step) {
+    return `${err_step.step_type}: ${err_step.err_message}`
+  }
+  return undefined
+})
 
 const messageList = computed(() => {
   const chat_step = props.detail?.find((item) => item.step_type == 'chat_step')
@@ -144,10 +162,4 @@ const AiResponse = computed(() => {
   return messages.slice(messages.length - 1, messages.length)
 })
 </script>
-<style lang="scss" scoped>
-.execution-details {
-  .arrow-icon {
-    transition: 0.2s;
-  }
-}
-</style>
+<style lang="scss" scoped></style>

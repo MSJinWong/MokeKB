@@ -13,7 +13,7 @@ import requests
 import uuid_utils.compat as uuid
 from django.core import validators
 from django.db import transaction
-from django.db.models import QuerySet, Q
+from django.db.models import QuerySet, Q, Subquery, OuterRef, CharField, Value, When, Case
 from django.http import HttpResponse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
@@ -22,6 +22,7 @@ from pylint.lint import Run
 from pylint.reporters import JSON2Reporter
 from rest_framework import serializers, status
 
+from application.models import Application
 from common.database_model_manage.database_model_manage import DatabaseModelManage
 from common.db.search import page_search, native_page_search, native_search
 from common.exception.app_exception import AppApiException
@@ -31,11 +32,14 @@ from common.utils.common import get_file_content
 from common.utils.logger import maxkb_logger
 from common.utils.rsa_util import rsa_long_decrypt, rsa_long_encrypt
 from common.utils.tool_code import ToolExecutor
-from knowledge.models import File, FileSourceType
-from maxkb.const import CONFIG, PROJECT_DIR
+from knowledge.models import File, FileSourceType, Knowledge
+from maxkb.const import PROJECT_DIR
 from system_manage.models import AuthTargetType, WorkspaceUserResourcePermission
+from system_manage.models.resource_mapping import ResourceMapping
+from system_manage.serializers.resource_mapping_serializers import ResourceMappingSerializer
 from system_manage.serializers.user_resource_permission import UserResourcePermissionSerializer
-from tools.models import Tool, ToolScope, ToolFolder, ToolType
+from tools.models import Tool, ToolScope, ToolFolder, ToolType, ToolRecord
+from trigger.models import TriggerTask, Trigger
 from users.serializers.user import is_workspace_manage
 
 tool_executor = ToolExecutor()
@@ -128,6 +132,13 @@ class ToolModelSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'icon', 'desc', 'code', 'input_field_list', 'init_field_list', 'init_params',
                   'scope', 'is_active', 'user_id', 'template_id', 'workspace_id', 'folder_id', 'tool_type', 'label',
                   'version', 'create_time', 'update_time']
+
+
+class ToolRecordModelSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ToolRecord
+        fields = ['id', 'workspace_id', 'tool_id', 'source_type', 'source_id', 'meta', 'state', 'run_time',
+                  'create_time', 'update_time']
 
 
 class ToolExportModelSerializer(serializers.ModelSerializer):
@@ -436,6 +447,9 @@ class ToolSerializer(serializers.Serializer):
             try:
                 if _type == 'int':
                     return int(value)
+                if _type == 'boolean':
+                    value = 0 if ['0', '[]'].__contains__(value) else value
+                    return bool(value)
                 if _type == 'float':
                     return float(value)
                 if _type == 'dict':
@@ -513,16 +527,34 @@ class ToolSerializer(serializers.Serializer):
 
             edit_dict['update_time'] = timezone.now()
             QuerySet(Tool).filter(id=self.data.get('id')).update(**edit_dict)
-
+            if 'is_active' in instance:
+                QuerySet(TriggerTask).filter(source_type="TOOL", source_id=self.data.get('id')).update(
+                    is_active=instance.get('is_active'))
             return self.one()
 
+        @transaction.atomic
         def delete(self):
+            from trigger.handler.simple_tools import deploy
+            from trigger.serializers.trigger import TriggerModelSerializer
+
             self.is_valid(raise_exception=True)
             tool = QuerySet(Tool).filter(id=self.data.get('id')).first()
             if tool.template_id is None and tool.icon != '':
                 QuerySet(File).filter(id=tool.icon.split('/')[-1]).delete()
             QuerySet(WorkspaceUserResourcePermission).filter(target=tool.id).delete()
             QuerySet(Tool).filter(id=self.data.get('id')).delete()
+            ResourceMapping.objects.filter(target_id=self.data.get('id')).delete()
+            QuerySet(ToolRecord).filter(tool_id=self.data.get('id')).delete()
+            trigger_ids = list(
+                QuerySet(TriggerTask).filter(
+                    source_type="TOOL", source_id=self.data.get('id')
+                ).values('trigger_id').distinct()
+            )
+            QuerySet(TriggerTask).filter(source_type="TOOL", source_id=self.data.get('id')).delete()
+            for trigger_id in trigger_ids:
+                trigger = Trigger.objects.filter(id=trigger_id['trigger_id']).first()
+                if trigger and trigger.is_active:
+                    deploy(TriggerModelSerializer(trigger).data, **{})
 
         def one(self):
             self.is_one_valid(raise_exception=True)
@@ -761,6 +793,8 @@ class ToolSerializer(serializers.Serializer):
                         if self.data.get('name', '') != '':
                             if self.data.get('name').lower() not in tool.get('name', '').lower():
                                 continue
+                        if not tool['downloadUrl'].endswith('.tool'):
+                            continue
                         versions = tool.get('versions', [])
                         tool['label'] = tag_dict[tool.get('tags')[0]] if tool.get('tags') else ''
                         tool['version'] = next(
@@ -865,6 +899,78 @@ class ToolSerializer(serializers.Serializer):
                 maxkb_logger.error(f"callback appstore tool download error: {e}")
             return ToolModelSerializer(tool).data
 
+    class ToolRecord(serializers.Serializer):
+        workspace_id = serializers.CharField(required=False, allow_null=True, label=_('workspace id'))
+        tool_id = serializers.UUIDField(required=True, label=_('tool id'))
+        record_id = serializers.UUIDField(required=False, allow_null=True, label=_('record id'))
+        source_name = serializers.CharField(required=False, allow_null=True, allow_blank=True, label=_('source name'))
+        source_type = serializers.CharField(required=False, allow_null=True, allow_blank=True, label=_('source type'))
+        state = serializers.CharField(required=False, allow_null=True, allow_blank=True, label=_('state'))
+
+        def one(self):
+            self.is_valid(raise_exception=True)
+            if self.data.get('record_id'):
+                page = self.get_tool_records(1, 1)
+                return page.get('records')[0]
+
+            return None
+
+        def get_tool_records(self, current_page: int, page_size: int):
+            self.is_valid(raise_exception=True)
+            application_subquery = Application.objects.filter(id=OuterRef('source_id')).values('name')[:1]
+            knowledge_subquery = Knowledge.objects.filter(id=OuterRef('source_id')).values('name')[:1]
+            trigger_subquery = Trigger.objects.filter(id=OuterRef('source_id')).values('name')[:1]
+            trigger_type_subquery = Trigger.objects.filter(id=OuterRef('source_id')).values('trigger_type')[:1]
+
+            query_set = QuerySet(ToolRecord)
+            query_set = query_set.filter(
+                tool_id=self.data.get('tool_id')
+            ).annotate(
+                source_name=Case(
+                    When(source_type='APPLICATION', then=Subquery(application_subquery)),
+                    When(source_type='KNOWLEDGE', then=Subquery(knowledge_subquery)),
+                    When(source_type='TRIGGER', then=Subquery(trigger_subquery)),
+                    default=Value(''),
+                    output_field=CharField()
+                )
+            ).annotate(
+                trigger_type=Case(
+                    When(source_type='TRIGGER', then=Subquery(trigger_type_subquery)),
+                    default=Value(''),
+                    output_field=CharField()
+                )
+            ).annotate(
+                tool_name=Subquery(
+                    Tool.objects.filter(id=OuterRef('tool_id')).values('name')[:1]
+                )
+            ).annotate(
+                tool_icon=Subquery(
+                    Tool.objects.filter(id=OuterRef('tool_id')).values('icon')[:1]
+                )
+            )
+            if self.data.get('source_type'):
+                query_set = query_set.filter(Q(source_type=self.data.get('source_type', '')))
+            if self.data.get('state'):
+                query_set = query_set.filter(Q(state=self.data.get('state', '')))
+            if self.data.get('source_name'):
+                query_set = query_set.filter(Q(source_name__icontains=self.data.get('source_name', '')))
+            if self.data.get('record_id'):
+                query_set = query_set.filter(Q(id=self.data.get('record_id')))
+            if self.data.get('workspace_id'):
+                query_set = query_set.filter(Q(workspace_id=self.data.get('workspace_id')))
+            query_set = query_set.order_by('-create_time')
+
+            return page_search(
+                current_page, page_size, query_set,
+                lambda record: {
+                    **ToolRecordModelSerializer(record).data,
+                    'source_name': record.source_name,
+                    'tool_name': record.tool_name,
+                    'tool_icon': record.tool_icon,
+                    'trigger_type': record.trigger_type,
+                }
+            )
+
 
 class ToolTreeSerializer(serializers.Serializer):
     class Query(serializers.Serializer):
@@ -962,8 +1068,7 @@ class ToolTreeSerializer(serializers.Serializer):
 
             workspace_manage = is_workspace_manage(self.data.get('user_id'), self.data.get('workspace_id'))
             is_x_pack_ee = self.is_x_pack_ee()
-
-            return native_page_search(
+            result = native_page_search(
                 current_page, page_size, self.get_query_set(workspace_manage, is_x_pack_ee),
                 get_file_content(
                     os.path.join(
@@ -980,6 +1085,7 @@ class ToolTreeSerializer(serializers.Serializer):
                     'init_field_list': json.loads(record.get('init_field_list', '[]')),
                 },
             )
+            return ResourceMappingSerializer().get_resource_count(result)
 
         def get_tools(self):
             self.is_valid(raise_exception=True)

@@ -118,7 +118,7 @@
             <el-card
               shadow="never"
               class="mb-16"
-              :class="cloneForm.search_mode === 'embedding' ? 'active' : ''"
+              :class="cloneForm.search_mode === 'embedding' ? 'border-active' : ''"
             >
               <el-radio value="embedding" size="large">
                 <p class="mb-4">
@@ -132,7 +132,7 @@
             <el-card
               shadow="never"
               class="mb-16"
-              :class="cloneForm.search_mode === 'keywords' ? 'active' : ''"
+              :class="cloneForm.search_mode === 'keywords' ? 'border-active' : ''"
             >
               <el-radio value="keywords" size="large">
                 <p class="mb-4">
@@ -146,7 +146,7 @@
             <el-card
               shadow="never"
               class="mb-16"
-              :class="cloneForm.search_mode === 'blend' ? 'active' : ''"
+              :class="cloneForm.search_mode === 'blend' ? 'border-active' : ''"
             >
               <el-radio value="blend" size="large">
                 <p class="mb-4">

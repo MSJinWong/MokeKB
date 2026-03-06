@@ -6,25 +6,22 @@
     @date：2025/6/9 13:42
     @desc:
 """
-import json
 from typing import List
 
 from django.core.cache import cache
 from django.db.models import QuerySet
-from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 
-from application.chat_pipeline.step.chat_step.i_chat_step import PostResponseHandler
-from application.models import Application, ChatRecord, Chat, ApplicationVersion, ChatUserType, ApplicationTypeChoices, \
-    ApplicationKnowledgeMapping
+from application.models import Application, ChatRecord, Chat, ApplicationVersion, ChatUserType, ApplicationTypeChoices
 from application.serializers.application_chat import ChatCountSerializer
 from common.constants.cache_version import Cache_Version
 from common.database_model_manage.database_model_manage import DatabaseModelManage
-from common.encoder.encoder import SystemEncoder
 from common.exception.app_exception import ChatException
 from knowledge.models import Document
 from models_provider.models import Model
 from models_provider.tools import get_model_credential
+from system_manage.models.resource_mapping import ResourceMapping
 
 
 class ChatInfo:
@@ -32,6 +29,8 @@ class ChatInfo:
                  chat_id: str,
                  chat_user_id: str,
                  chat_user_type: str,
+                 ip_address: str,
+                 source: {},
                  knowledge_id_list: List[str],
                  exclude_document_id_list: list[str],
                  application_id: str,
@@ -44,6 +43,8 @@ class ChatInfo:
         :param exclude_document_id_list:    排除的文档
         :param application_id               应用id
         :param debug                        是否是调试
+        :param ip_address:                  用户ip地址
+        :param source:                      用户来源
         """
         self.chat_id = chat_id
         self.chat_user_id = chat_user_id
@@ -54,6 +55,8 @@ class ChatInfo:
         self.chat_record_list: List[ChatRecord] = []
         self.application = None
         self.chat_user = None
+        self.ip_address = ip_address
+        self.source = source
         self.debug = debug
 
     @staticmethod
@@ -79,9 +82,10 @@ class ChatInfo:
                 raise ChatException(500, _("The application has not been published. Please use it after publishing."))
         if application.type == ApplicationTypeChoices.SIMPLE.value:
             # 数据集id列表
-            knowledge_id_list = [str(row.knowledge_id) for row in
-                                 QuerySet(ApplicationKnowledgeMapping).filter(
-                                     application_id=self.application_id)]
+            knowledge_id_list = [str(row.target_id) for row in
+                                 QuerySet(ResourceMapping).filter(source_id=self.application_id,
+                                                                  source_type='APPLICATION',
+                                                                  target_type='KNOWLEDGE')]
 
             # 需要排除的文档
             exclude_document_id_list = [str(document.id) for document in
@@ -116,6 +120,22 @@ class ChatInfo:
             else:
                 self.chat_user = {'username': '游客'}
         return self.chat_user
+
+    def get_chat_user_group(self, asker=None):
+        chat_user = self.get_chat_user(asker=asker)
+        chat_user_id = chat_user.get('id')
+
+        if not chat_user_id:
+            return []
+
+        user_group_relation_model = DatabaseModelManage.get_model("user_group_relation")
+        if user_group_relation_model:
+            return [{
+                'id': user_group_relation.group_id,
+                'name': user_group_relation.group.name
+            } for user_group_relation in
+                QuerySet(user_group_relation_model).select_related('group').filter(user_id=chat_user_id)]
+        return []
 
     def to_base_pipeline_manage_params(self):
         self.get_application()
@@ -162,24 +182,28 @@ class ChatInfo:
             'mcp_source': self.application.mcp_source,
             'tool_enable': self.application.tool_enable,
             'tool_ids': self.application.tool_ids,
+            'application_enable': self.application.application_enable,
+            'application_ids': self.application.application_ids,
             'mcp_output_enable': self.application.mcp_output_enable,
         }
 
-    def to_pipeline_manage_params(self, problem_text: str, post_response_handler: PostResponseHandler,
-                                  exclude_paragraph_id_list, chat_user_id: str, chat_user_type, stream=True,
+    def to_pipeline_manage_params(self, problem_text: str, post_response_handler,
+                                  exclude_paragraph_id_list, chat_user_id: str, chat_user_type, ip_address, source,
+                                  stream=True,
                                   form_data=None):
         if form_data is None:
             form_data = {}
         params = self.to_base_pipeline_manage_params()
         return {**params, 'problem_text': problem_text, 'post_response_handler': post_response_handler,
                 'exclude_paragraph_id_list': exclude_paragraph_id_list, 'stream': stream, 'chat_user_id': chat_user_id,
-                'chat_user_type': chat_user_type, 'form_data': form_data}
+                'chat_user_type': chat_user_type, 'ip_address': ip_address, 'source': source, 'form_data': form_data}
 
     def set_chat(self, question):
         if not self.debug:
             if not QuerySet(Chat).filter(id=self.chat_id).exists():
                 Chat(id=self.chat_id, application_id=self.application_id, abstract=question[0:1024],
                      chat_user_id=self.chat_user_id, chat_user_type=self.chat_user_type,
+                     ip_address=self.ip_address, source=self.source,
                      asker=self.get_chat_user()).save()
 
     def set_chat_variable(self, chat_context):
@@ -220,6 +244,7 @@ class ChatInfo:
             if not QuerySet(Chat).filter(id=self.chat_id).exists():
                 Chat(id=self.chat_id, application_id=self.application_id, abstract=chat_record.problem_text[0:1024],
                      chat_user_id=self.chat_user_id, chat_user_type=self.chat_user_type,
+                     ip_address=self.ip_address, source=self.source,
                      asker=self.get_chat_user()).save()
             else:
                 QuerySet(Chat).filter(id=self.chat_id).update(update_time=timezone.now())
@@ -237,6 +262,8 @@ class ChatInfo:
                                                                    'details': chat_record.details,
                                                                    'improve_paragraph_id_list': chat_record.improve_paragraph_id_list,
                                                                    'run_time': chat_record.run_time,
+                                                                   'source': chat_record.source,
+                                                                   'ip_address': chat_record.ip_address or '',
                                                                    'index': chat_record.index},
                                                   defaults={
                                                       "vote_status": chat_record.vote_status,
@@ -249,7 +276,9 @@ class ChatInfo:
                                                       'details': chat_record.details,
                                                       'improve_paragraph_id_list': chat_record.improve_paragraph_id_list,
                                                       'run_time': chat_record.run_time,
-                                                      'index': chat_record.index
+                                                      'index': chat_record.index,
+                                                      'source': chat_record.source,
+                                                      'ip_address': chat_record.ip_address or '',
                                                   })
             ChatCountSerializer(data={'chat_id': self.chat_id}).update_chat()
 
@@ -259,6 +288,8 @@ class ChatInfo:
             'chat_id': self.chat_id,
             'chat_user_id': self.chat_user_id,
             'chat_user_type': self.chat_user_type,
+            'ip_address': self.ip_address,
+            'source': self.source,
             'knowledge_id_list': self.knowledge_id_list,
             'exclude_document_id_list': self.exclude_document_id_list,
             'application_id': self.application_id,
@@ -279,6 +310,8 @@ class ChatInfo:
                 'details': chat_record.details,
                 'improve_paragraph_id_list': chat_record.improve_paragraph_id_list,
                 'run_time': chat_record.run_time,
+                'source': chat_record.source,
+                'ip_address': chat_record.ip_address,
                 'index': chat_record.index}
 
     @staticmethod
@@ -295,7 +328,9 @@ class ChatInfo:
                           details=chat_record_dict.get('details'),
                           improve_paragraph_id_list=chat_record_dict.get('improve_paragraph_id_list'),
                           run_time=chat_record_dict.get('run_time'),
-                          index=chat_record_dict.get('index'), )
+                          index=chat_record_dict.get('index'),
+                          source=chat_record_dict.get('source'),
+                          ip_address=chat_record_dict.get('ip_address'))
 
     def set_cache(self):
         cache.set(Cache_Version.CHAT.get_key(key=self.chat_id), self.to_dict(),
@@ -305,7 +340,9 @@ class ChatInfo:
     @staticmethod
     def map_to_chat_info(chat_info_dict):
         c = ChatInfo(chat_info_dict.get('chat_id'), chat_info_dict.get('chat_user_id'),
-                     chat_info_dict.get('chat_user_type'), chat_info_dict.get('knowledge_id_list'),
+                     chat_info_dict.get('chat_user_type'), chat_info_dict.get('ip_address'),
+                     chat_info_dict.get('source'),
+                     chat_info_dict.get('knowledge_id_list'),
                      chat_info_dict.get('exclude_document_id_list'),
                      chat_info_dict.get('application_id'),
                      debug=chat_info_dict.get('debug'))
@@ -319,3 +356,21 @@ class ChatInfo:
         if chat_info_dict:
             return ChatInfo.map_to_chat_info(chat_info_dict)
         return None
+
+
+def update_resource_mapping_by_application(application_id: str, other_resource_mapping=None):
+    from application.flow.tools import get_instance_resource, save_workflow_mapping, \
+        application_instance_field_call_dict
+    from system_manage.models.resource_mapping import ResourceType
+    if other_resource_mapping is None:
+        other_resource_mapping = []
+    application = QuerySet(Application).filter(id=application_id).first()
+    instance_mapping = get_instance_resource(application, ResourceType.APPLICATION, str(application.id),
+                                             application_instance_field_call_dict)
+    if application.type == 'WORK_FLOW':
+        save_workflow_mapping(application.work_flow, ResourceType.APPLICATION, str(application_id),
+                              instance_mapping + other_resource_mapping)
+        return
+    else:
+        save_workflow_mapping({}, ResourceType.APPLICATION, str(application_id),
+                              instance_mapping + other_resource_mapping)

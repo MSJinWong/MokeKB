@@ -298,7 +298,8 @@ ALLOWED_CLASSES = {
     ("builtins", "dict"),
     ('uuid', 'UUID'),
     ("application.serializers.application", "MKInstance"),
-    ("tools.serializers.tool", "ToolInstance")
+    ("tools.serializers.tool", "ToolInstance"),
+    ("knowledge.serializers.knowledge_workflow", "KBWFInstance")
 }
 
 
@@ -350,3 +351,12 @@ def filter_special_character(_str):
     for t in s_list:
         _str = _str.replace(t, '')
     return _str
+
+
+def is_valid_uuid(uuid_string):
+    """判断字符串是否为有效的UUID"""
+    try:
+        uuid_obj = uuid.UUID(uuid_string)
+        return str(uuid_obj) == uuid_string
+    except ValueError:
+        return False

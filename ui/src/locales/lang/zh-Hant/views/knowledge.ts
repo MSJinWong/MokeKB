@@ -1,8 +1,8 @@
 export default {
   title: '知識庫',
-  relatedApplications: '關聯應用',
+  relatedApplications: '關聯智能體',
   document_count: '文檔數',
-  relatedApp_count: '關聯應用',
+  relatedApp_count: '關聯智能體',
   setting: {
     vectorization: '向量化',
     sync: '同步',
@@ -15,7 +15,8 @@ export default {
   delete: {
     confirmTitle: '是否刪除知識庫：',
     confirmMessage1: '此知識庫關聯',
-    confirmMessage2: '個應用，刪除後無法恢復，請謹慎操作。',
+    confirmMessage2: '個智能體，刪除後無法恢復，請謹慎操作。',
+    resourceCountMessage: '此知識庫關聯 {count} 個資源，刪除後無法使用，請謹慎操作。',
   },
   knowledgeType: {
     label: '知識庫類型',
@@ -35,7 +36,7 @@ export default {
     knowledgeName: {
       label: '知識庫名稱',
       placeholder: '請輸入知識庫名稱',
-      requiredMessage: '請輸入應用名稱',
+      requiredMessage: '請輸入知識庫名稱',
     },
     knowledgeDescription: {
       label: '知識庫描述',
@@ -95,5 +96,14 @@ export default {
     complete: '完整同步',
     completeText: '先刪除本地知識庫所有文件，重新獲取 Web 站點文件',
     tip: '注意：所有同步都會刪除現有數據並重新獲取新數據，請謹慎操作。',
+  },
+  transform: {
+    button: '轉換',
+    title: '轉換為工作流知識庫',
+    message1:
+      '您現在可以將現有知識庫轉換為工作流知識庫——這是一種更開放、更靈活的知識庫，通過拖拽節點的方式自主編排從不同數據源到知識庫寫入的全流程，滿足企業個性化知識管理需求。可以使用我們工具中的數據源和工具。',
+    message2: '新的處理方式將應用於後續所有導入的文件。',
+    tip: '注意：轉換後不可撤回。',
+    comfirm: '確定轉換為工作流知識庫？轉換後無法回退，請謹慎操作。',
   },
 }

@@ -63,11 +63,9 @@
 
     <el-row style="width: 100%" :gutter="10">
       <el-col :span="10">
-        <div class="grid-content ep-bg-purple" />
         {{ $t('dynamicsForm.tag.label') }}
       </el-col>
       <el-col :span="12">
-        <div class="grid-content ep-bg-purple" />
         {{ $t('dynamicsForm.Select.label') }}
       </el-col>
     </el-row>
@@ -79,21 +77,18 @@
       class="mb-8"
     >
       <el-col :span="10">
-        <div class="grid-content ep-bg-purple" />
         <el-input
           v-model="formValue.option_list[$index].label"
           :placeholder="$t('dynamicsForm.tag.placeholder')"
         />
       </el-col>
       <el-col :span="12">
-        <div class="grid-content ep-bg-purple" />
         <el-input
           v-model="formValue.option_list[$index].value"
           :placeholder="$t('dynamicsForm.Select.label')"
         />
       </el-col>
       <el-col :span="1">
-        <div class="grid-content ep-bg-purple" />
         <el-button link class="ml-8" @click.stop="delOption($index)">
           <AppIcon iconName="app-delete"></AppIcon>
         </el-button>
@@ -124,7 +119,11 @@
       />
     </div>
 
-    <el-select v-model="formValue.default_value" :teleported="false" popper-class="default-select">
+    <el-select
+      v-model="formValue.default_value"
+      :teleported="false"
+      popper-class="max-w-350"
+    >
       <el-option
         v-for="(option, index) in formValue.option_list"
         :key="index"
@@ -181,9 +180,7 @@ const default_ref_variables_value_rule = {
   validator: (rule: any, value: any, callback: any) => {
     console.log(value.length)
     if (!(Array.isArray(value) && value.length > 1)) {
-      callback(
-        t('workflow.variable.Referencing') + t('common.required'),
-      )
+      callback(t('workflow.variable.Referencing') + t('common.required'))
     }
 
     return true
@@ -241,11 +238,5 @@ onMounted(() => {
     top: -35px;
   }
 }
-:deep(.el-form-item__label) {
-  display: block;
-}
 
-:deep(.el-select-dropdown) {
-  max-width: 400px;
-}
 </style>

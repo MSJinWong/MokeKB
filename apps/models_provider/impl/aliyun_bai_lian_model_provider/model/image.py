@@ -27,7 +27,7 @@ class QwenVLChatModel(MaxKBBaseModel, BaseChatOpenAI):
         chat_tong_yi = QwenVLChatModel(
             model_name=model_name,
             openai_api_key=model_credential.get('api_key'),
-            openai_api_base='https://dashscope.aliyuncs.com/compatible-mode/v1',
+            openai_api_base=model_credential.get('api_base') or 'https://dashscope.aliyuncs.com/compatible-mode/v1',
             # stream_options={"include_usage": True},
             streaming=True,
             stream_usage=True,
@@ -36,12 +36,15 @@ class QwenVLChatModel(MaxKBBaseModel, BaseChatOpenAI):
         return chat_tong_yi
 
     def check_auth(self, api_key):
-        chat = ChatTongyi(api_key=api_key, model_name='qwen-max')
-        chat.invoke([HumanMessage([{"type": "text", "text": gettext('Hello')}])])
+        return True
 
     def get_upload_policy(self, api_key, model_name):
         """获取文件上传凭证"""
         url = "https://dashscope.aliyuncs.com/api/v1/uploads"
+        if 'dashscope-us' in self.openai_api_base:
+            url = "https://dashscope-us.aliyuncs.com/api/v1/uploads"
+        elif 'dashscope-intl' in self.openai_api_base:
+            url = "https://dashscope-intl.aliyuncs.com/api/v1/uploads"
         headers = {
             "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json"
@@ -109,7 +112,7 @@ class QwenVLChatModel(MaxKBBaseModel, BaseChatOpenAI):
             stop: Optional[list[str]] = None,
             **kwargs: Any,
     ) -> Iterator[BaseMessageChunk]:
-        url = "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions"
+        url = f"{self.openai_api_base}/chat/completions"
 
         headers = {
             "Authorization": f"Bearer {self.openai_api_key.get_secret_value()}",

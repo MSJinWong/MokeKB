@@ -2,6 +2,7 @@ import uuid_utils.compat as uuid
 
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
+from django.utils import timezone
 
 from application.models import Application
 from common.mixins.app_model_mixin import AppModelMixin
@@ -19,8 +20,8 @@ class ApplicationApiKey(AppModelMixin):
     cross_domain_list = ArrayField(verbose_name="跨域列表",
                                    base_field=models.CharField(max_length=128, blank=True)
                                    , default=list)
+    expire_time = models.DateTimeField(verbose_name="过期时间", default=timezone.now)
+    is_permanent = models.BooleanField(default=True, verbose_name="是否永久")
 
     class Meta:
         db_table = "application_api_key"
-
-

@@ -41,7 +41,7 @@
 
       <el-form-item
         :label="$t('views.document.upload.template')"
-        v-if="applicationForm.type === 'WORK_FLOW'"
+        v-if="applicationForm.type === 'WORK_FLOW' && !work_flow_template"
       >
         <div class="w-full">
           <el-row :gutter="16">
@@ -50,7 +50,7 @@
                 class="template-radio-card cursor text-center flex-center"
                 shadow="never"
                 @click="selectedType('blank')"
-                :class="appTemplate === 'blank' ? 'active' : ''"
+                :class="appTemplate === 'blank' ? 'border-active' : ''"
               >
                 <div class="flex-center p-24">
                   <AppIcon iconName="app-add-outlined" class="mr-12"></AppIcon>
@@ -64,7 +64,7 @@
                 :description="$t('views.application.form.appTemplate.assistantApp.description')"
                 shadow="never"
                 class="template-radio-card cursor"
-                :class="appTemplate === 'assistant' ? 'active' : ''"
+                :class="appTemplate === 'assistant' ? 'border-active' : ''"
                 @click="selectedType('assistant')"
               >
                 <template #icon>
@@ -126,6 +126,7 @@ const applicationFormRef = ref()
 
 const loading = ref(false)
 const dialogVisible = ref<boolean>(false)
+const work_flow_template = ref()
 
 const applicationForm = ref<ApplicationFormType>({
   name: '',
@@ -158,6 +159,7 @@ const applicationForm = ref<ApplicationFormType>({
   tts_model_enable: false,
   tts_type: 'BROWSER',
   type: 'SIMPLE',
+  work_flow_template: undefined,
 })
 
 const rules = reactive<FormRules<ApplicationFormType>>({
@@ -217,10 +219,11 @@ watch(dialogVisible, (bool) => {
   }
 })
 
-const open = (folder: string, type?: string) => {
+const open = (folder: string, type?: string, work_flow?: any) => {
   currentFolder.value = folder
   applicationForm.value.type = type || 'SIMPLE'
   dialogVisible.value = true
+  work_flow_template.value = work_flow
 }
 
 const submitHandle = async (formEl: FormInstance | undefined) => {
@@ -231,6 +234,9 @@ const submitHandle = async (formEl: FormInstance | undefined) => {
         workflowDefault.value.nodes[0].properties.node_data.desc = applicationForm.value.desc
         workflowDefault.value.nodes[0].properties.node_data.name = applicationForm.value.name
         applicationForm.value['work_flow'] = workflowDefault.value
+        if (work_flow_template.value) {
+          applicationForm.value['work_flow_template'] = work_flow_template.value
+        }
       }
       loading.value = true
       applicationApi
@@ -264,4 +270,9 @@ function selectedType(type: string) {
 
 defineExpose({ open })
 </script>
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.template-radio-card {
+  height: 120px !important;
+  min-height: 120px !important;
+}
+</style>

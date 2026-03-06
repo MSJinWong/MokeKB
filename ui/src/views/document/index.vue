@@ -97,6 +97,20 @@
                         v-if="knowledgeDetail?.type === 2 && permissionPrecise.doc_sync(id)"
                         >{{ $t('views.document.syncDocument') }}
                       </el-dropdown-item>
+                      <el-dropdown-item
+                        @click="exportMulDocument"
+                        :disabled="multipleSelection.length === 0"
+                        v-if="permissionPrecise.doc_export(id)"
+                      >
+                        {{ $t('views.document.setting.export') }} Excel
+                      </el-dropdown-item>
+                      <el-dropdown-item
+                        @click="exportMulDocumentZip"
+                        :disabled="multipleSelection.length === 0"
+                        v-if="permissionPrecise.doc_export(id)"
+                      >
+                        {{ $t('views.document.setting.export') }} Zip
+                      </el-dropdown-item>
 
                       <el-dropdown-item
                         divided
@@ -139,7 +153,12 @@
                 />
               </div>
 
-              <el-tooltip effect="dark" :content="$t('workflow.ExecutionRecord')" placement="top">
+              <el-tooltip
+                effect="dark"
+                :content="$t('common.ExecutionRecord.title')"
+                placement="top"
+                v-if="knowledgeDetail?.type === 4 && permissionPrecise.doc_create(id)"
+              >
                 <el-button @click="openListAction" class="ml-12">
                   <AppIcon iconName="app-execution-record" class="color-secondary"></AppIcon>
                 </el-button>
@@ -524,9 +543,7 @@
                             @click.stop="downloadDocument(row)"
                             v-if="permissionPrecise.doc_download(id)"
                           >
-                            <el-icon class="color-secondary">
-                              <Download />
-                            </el-icon>
+                            <AppIcon iconName="app-download" class="color-secondary" />
                             {{ $t('views.document.setting.download') }}
                           </el-dropdown-item>
                           <el-upload
@@ -539,9 +556,7 @@
                             :on-change="(file: any, fileList: any) => replaceDocument(file, row)"
                           >
                             <el-dropdown-item>
-                              <el-icon class="color-secondary">
-                                <Upload />
-                              </el-icon>
+                              <AppIcon iconName="app-upload" class="color-secondary" />
                               {{ $t('views.document.setting.replace') }}
                             </el-dropdown-item>
                           </el-upload>
@@ -761,12 +776,13 @@ onBeforeRouteUpdate(() => {
   common.saveCondition(storeKey, null)
 })
 onBeforeRouteLeave((to: any) => {
-  if (to.name !== 'Paragraph') {
+  if (to.name !== 'ParagraphIndex') {
     common.savePage(storeKey, null)
     common.saveCondition(storeKey, null)
   } else {
     common.saveCondition(storeKey, {
-      filterText: filterText.value,
+      search_type: search_type.value,
+      search_form: search_form.value,
       filterMethod: filterMethod.value,
     })
   }
@@ -840,7 +856,7 @@ const embeddingContentDialogRef = ref<InstanceType<typeof EmbeddingContentDialog
 const ListActionRef = ref<InstanceType<typeof ExecutionRecord>>()
 const loading = ref(false)
 let interval: any
-const filterText = ref('')
+
 const filterMethod = ref<any>({})
 const orderBy = ref<string>('')
 const documentData = ref<any[]>([])
@@ -1122,6 +1138,34 @@ function syncLarkMulDocument() {
     })
 }
 
+function exportMulDocument() {
+  const arr: string[] = []
+  multipleSelection.value.map((v) => {
+    if (v) {
+      arr.push(v.id)
+    }
+  })
+  loadSharedApi({ type: 'document', systemType: apiType.value })
+    .exportMulDocument(knowledgeDetail.value.name, id, arr, loading)
+    .then(() => {
+      MsgSuccess(t('common.exportSuccess'))
+    })
+}
+
+function exportMulDocumentZip() {
+  const arr: string[] = []
+  multipleSelection.value.map((v) => {
+    if (v) {
+      arr.push(v.id)
+    }
+  })
+  loadSharedApi({ type: 'document', systemType: apiType.value })
+    .exportMulDocumentZip(knowledgeDetail.value.name, id, arr, loading)
+    .then(() => {
+      MsgSuccess(t('common.exportSuccess'))
+    })
+}
+
 function deleteMulDocument() {
   MsgConfirm(
     `${t('views.document.delete.confirmTitle1')} ${multipleSelection.value.length} ${t('views.document.delete.confirmTitle2')}`,
@@ -1349,8 +1393,9 @@ onMounted(() => {
     paginationConfig.value = beforePagination.value
   }
   if (beforeSearch.value) {
-    filterText.value = beforeSearch.value['filterText']
     filterMethod.value = beforeSearch.value['filterMethod']
+    search_type.value = beforeSearch.value['search_type']
+    search_form.value = beforeSearch.value['search_form']
   }
   getList()
   // 初始化定时任务

@@ -14,11 +14,11 @@ export default {
   delete: {
     confirmTitle: '是否刪除該用戶？',
     confirmMessage:
-      '刪除該用戶後，該使用者建立的所有資源（應用、知識庫、模型）都不會被刪除，請謹慎操作。',
+      '刪除該用戶後，該使用者建立的所有資源（智能體、知識庫、模型）都不會被刪除，請謹慎操作。',
   },
   disabled: {
     confirmTitle: '是否停用工具？',
-    confirmMessage: '停用後，引用該工具的應用在查詢時會報錯，請謹慎操作。',
+    confirmMessage: '停用後，引用該工具的智能體在查詢時會報錯，請謹慎操作。',
   },
   userForm: {
     nick_name: {
@@ -36,9 +36,11 @@ export default {
   source: {
     label: '用戶來源',
     local: '系統用戶',
-     localCreate: '本地建立',
+    localCreate: '本地建立',
     wecom: '企業微信',
     lark: '飛書',
     dingtalk: '釘釘',
   },
+  settingRole: '設定角色',
+  defaultPassword: '預設密碼',
 }

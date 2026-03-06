@@ -12,12 +12,15 @@ from common.utils.common import get_file_content
 from models_provider.base_model_provider import IModelProvider, ModelProvideInfo, ModelInfo, ModelTypeConst, \
     ModelInfoManage
 from models_provider.impl.openai_model_provider.credential.llm import OpenAILLMModelCredential
+from models_provider.impl.volcanic_engine_model_provider.credential.bigModel_stt import \
+    VolcanicEngineBigModelSTTModelCredential
 from models_provider.impl.volcanic_engine_model_provider.credential.embedding import VolcanicEmbeddingCredential
 from models_provider.impl.volcanic_engine_model_provider.credential.image import \
     VolcanicEngineImageModelCredential
 from models_provider.impl.volcanic_engine_model_provider.credential.tti import VolcanicEngineTTIModelCredential
 from models_provider.impl.volcanic_engine_model_provider.credential.tts import VolcanicEngineTTSModelCredential
 from models_provider.impl.volcanic_engine_model_provider.credential.ttv import VolcanicEngineTTVModelCredential
+from models_provider.impl.volcanic_engine_model_provider.model.bigModel_stt import VolcanicEngineBigModelSpeechToText
 from models_provider.impl.volcanic_engine_model_provider.model.embedding import VolcanicEngineEmbeddingModel
 from models_provider.impl.volcanic_engine_model_provider.model.image import VolcanicEngineImage
 from models_provider.impl.volcanic_engine_model_provider.model.llm import VolcanicEngineChatModel
@@ -33,6 +36,7 @@ from models_provider.impl.volcanic_engine_model_provider.model.ttv import Genera
 
 volcanic_engine_llm_model_credential = OpenAILLMModelCredential()
 volcanic_engine_stt_model_credential = VolcanicEngineSTTModelCredential()
+volcanic_engine_big_stt_model_credential = VolcanicEngineBigModelSTTModelCredential()
 volcanic_engine_tts_model_credential = VolcanicEngineTTSModelCredential()
 volcanic_engine_image_model_credential = VolcanicEngineImageModelCredential()
 volcanic_engine_tti_model_credential = VolcanicEngineTTIModelCredential()
@@ -52,6 +56,11 @@ model_info_list = [
               '',
               ModelTypeConst.STT,
               volcanic_engine_stt_model_credential, VolcanicEngineSpeechToText
+              ),
+    ModelInfo('bigmodel',
+              '',
+              ModelTypeConst.STT,
+              volcanic_engine_big_stt_model_credential, VolcanicEngineBigModelSpeechToText
               ),
     ModelInfo('tts',
               '',

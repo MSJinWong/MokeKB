@@ -513,3 +513,59 @@ class ToolView(APIView):
                 'icon': request.data.get('icon'),
                 'versions': request.data.get('versions'),
             }).update_tool(request.data))
+
+    class PageToolRecord(APIView):
+        authentication_classes = [TokenAuth]
+
+        @extend_schema(
+            methods=['GET'],
+            description=_("Get tool records"),
+            summary=_("Get tool records"),
+            operation_id=_("Get tool records"),  # type: ignore
+            parameters=AddInternalToolAPI.get_parameters(),
+            responses=AddInternalToolAPI.get_response(),
+            tags=[_("Tool")]  # type: ignore
+        )
+        @has_permissions(
+            PermissionConstants.TOOL_EXECUTE_RECORD.get_workspace_tool_permission(),
+            PermissionConstants.TOOL_EXECUTE_RECORD.get_workspace_permission_workspace_manage_role(),
+            RoleConstants.WORKSPACE_MANAGE.get_workspace_role(),
+            ViewPermission([RoleConstants.USER.get_workspace_role()],
+                           [PermissionConstants.TOOL.get_workspace_tool_permission()],
+                           CompareConstants.AND),
+        )
+        def get(self, request: Request, tool_id: str, workspace_id: str, current_page: int, page_size: int):
+            return result.success(ToolSerializer.ToolRecord(data={
+                'tool_id': tool_id,
+                'workspace_id': workspace_id,
+                'source_name': request.query_params.get('source_name'),
+                'source_type': request.query_params.get('source_type'),
+                'state': request.query_params.get('state'),
+            }).get_tool_records(current_page, page_size))
+
+    class ToolRecord(APIView):
+        authentication_classes = [TokenAuth]
+
+        @extend_schema(
+            methods=['GET'],
+            description=_("Get tool record"),
+            summary=_("Get tool record"),
+            operation_id=_("Get tool record"),  # type: ignore
+            parameters=AddInternalToolAPI.get_parameters(),
+            responses=AddInternalToolAPI.get_response(),
+            tags=[_("Tool")]  # type: ignore
+        )
+        @has_permissions(
+            PermissionConstants.TOOL_EXECUTE_RECORD.get_workspace_tool_permission(),
+            PermissionConstants.TOOL_EXECUTE_RECORD.get_workspace_permission_workspace_manage_role(),
+            RoleConstants.WORKSPACE_MANAGE.get_workspace_role(),
+            ViewPermission([RoleConstants.USER.get_workspace_role()],
+                           [PermissionConstants.TOOL.get_workspace_tool_permission()],
+                           CompareConstants.AND),
+        )
+        def get(self, request: Request, tool_id: str, workspace_id: str, record_id: str):
+            return result.success(ToolSerializer.ToolRecord(data={
+                'tool_id': tool_id,
+                'workspace_id': workspace_id,
+                'record_id': record_id,
+            }).one())

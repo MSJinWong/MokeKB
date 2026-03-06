@@ -7,6 +7,7 @@ export default {
   apiServiceAddress: 'API 服务地址',
   language: '语言',
   isExpire: '未上传 License 或 License 已过期。',
+  crossSettings: '跨域设置',
   about: {
     title: '关于',
     expiredTime: '到期时间',
@@ -29,12 +30,15 @@ export default {
     default_user_group: '默认用户组',
   },
   time: {
-    daysLater: '天后',
-    hoursLater: '小时后',
+    daysLater: '天后过期',
+    hoursLater: '小时后过期',
+    minutesLater: '分钟后过期',
     expired: '已过期',
-    expiringSoon: '即将到期'
+    expiringSoon: '即将到期',
+    neverExpires: '永不过期',
+    daysValid: '天有效',
   },
-  copyright: '版权所有 © 2014-2025 杭州飞致云信息科技有限公司',
+  copyright: '版权所有 © 2014-2026 杭州飞致云信息科技有限公司',
   userManualUrl: 'https://maxkb.cn/docs/v2/',
-  forumUrl: 'https://bbs.fit2cloud.com/c/mk/11'
+  forumUrl: 'https://bbs.fit2cloud.com/c/mk/11',
 }

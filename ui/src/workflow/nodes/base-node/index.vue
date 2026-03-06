@@ -10,7 +10,7 @@
       ref="baseNodeFormRef"
     >
       <el-form-item
-        :label="$t('workflow.nodes.baseNode.appName.label')"
+        :label="$t('common.name')"
         prop="name"
         :rules="{
           message: t('views.application.form.appName.requiredMessage'),
@@ -26,7 +26,7 @@
           @blur="form_data.name = form_data.name?.trim()"
         />
       </el-form-item>
-      <el-form-item :label="$t('workflow.nodes.baseNode.appDescription.label')">
+      <el-form-item :label="$t('common.desc')">
         <el-input
           v-model="form_data.desc"
           :placeholder="$t('views.application.form.appDescription.placeholder')"
@@ -49,9 +49,7 @@
         <template #label>
           <div class="flex-between">
             <div class="flex align-center">
-              <span class="mr-4">{{
-                $t('workflow.nodes.baseNode.fileUpload.label')
-              }}</span>
+              <span class="mr-4">{{ $t('workflow.nodes.baseNode.fileUpload.label') }}</span>
               <el-tooltip
                 effect="dark"
                 :content="$t('workflow.nodes.baseNode.fileUpload.tooltip')"
@@ -156,6 +154,7 @@
           </el-button>
         </div>
       </el-form-item>
+
     </el-form>
     <TTSModeParamSettingDialog ref="TTSModeParamSettingDialogRef" @refresh="refreshTTSForm" />
     <FileUploadSettingDialog
@@ -262,6 +261,7 @@ const validate = () => {
 }
 
 const resource = getResourceDetail()
+
 function getSTTModel() {
   const obj =
     apiType.value === 'systemManage'
@@ -367,8 +367,4 @@ onMounted(() => {
   getSTTModel()
 })
 </script>
-<style lang="scss" scoped>
-:deep(.el-form-item__label) {
-  display: block;
-}
-</style>
+<style lang="scss" scoped></style>

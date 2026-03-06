@@ -14,7 +14,6 @@ const useFolderStore = defineStore('folder', {
       return new Promise((resolve, reject) => {
         loadSharedApi({
           type: 'folder',
-          isShared: this.currentFolder?.id === 'share',
           systemType,
         })
           .getFolder(source, data, loading)

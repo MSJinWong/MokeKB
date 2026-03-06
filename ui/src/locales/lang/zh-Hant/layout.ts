@@ -3,11 +3,11 @@ export default {
   wiki: '使用者手冊',
   forum: '論壇求助',
   logout: '登出',
-
   apiKey: 'API Key 管理',
   apiServiceAddress: 'API 服務地址',
   language: '語言',
   isExpire: '未上傳 License 或 License 已過期。',
+  crossSettings: '跨域設定',
   about: {
     title: '關於',
     expiredTime: '到期時間',
@@ -15,7 +15,7 @@ export default {
       label: '版本',
       community: '社群版',
       professional: '專業版',
-      enterprise: '企業版'
+      enterprise: '企業版',
     },
     version: '版本號',
     serialNo: '序列號',
@@ -30,12 +30,15 @@ export default {
     default_user_group: '預設使用者群組',
   },
   time: {
-    daysLater: '天後',
-    hoursLater: '小時後',
+    daysLater: '天後过期',
+    hoursLater: '小時後过期',
     expired: '已過期',
-    expiringSoon: '即將到期'
+    minutesLater: '分鐘後过期',
+    expiringSoon: '即將到期',
+    neverExpires: '永不過期',
+    daysValid: '天有效',
   },
-  copyright: '版權所有 © 2014-2025 杭州飛致雲信息科技有限公司',
-  userManualUrl:'https://maxkb.cn/docs/v2/',
-  forumUrl: 'https://github.com/1Panel-dev/MaxKB/discussions'
+  copyright: '版權所有 © 2014-2026 杭州飛致雲信息科技有限公司',
+  userManualUrl: 'https://maxkb.cn/docs/v2/',
+  forumUrl: 'https://github.com/1Panel-dev/MaxKB/discussions',
 }

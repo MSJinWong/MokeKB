@@ -1,6 +1,3 @@
-import tool from '@/api/tool/tool'
-import type {title} from 'process'
-
 export default {
   node: '节点',
   nodeName: '节点名称',
@@ -14,6 +11,8 @@ export default {
   },
   operation: {
     toImportDoc: '去导入文档',
+    importWorkflow: '导入工作流',
+    exportWorkflow: '导出工作流',
   },
   setting: {
     restoreVersion: '恢复版本',
@@ -25,6 +24,7 @@ export default {
     copyParam: '复制参数',
     exit: '直接退出',
     exitSave: '保存并退出',
+    templateCenter: '模板中心',
   },
   tip: {
     noData: '没有找到相关结果',
@@ -32,7 +32,7 @@ export default {
     onlyRight: '只允许从右边的锚点连出',
     notRecyclable: '不可循环连线',
     onlyLeft: '只允许连接左边的锚点',
-    applicationNodeError: '该应用不可用',
+    applicationNodeError: '该智能体不可用',
     toolNodeError: '该工具不可用',
     repeatedNodeError: '节点名称已存在！',
     cannotCopy: '不能被复制',
@@ -120,13 +120,6 @@ export default {
       currentTime: '当前时间',
     },
     baseNode: {
-      label: '基本信息',
-      appName: {
-        label: '应用名称',
-      },
-      appDescription: {
-        label: '应用描述',
-      },
       fileUpload: {
         label: '文件上传',
         tooltip: '开启后，问答页面会显示上传文件的按钮。',
@@ -138,7 +131,7 @@ export default {
         fileUploadType: {
           label: '上传的文件类型',
           documentText: '需要使用“文档内容提取”节点解析文档内容',
-          imageText: '需要使用“视觉模型”节点解析图片内容',
+          imageText: '需要使用“图片理解”节点解析图片内容',
           audioText: '需要使用“语音转文本”节点解析音频内容',
           videoText: '需要使用“视频理解”节点解析视频内容',
           otherText: '需要自行解析该类型文件',
@@ -195,10 +188,6 @@ export default {
       searchParam: '检索参数',
       select_variable: '选择变量',
       valueMessage: `值或变量`,
-      showKnowledge: {
-        label: '结果显示在知识来源中',
-        requiredMessage: '请设置参数',
-      },
       searchQuestion: {
         label: '检索问题',
         placeholder: '请选择检索问题',
@@ -382,7 +371,7 @@ export default {
         label: '视觉模型',
         requiredMessage: '请选择视觉模型',
       },
-      image: {
+      video: {
         label: '选择视频',
         requiredMessage: '请选择视频',
       },
@@ -452,7 +441,7 @@ export default {
       },
     },
     applicationNode: {
-      label: '应用节点',
+      label: '智能体节点',
     },
     loopNode: {
       label: '循环节点',
@@ -539,7 +528,7 @@ export default {
   },
   SystemPromptPlaceholder: '系统提示词，可以引用系统中的变量：如',
   UserPromptPlaceholder: '用户提示词，可以引用系统中的变量：如',
-  ExecutionRecord: '执行记录',
   initiator: '发起人',
-  debug: {},
+  abnormalInformation: '异常信息'
+
 }

@@ -21,7 +21,7 @@
               <el-card
                 shadow="never"
                 class="mb-16"
-                :class="form.search_mode === 'embedding' ? 'active' : ''"
+                :class="form.knowledge_setting.search_mode === 'embedding' ? 'border-active' : ''"
               >
                 <el-radio value="embedding" size="large">
                   <p class="mb-4">
@@ -35,7 +35,7 @@
               <el-card
                 shadow="never"
                 class="mb-16"
-                :class="form.knowledge_setting.search_mode === 'keywords' ? 'active' : ''"
+                :class="form.knowledge_setting.search_mode === 'keywords' ? 'border-active' : ''"
               >
                 <el-radio value="keywords" size="large">
                   <p class="mb-4">
@@ -48,7 +48,7 @@
               </el-card>
               <el-card
                 shadow="never"
-                :class="form.knowledge_setting.search_mode === 'blend' ? 'active' : ''"
+                :class="form.knowledge_setting.search_mode === 'blend' ? 'border-active' : ''"
               >
                 <el-radio value="blend" size="large">
                   <p class="mb-4">

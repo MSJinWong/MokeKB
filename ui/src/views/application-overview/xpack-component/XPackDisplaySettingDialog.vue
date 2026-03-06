@@ -142,7 +142,7 @@
               class="p-16 text-center w-full"
             >
               <img src="@/assets/application/display-bg1.png" alt="" class="w-full" />
-              <el-text type="info" v-if="xpackForm.disclaimer" class="mt-8" style="font-size: 12px">
+              <el-text type="info" v-if="xpackForm.disclaimer" class="mt-8 font-small">
                 <auto-tooltip :content="xpackForm.disclaimer_value">
                   {{ xpackForm.disclaimer_value }}
                 </auto-tooltip>

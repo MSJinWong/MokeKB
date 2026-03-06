@@ -138,7 +138,7 @@
                                     null,
                                     {
                                       paragraph_id: item.id,
-                                      new_position: val === 'up' ? index - 1 : index + 1,
+                                      new_position: setPosition(val, index),
                                     },
                                     index,
                                   )
@@ -251,6 +251,18 @@ watch(
     dialogVisible.value = val
   },
 )
+
+function setPosition(val: string, index: number) {
+  if (val === 'top') {
+    return 0
+  } else if (val === 'bottom') {
+    return paginationConfig.total - 1
+  } else if (val === 'up') {
+    return index - 1
+  } else if (val === 'down') {
+    return index + 1
+  }
+}
 function dialogVisibleChange(val: boolean) {
   dialogVisible.value = val
 }
@@ -409,7 +421,8 @@ function onEnd(event?: any, params?: any, index?: number) {
   }
   const obj = p ?? {
     paragraph_id: paragraphDetail.value[event.newIndex].id, // 当前拖动的段落ID
-    new_position: paragraphDetail.value[event.newIndex + 1]?.position || paragraphDetail.value.length, // 新位置的段落位置
+    new_position:
+      paragraphDetail.value[event.newIndex + 1]?.position || paragraphDetail.value.length, // 新位置的段落位置
   }
   // console.log(paragraphDetail.value[event.newIndex], obj)
   loadSharedApi({ type: 'paragraph', systemType: apiType.value }).putAdjustPosition(

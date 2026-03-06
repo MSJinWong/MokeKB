@@ -36,9 +36,12 @@
           <template v-for="(item, index) in chatList" :key="index">
             <!-- 问题 -->
             <QuestionContent
+              :chat-management="ChatManagement"
               :type="type"
               :application="applicationDetails"
+              :send-message="sendMessage"
               :chat-record="item"
+              :is-last="index >= chatList.length - 1"
             ></QuestionContent>
             <!-- 回答 -->
             <AnswerContent
@@ -194,7 +197,7 @@ const initialApiFormData = ref({})
 
 const isUserInput = computed(
   () =>
-    props.applicationDetails.work_flow?.nodes?.filter((v: any) => v.id === 'base-node')[0]
+    props.applicationDetails?.work_flow?.nodes?.filter((v: any) => v.id === 'base-node')[0]
       ?.properties.user_input_field_list.length > 0,
 )
 
@@ -420,73 +423,76 @@ function getChartOpenId(chat?: any, problem?: string, re_chat?: boolean, other_p
  */
 const getWrite = (chat: any, reader: any, stream: boolean) => {
   let tempResult = ''
-  /**
-   *
-   * @param done  是否结束
-   * @param value 值
-   */
-  const write_stream = ({ done, value }: { done: boolean; value: any }) => {
+
+  const write_stream = async () => {
     try {
-      if (done) {
-        ChatManagement.close(chat.id)
-        return
-      }
-      const decoder = new TextDecoder('utf-8')
-      let str = decoder.decode(value, { stream: true })
-      // 这里解释一下 start 因为数据流返回流并不是按照后端chunk返回 我们希望得到的chunk是data:{xxx}\n\n 但是它获取到的可能是 data:{ -> xxx}\n\n 总而言之就是 fetch不能保证每个chunk都说以data:开始 \n\n结束
-      tempResult += str
-      const split = tempResult.match(/data:.*}\n\n/g)
-      if (split) {
-        str = split.join('')
-        tempResult = tempResult.replace(str, '')
-      } else {
-        return reader.read().then(write_stream)
-      }
-      // 这里解释一下 end
-      if (str && str.startsWith('data:')) {
+      while (true) {
+        const { done, value } = await reader.read()
+
+        if (done) {
+          ChatManagement.close(chat.id)
+          return
+        }
+
+        const decoder = new TextDecoder('utf-8')
+        let str = decoder.decode(value, { stream: true })
+
+        tempResult += str
+        const split = tempResult.match(/data:.*?}\n\n/g)
         if (split) {
-          for (const index in split) {
-            const chunk = JSON?.parse(split[index].replace('data:', ''))
+          str = split.join('')
+          tempResult = tempResult.replace(str, '')
+
+          // 批量处理所有 chunk
+          for (const item of split) {
+            const chunk = JSON.parse(item.replace('data:', ''))
             chat.chat_id = chunk.chat_id
             chat.record_id = chunk.chat_record_id
+
             if (!chunk.is_end) {
               ChatManagement.appendChunk(chat.id, chunk)
             }
+
             if (chunk.is_end) {
-              // 流处理成功 返回成功回调
               return Promise.resolve()
             }
           }
+        }
+        // 如果没有匹配到完整chunk，继续读取下一块
+      }
+    } catch (e) {
+      return Promise.reject(e)
+    }
+  }
+
+  const write_json = async () => {
+    try {
+      while (true) {
+        const { done, value } = await reader.read()
+
+        if (done) {
+          const result_block = JSON.parse(tempResult)
+          if (result_block.code === 500) {
+            return Promise.reject(result_block.message)
+          } else {
+            if (result_block.content) {
+              ChatManagement.append(chat.id, result_block.content)
+            }
+          }
+          ChatManagement.close(chat.id)
+          return
+        }
+
+        if (value) {
+          const decoder = new TextDecoder('utf-8')
+          tempResult += decoder.decode(value)
         }
       }
     } catch (e) {
       return Promise.reject(e)
     }
-    return reader.read().then(write_stream)
   }
-  /**
-   * 处理 json 响应
-   * @param param0
-   */
-  const write_json = ({ done, value }: { done: boolean; value: any }) => {
-    if (done) {
-      const result_block = JSON.parse(tempResult)
-      if (result_block.code === 500) {
-        return Promise.reject(result_block.message)
-      } else {
-        if (result_block.content) {
-          ChatManagement.append(chat.id, result_block.content)
-        }
-      }
-      ChatManagement.close(chat.id)
-      return
-    }
-    if (value) {
-      const decoder = new TextDecoder('utf-8')
-      tempResult += decoder.decode(value)
-    }
-    return reader.read().then(write_json)
-  }
+
   return stream ? write_stream : write_json
 }
 const errorWrite = (chat: any, message?: string) => {
@@ -577,7 +583,7 @@ function chatMessage(chat?: any, problem?: string, re_chat?: boolean, other_para
             reader,
             response.headers.get('Content-Type') !== 'application/json',
           )
-          return reader.read().then(write)
+          return write()
         }
       })
       .then(() => {
@@ -642,10 +648,8 @@ const handleScroll = () => {
   if (props.type !== 'log' && scrollDiv.value) {
     // 内部高度小于外部高度 就需要出滚动条
     if (scrollDiv.value.wrapRef.offsetHeight < dialogScrollbar.value.scrollHeight) {
-      // 如果当前滚动条距离最下面的距离在 规定距离 滚动条就跟随
-      if (scorll.value) {
-        scrollDiv.value.setScrollTop(getMaxHeight())
-      }
+      // 滚动到底部
+      scrollDiv.value.setScrollTop(dialogScrollbar.value.scrollHeight)
     }
   }
 }
@@ -695,7 +699,7 @@ onMounted(() => {
     // 2. 解析当前变换状态
     const currentTransform = target.style.transform
     const transformValues = parseTransform(currentTransform)
-    let { scale, translateX, translateY } = transformValues
+    const { scale, translateX, translateY } = transformValues
     // 确保scale是数值类型
     const currentScale = Array.isArray(scale) ? scale[0] : scale
 
@@ -756,7 +760,9 @@ function setScrollBottom() {
 watch(
   chatList,
   () => {
-    handleScroll()
+    nextTick(() => {
+      handleScroll() // 确保 DOM 更新后再滚动
+    })
   },
   { deep: true, immediate: true },
 )

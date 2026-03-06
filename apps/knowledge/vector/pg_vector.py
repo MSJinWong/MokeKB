@@ -21,7 +21,7 @@ from common.db.sql_execute import select_list
 from common.utils.common import get_file_content
 from common.utils.ts_vecto_util import to_ts_vector, to_query
 from knowledge.models import Embedding, SearchMode, SourceType
-from knowledge.vector.base_vector import BaseVectorStore
+from knowledge.vector.base_vector import BaseVectorStore, normalize_for_embedding
 from maxkb.conf import PROJECT_DIR
 
 
@@ -46,6 +46,7 @@ class PGVector(BaseVectorStore):
               source_id: str,
               is_active: bool,
               embedding: Embeddings):
+        text = normalize_for_embedding(text)
         text_embedding = [float(x) for x in embedding.embed_query(text)]
         embedding = Embedding(
             id=uuid.uuid7(),
@@ -62,7 +63,7 @@ class PGVector(BaseVectorStore):
         return True
 
     def _batch_save(self, text_list: List[Dict], embedding: Embeddings, is_the_task_interrupted):
-        texts = [row.get('text') for row in text_list]
+        texts = [normalize_for_embedding(row.get('text')) for row in text_list]
         embeddings = embedding.embed_documents(texts)
         embedding_list = [
             Embedding(
@@ -87,6 +88,7 @@ class PGVector(BaseVectorStore):
         if knowledge_id_list is None or len(knowledge_id_list) == 0:
             return []
         exclude_dict = {}
+        query_text = normalize_for_embedding(query_text)
         embedding_query = embedding.embed_query(query_text)
         query_set = QuerySet(Embedding).filter(knowledge_id__in=knowledge_id_list, is_active=True)
         if exclude_document_id_list is not None and len(exclude_document_id_list) > 0:

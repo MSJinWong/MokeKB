@@ -71,10 +71,18 @@ class Fork:
 
     def __init__(self, base_fork_url: str, selector_list: List[str]):
         base_fork_url = remove_fragment(base_fork_url)
-        self.base_fork_url = urljoin(base_fork_url if base_fork_url.endswith("/") else base_fork_url + '/', '.')
+        parsed = urlparse(base_fork_url)
+        path = parsed.path.rstrip('/')
+        self.base_fork_url = urlunparse((
+            parsed.scheme,
+            parsed.netloc,
+            path,
+            None,
+            None,
+            None  # fragment
+        ))
         parsed = urlsplit(base_fork_url)
         query = parsed.query
-        self.base_fork_url = self.base_fork_url[:-1]
         if query is not None and len(query) > 0:
             self.base_fork_url = self.base_fork_url + '?' + query
         self.selector_list = [selector for selector in selector_list if selector is not None and len(selector) > 0]

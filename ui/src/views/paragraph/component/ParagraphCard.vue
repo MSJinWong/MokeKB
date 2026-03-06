@@ -94,6 +94,12 @@
                     <el-dropdown-menu>
                       <el-dropdown-item
                         :disabled="!props.showMoveUp"
+                        @click.stop="emit('move', 'top')"
+                      >
+                        {{ $t('views.document.movePosition.moveTop') }}
+                      </el-dropdown-item>
+                      <el-dropdown-item
+                        :disabled="!props.showMoveUp"
                         @click.stop="emit('move', 'up')"
                       >
                         {{ $t('views.document.movePosition.moveUp') }}
@@ -103,6 +109,12 @@
                         @click.stop="emit('move', 'down')"
                       >
                         {{ $t('views.document.movePosition.moveDown') }}
+                      </el-dropdown-item>
+                      <el-dropdown-item
+                        :disabled="!props.showMoveDown"
+                        @click.stop="emit('move', 'bottom')"
+                      >
+                        {{ $t('views.document.movePosition.moveBottom') }}
                       </el-dropdown-item>
                     </el-dropdown-menu>
                   </template>

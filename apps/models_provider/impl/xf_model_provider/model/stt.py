@@ -35,6 +35,7 @@ class XFSparkSpeechToText(MaxKBBaseModel, BaseSpeechToText):
     spark_api_secret: str
     spark_api_url: str
     params: dict
+    model_name: str
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -43,6 +44,7 @@ class XFSparkSpeechToText(MaxKBBaseModel, BaseSpeechToText):
         self.spark_api_key = kwargs.get('spark_api_key')
         self.spark_api_secret = kwargs.get('spark_api_secret')
         self.params = kwargs.get('params')
+        self.model_name = kwargs.get('model_name')
 
     @staticmethod
     def is_cache_model():
@@ -61,6 +63,7 @@ class XFSparkSpeechToText(MaxKBBaseModel, BaseSpeechToText):
             spark_api_secret=model_credential.get('spark_api_secret'),
             spark_api_url=model_credential.get('spark_api_url'),
             params=model_kwargs,
+            model_name=model_name,
             **optional_params
         )
 
@@ -135,11 +138,18 @@ class XFSparkSpeechToText(MaxKBBaseModel, BaseSpeechToText):
         frameSize = 8000  # 每一帧的音频大小
         status = STATUS_FIRST_FRAME  # 音频的状态信息，标识音频是第一帧，还是中间帧、最后一帧
 
-        allowed_params = {'language','domain','accent','vad_eos','dwa','pd','ptt',
-                          'pcm','ltc','rlang','vinfo','nunum','speex_size','nbest','wbest'}
+        allowed_params = {'language', 'domain', 'accent', 'vad_eos', 'dwa', 'pd', 'ptt',
+                          'pcm', 'ltc', 'rlang', 'vinfo', 'nunum', 'speex_size', 'nbest', 'wbest'}
 
-        business_params = {k: v for k,v in self.params.items() if k in allowed_params}
-
+        business_params = {k: v for k, v in self.params.items() if k in allowed_params}
+        if not business_params:
+            business_params = {
+                "domain": f'{self.model_name}',
+                "language": "zh_cn",
+                "accent": "mandarin",
+                "vinfo": 1,
+                "vad_eos": 10000
+            }
         while True:
             buf = file.read(frameSize)
             # 文件结束

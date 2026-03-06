@@ -67,7 +67,7 @@
                 :innerHTML="getRowProvider(row)?.icon"
               >
               </span>
-              <span> {{ row.name }}</span>
+              <span class="ellipsis" style="max-width: 160px"> {{ row.name }}</span>
             </el-space>
           </template>
         </el-table-column>
@@ -75,7 +75,7 @@
           prop="provider"
           :label="$t('views.model.provider')"
           show-overflow-tooltip
-          width="150"
+          width="160"
         >
           <template #default="{ row }">
             <el-space :size="8">
@@ -221,12 +221,20 @@
                   <el-dropdown-item
                     @click.stop="openParamSetting(row)"
                     v-if="
-                      ['TTS','LLM','IMAGE','TTI','STT','EMBEDDING'].includes(row.model_type) &&
+                      ['TTS', 'LLM', 'IMAGE', 'TTI', 'STT', 'EMBEDDING'].includes(row.model_type) &&
                       permissionPrecise.paramSetting()
                     "
                   >
                     <AppIcon iconName="app-setting" class="color-secondary"></AppIcon>
                     {{ $t('views.model.modelForm.title.paramSetting') }}
+                  </el-dropdown-item>
+                  <el-dropdown-item
+                    text
+                    @click.stop="openResourceMappingDrawer(row)"
+                    v-if="permissionPrecise.relate_map()"
+                  >
+                    <AppIcon iconName="app-resource-mapping" class="color-secondary"></AppIcon>
+                    {{ $t('views.system.resourceMapping.title') }}
                   </el-dropdown-item>
                   <el-dropdown-item
                     @click.stop="deleteModel(row)"
@@ -248,6 +256,7 @@
       :type="SourceTypeEnum.MODEL"
       ref="ResourceAuthorizationDrawerRef"
     />
+    <ResourceMappingDrawer ref="resourceMappingDrawerRef"></ResourceMappingDrawer>
   </div>
 </template>
 
@@ -268,6 +277,7 @@ import { loadPermissionApi } from '@/utils/dynamics-api/permission-api.ts'
 import UserApi from '@/api/user/user.ts'
 import permissionMap from '@/permission'
 import { MsgConfirm, MsgSuccess } from '@/utils/message'
+import ResourceMappingDrawer from '@/components/resource_mapping/index.vue'
 
 const { user, model } = useStore()
 
@@ -294,10 +304,15 @@ const paginationConfig = reactive({
 })
 
 const MoreFilledPermission = () => {
-  return permissionPrecise.value.delete() || permissionPrecise.value.modify()
+  return (
+    permissionPrecise.value.delete() ||
+    permissionPrecise.value.modify() ||
+    permissionPrecise.value.relate_map()
+  )
 }
 
 const ResourceAuthorizationDrawerRef = ref()
+
 function openAuthorization(item: any) {
   ResourceAuthorizationDrawerRef.value.open(item.id)
 }
@@ -305,7 +320,9 @@ function openAuthorization(item: any) {
 const deleteModel = (row: any) => {
   MsgConfirm(
     `${t('views.model.delete.confirmTitle')}${row.name} ?`,
-    t('views.model.delete.confirmMessage'),
+    row.resource_count > 0
+      ? t('views.model.delete.resourceCountMessage', { count: row.resource_count })
+      : '',
     {
       confirmButtonText: t('common.confirm'),
       confirmButtonClass: 'danger',
@@ -411,6 +428,11 @@ function getProvider() {
     provider_list.value = res?.data
     getList()
   })
+}
+
+const resourceMappingDrawerRef = ref<InstanceType<typeof ResourceMappingDrawer>>()
+const openResourceMappingDrawer = (model: any) => {
+  resourceMappingDrawerRef.value?.open('MODEL', model)
 }
 
 onMounted(() => {

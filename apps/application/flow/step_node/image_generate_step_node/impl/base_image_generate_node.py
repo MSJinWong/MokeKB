@@ -18,6 +18,7 @@ class BaseImageGenerateNode(IImageGenerateNode):
     def save_context(self, details, workflow_manage):
         self.context['answer'] = details.get('answer')
         self.context['question'] = details.get('question')
+        self.context['exception_message'] = details.get('err_message')
         if self.node_params.get('is_result', False):
             self.answer_text = details.get('answer')
 
@@ -41,8 +42,18 @@ class BaseImageGenerateNode(IImageGenerateNode):
         file_urls = []
         for image_url in image_urls:
             file_name = 'generated_image.png'
-            if isinstance(image_url, str) and image_url.startswith('http'):
-                image_url = requests.get(image_url).content
+            if isinstance(image_url, str):
+                if image_url.startswith('http'):
+                    # HTTP URL 情况
+                    image_url = requests.get(image_url).content
+                elif image_url.startswith('data:image'):
+                    # Data URL 格式 (data:image/png;base64,...)
+                    import base64
+                    header, encoded = image_url.split(',', 1)
+                    image_url = base64.b64decode(encoded)
+                else:
+                    import base64
+                    image_url = base64.b64decode(image_url)
             file = bytes_to_uploaded_file(image_url, file_name)
             file_url = self.upload_file(file)
             file_urls.append(file_url)
@@ -154,4 +165,5 @@ class BaseImageGenerateNode(IImageGenerateNode):
             'image_list': self.context.get('image_list'),
             'dialogue_type': self.context.get('dialogue_type'),
             'negative_prompt': self.context.get('negative_prompt'),
+            'enableException': self.node.properties.get('enableException'),
         }

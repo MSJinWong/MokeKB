@@ -15,12 +15,12 @@ export default {
   delete: {
     confirmTitle: 'Confirm deletion of user:',
     confirmMessage:
-      'Deleting this user will also not delete all resources (APP, knowledge, models) created by this user. Please proceed with caution.',
+      'Deleting this user will also not delete all resources (agent, knowledge, models) created by this user. Please proceed with caution.',
   },
   disabled: {
     confirmTitle: 'Confirm disable tool:',
     confirmMessage:
-      'Disabling this tool will cause errors when APP that reference it are queried. Please proceed with caution.',
+      'Disabling this tool will cause errors when agent that reference it are queried. Please proceed with caution.',
   },
   userForm: {
     nick_name: {
@@ -35,11 +35,13 @@ export default {
     },
   },
   source: {
-    label: 'User Source',
+    label: 'Source',
     local: 'System User',
     localCreate: 'Local Create',
     wecom: 'WeCom',
     lark: 'Lark',
     dingtalk: 'DingTalk',
   },
+  settingRole: 'Set Role',
+  defaultPassword: 'Default Password',
 }

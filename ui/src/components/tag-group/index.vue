@@ -1,13 +1,19 @@
 <template>
   <div class="tag-group" v-if="props.tags.length">
     <el-tag :size="props.size" class="default-tag tag-ellipsis" :title="props.tags[0]">
-      {{ props.tags[0] }}
+      {{ i18n_name(props.tags[0]) }}
     </el-tag>
-    <el-tooltip effect="light" :disabled="tooltipDisabled">
-      <el-tag :size="props.size" class="info-tag ml-4 cursor" v-if="props.tags?.length > 1">
-        +{{ props.tags?.length - 1 }}
-      </el-tag>
-      <template #content>
+    <el-popover
+      placement="bottom"
+      :disabled="tooltipDisabled"
+      :popper-style="{ width: 'auto', maxWidth: '300px' }"
+    >
+      <template #reference>
+        <el-tag :size="props.size" class="info-tag ml-4 cursor" v-if="props.tags?.length > 1">
+          +{{ props.tags?.length - 1 }}
+        </el-tag>
+      </template>
+      <el-space>
         <el-tag
           :size="props.size"
           v-for="item in props.tags.slice(1)"
@@ -16,11 +22,14 @@
         >
           {{ item }}
         </el-tag>
-      </template>
-    </el-tooltip>
+      </el-space>
+    </el-popover>
   </div>
 </template>
 <script setup lang="ts">
+import { i18n_name } from '@/utils/common'
+import type { max } from 'moment'
+
 const props = defineProps<{
   tags: string[]
   size?: 'large' | 'default' | 'small'
@@ -30,18 +39,24 @@ const props = defineProps<{
 
 <style lang="scss" scoped>
 .tag-group {
-  :deep(.el-tag__content) {
-    width: 100%;
-  }
   /* tag超出省略号 */
   .tag-ellipsis {
     box-sizing: border-box;
     max-width: 130px;
-    .el-tag__content {
+    :deep(.el-tag__content) {
       overflow: hidden;
       white-space: nowrap;
       text-overflow: ellipsis;
     }
   }
+}
+.el-popper.is-customized {
+  background: #ffffff;
+  box-shadow: 0px 4px 8px 0px rgba(31, 35, 41, 0.1);
+}
+
+.el-popper.is-customized .el-popper__arrow::before {
+  background: #ffffff;
+  right: 0;
 }
 </style>

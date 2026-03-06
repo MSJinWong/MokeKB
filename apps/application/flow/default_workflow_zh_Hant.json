@@ -14,7 +14,7 @@
                 "node_data": {
                     "desc": "",
                     "name": "maxkbapplication",
-                    "prologue": "您好，我是MaxKB小助手，您可以向我提出MaxKB使用問題。\n- MaxKB主要功能有什麼？\n- MaxKB支持哪些大語言模型？\n- MaxKB支持哪些文檔類型？"
+                    "prologue": "您好，我是 MaxKB 小助手，您可以向我提出 MaxKB 使用問題。\n- MaxKB 主要功能有哪些？\n- MaxKB 支援哪些大型語言模型？\n- MaxKB 支援哪些文件類型？"
                 },
                 "input_field_list": [
 
@@ -30,20 +30,20 @@
                 "config": {
                     "fields": [
                         {
-                            "label": "用户问题",
+                            "label": "用戶問題",
                             "value": "question"
                         }
                     ],
                     "globalFields": [
                         {
-                            "label": "当前时间",
+                            "label": "當前時間",
                             "value": "time"
                         }
                     ]
                 },
                 "fields": [
                     {
-                        "label": "用户问题",
+                        "label": "用戶問題",
                         "value": "question"
                     }
                 ],
@@ -51,7 +51,7 @@
                 "stepName": "開始",
                 "globalFields": [
                     {
-                        "label": "当前时间",
+                        "label": "當前時間",
                         "value": "time"
                     }
                 ]
@@ -66,19 +66,19 @@
                 "config": {
                     "fields": [
                         {
-                            "label": "检索结果的分段列表",
+                            "label": "檢索結果的分段列表",
                             "value": "paragraph_list"
                         },
                         {
-                            "label": "满足直接回答的分段列表",
+                            "label": "滿足直接回答的分段列表",
                             "value": "is_hit_handling_method_list"
                         },
                         {
-                            "label": "检索结果",
+                            "label": "檢索結果",
                             "value": "data"
                         },
                         {
-                            "label": "满足直接回答的分段内容",
+                            "label": "滿足直接回答的分段內容",
                             "value": "directly_return"
                         }
                     ]
@@ -115,7 +115,7 @@
                 "config": {
                     "fields": [
                         {
-                            "label": "分支名称",
+                            "label": "分支名稱",
                             "value": "branch_name"
                         }
                     ]
@@ -192,7 +192,7 @@
                 "config": {
                     "fields": [
                         {
-                            "label": "内容",
+                            "label": "內容",
                             "value": "answer"
                         }
                     ]
@@ -219,7 +219,7 @@
                 "config": {
                     "fields": [
                         {
-                            "label": "AI 回答内容",
+                            "label": "AI 回答內容",
                             "value": "answer"
                         }
                     ]
@@ -244,7 +244,7 @@
                 "config": {
                     "fields": [
                         {
-                            "label": "AI 回答内容",
+                            "label": "AI 回答內容",
                             "value": "answer"
                         }
                     ]

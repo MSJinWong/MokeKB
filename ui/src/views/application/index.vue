@@ -61,6 +61,14 @@
               <el-option :label="$t('common.status.unpublished')" value="unpublished" />
             </el-select>
           </div>
+          <el-button
+            class="ml-8"
+            v-if="permissionPrecise.create()"
+            @click="openTemplateStoreDialog()"
+          >
+            <AppIcon iconName="app-template-center" class="mr-4" />
+            {{ $t('workflow.setting.templateCenter') }}
+          </el-button>
           <el-dropdown trigger="click" v-if="permissionPrecise.create()">
             <el-button type="primary" class="ml-8">
               {{ $t('common.create') }}
@@ -80,8 +88,10 @@
                       />
                     </el-avatar>
                     <div class="pre-wrap ml-8">
-                      <div class="lighter">{{ $t('views.application.simple') }}</div>
-                      <el-text type="info" size="small"
+                      <div class="lighter">
+                        {{ $t('views.application.simpleAgent') }}
+                      </div>
+                      <el-text type="info" size="small" class="color-secondary"
                         >{{ $t('views.application.simplePlaceholder') }}
                       </el-text>
                     </div>
@@ -97,9 +107,9 @@
                       />
                     </el-avatar>
                     <div class="pre-wrap ml-8">
-                      <div class="lighter">{{ $t('views.application.workflow') }}</div>
-                      <el-text type="info" size="small"
-                        >{{ $t('views.application.workflowPlaceholder') }}
+                      <div class="lighter">{{ $t('views.application.AdvancedAgent') }}</div>
+                      <el-text type="info" size="small" class="color-secondary"
+                        >{{ $t('views.application.advancedPlaceholder') }}
                       </el-text>
                     </div>
                   </div>
@@ -121,7 +131,7 @@
                         <img src="@/assets/icon_import.svg" alt="" />
                       </el-avatar>
                       <div class="pre-wrap ml-8">
-                        <div class="lighter">{{ $t('common.importCreate') }}</div>
+                        <div class="lighter">{{ $t('views.application.importApplication') }}</div>
                       </div>
                     </div>
                   </el-dropdown-item>
@@ -176,7 +186,7 @@
                   </template>
                   <template #tag>
                     <el-tag v-if="isWorkFlow(item.type)" class="warning-tag">
-                      {{ $t('views.application.workflow') }}
+                      {{ $t('views.application.senior') }}
                     </el-tag>
                     <el-tag class="blue-tag" v-else>
                       {{ $t('views.application.simple') }}
@@ -205,17 +215,22 @@
                   </template>
                   <template #mouseEnter>
                     <div @click.stop>
+                      <el-tooltip
+                        effect="dark"
+                        :content="$t('views.application.operation.toChat')"
+                        placement="top"
+                      >
+                        <el-button text @click.stop="toChat(item)">
+                          <AppIcon iconName="app-create-chat" class="color-secondary"></AppIcon>
+                        </el-button>
+                      </el-tooltip>
+                      <el-divider direction="vertical" />
                       <el-dropdown trigger="click">
                         <el-button text @click.stop>
                           <AppIcon iconName="app-more"></AppIcon>
                         </el-button>
                         <template #dropdown>
                           <el-dropdown-menu>
-                            <el-dropdown-item @click.stop="toChat(item)">
-                              <AppIcon iconName="app-create-chat" class="color-secondary"></AppIcon>
-                              {{ $t('views.application.operation.toChat') }}
-                            </el-dropdown-item>
-
                             <el-dropdown-item
                               @mousedown.stop="settingApplication($event, item)"
                               v-if="permissionPrecise.edit(item.id)"
@@ -234,6 +249,15 @@
                                 class="color-secondary"
                               ></AppIcon>
                               {{ $t('views.system.resourceAuthorization.title') }}
+                            </el-dropdown-item>
+                            <el-dropdown-item
+                              @click.stop="openTriggerDrawer(item)"
+                              v-if="
+                                apiType === 'workspace' && permissionPrecise.trigger_read(item.id)
+                              "
+                            >
+                              <AppIcon iconName="app-trigger" class="color-secondary"></AppIcon>
+                              {{ $t('views.trigger.title') }}
                             </el-dropdown-item>
                             <el-dropdown-item
                               @click.stop="openMoveToDialog(item)"
@@ -291,6 +315,11 @@
       :type="SourceTypeEnum.APPLICATION"
       ref="ResourceAuthorizationDrawerRef"
     />
+    <TemplateStoreDialog ref="templateStoreDialogRef" :api-type="apiType" @refresh="getList" />
+    <ResourceTriggerDrawer
+      ref="resourceTriggerDrawerRef"
+      :source="SourceTypeEnum.APPLICATION"
+    ></ResourceTriggerDrawer>
   </LayoutContainer>
 </template>
 
@@ -301,6 +330,7 @@ import CreateFolderDialog from '@/components/folder-tree/CreateFolderDialog.vue'
 import CopyApplicationDialog from '@/views/application/component/CopyApplicationDialog.vue'
 import MoveToDialog from '@/components/folder-tree/MoveToDialog.vue'
 import ResourceAuthorizationDrawer from '@/components/resource-authorization-drawer/index.vue'
+import ResourceTriggerDrawer from '@/views/trigger/ResourceTriggerDrawer.vue'
 import ApplicationApi from '@/api/application/application'
 import { MsgSuccess, MsgConfirm, MsgError } from '@/utils/message'
 import useStore from '@/stores'
@@ -316,6 +346,7 @@ import WorkspaceApi from '@/api/workspace/workspace'
 import { hasPermission } from '@/utils/permission'
 import { ComplexPermission } from '@/utils/permission/type'
 import { EditionConst, PermissionConst, RoleConst } from '@/utils/permission/data'
+import TemplateStoreDialog from '@/views/application/template-store/TemplateStoreDialog.vue'
 
 const router = useRouter()
 
@@ -349,7 +380,13 @@ const folderList = ref<any[]>([])
 const applicationList = ref<any[]>([])
 const CopyApplicationDialogRef = ref()
 
+const resourceTriggerDrawerRef = ref<InstanceType<typeof ResourceTriggerDrawer>>()
+const openTriggerDrawer = (data: any) => {
+  resourceTriggerDrawerRef.value?.open(data)
+}
+
 const ResourceAuthorizationDrawerRef = ref()
+
 function openAuthorization(item: any) {
   ResourceAuthorizationDrawerRef.value.open(item.id)
 }
@@ -365,8 +402,11 @@ function openMoveToDialog(data: any) {
 }
 
 function refreshApplicationList(row: any) {
-  const index = applicationList.value.findIndex((v) => v.id === row.id)
-  applicationList.value.splice(index, 1)
+  // 不是根目录才会移除
+  if (folder.currentFolder?.parent_id) {
+    const index = applicationList.value.findIndex((v) => v.id === row.id)
+    applicationList.value.splice(index, 1)
+  }
 }
 
 const goApp = (item: any) => {
@@ -583,7 +623,9 @@ function settingApplication(event: any, row: any) {
 function deleteApplication(row: any) {
   MsgConfirm(
     `${t('views.application.delete.confirmTitle')}${row.name} ?`,
-    t('views.application.delete.confirmMessage'),
+    row.resource_count > 0
+      ? t('views.application.delete.resourceCountMessage', row.resource_count)
+      : '',
     {
       confirmButtonText: t('common.confirm'),
       cancelButtonText: t('common.cancel'),
@@ -650,19 +692,13 @@ function getFolder(bool?: boolean) {
     .asyncGetFolder(SourceTypeEnum.APPLICATION, params, apiType.value, loading)
     .then((res: any) => {
       folderList.value = res.data
+
       if (bool) {
         // 初始化刷新
         folder.setCurrentFolder(res.data?.[0] || {})
       }
       getList()
     })
-}
-
-function clickFolder(item: any) {
-  folder.setCurrentFolder(item)
-  paginationConfig.current_page = 1
-  applicationList.value = []
-  getList()
 }
 
 function folderClickHandle(row: any) {
@@ -685,6 +721,12 @@ function searchHandle() {
   paginationConfig.current_page = 1
   applicationList.value = []
   getList()
+}
+
+const templateStoreDialogRef = ref()
+
+function openTemplateStoreDialog() {
+  templateStoreDialogRef.value?.open(folder.currentFolder.id)
 }
 
 function getList() {

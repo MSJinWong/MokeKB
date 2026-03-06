@@ -6,4 +6,4 @@ class UsersConfig(AppConfig):
     name = 'users'
 
     def ready(self):
-        from ops.celery import signal_handler
+        from ops.celery import signal_handler  # noqa

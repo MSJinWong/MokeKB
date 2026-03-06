@@ -8,6 +8,7 @@
 """
 import re
 import traceback
+from typing import Any
 
 from charset_normalizer import detect
 
@@ -47,7 +48,7 @@ class MarkdownParseQAHandle(BaseParseQAHandle):
                     line = lines[i].strip()
                     if not line.startswith('|'):
                         break
-                    row = [cell.strip() for cell in line.split('|')[1:-1]]
+                    row = [self._unescape_cell_content(cell) for cell in line.split('|')[1:-1]]
                     if len(row) > 0:
                         table_data.append(row)
                     i += 1
@@ -58,6 +59,11 @@ class MarkdownParseQAHandle(BaseParseQAHandle):
                 i += 1
 
         return tables
+
+    def _unescape_cell_content(self, cell) -> Any:
+        text = cell.strip().replace('&#124;', '|')
+        text = text.replace('|<br>|', '|\n|')
+        return text
 
     def handle(self, file, get_buffer, save_image):
         buffer = get_buffer(file)

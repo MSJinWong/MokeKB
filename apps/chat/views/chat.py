@@ -15,15 +15,17 @@ from rest_framework.request import Request
 from rest_framework.views import APIView
 
 from application.api.application_api import SpeechToTextAPI, TextToSpeechAPI
+from application.models import ChatUserType, ChatSourceChoices
 from chat.api.chat_api import ChatAPI
 from chat.api.chat_authentication_api import ChatAuthenticationAPI, ChatAuthenticationProfileAPI, ChatOpenAPI, OpenAIAPI
 from chat.serializers.chat import OpenChatSerializers, ChatSerializers, SpeechToTextSerializers, \
     TextToSpeechSerializers, OpenAIChatSerializer
 from chat.serializers.chat_authentication import AnonymousAuthenticationSerializer, ApplicationProfileSerializer, \
     AuthProfileSerializer
-from common.auth import TokenAuth
+from common.auth import ChatTokenAuth
 from common.constants.permission_constants import ChatAuth
 from common.exception.app_exception import AppAuthenticationFailed
+from common.log.log import _get_ip_address
 from common.result import result
 from knowledge.models import FileSourceType
 from oss.serializers.file import FileSerializer
@@ -65,7 +67,7 @@ class ResourceProxy(APIView):
 
 
 class OpenAIView(APIView):
-    authentication_classes = [TokenAuth]
+    authentication_classes = [ChatTokenAuth]
 
     @extend_schema(
         methods=['POST'],
@@ -77,8 +79,11 @@ class OpenAIView(APIView):
         tags=[_('Chat')]  # type: ignore
     )
     def post(self, request: Request, application_id: str):
+        ip_address = _get_ip_address(request)
         return OpenAIChatSerializer(data={'application_id': application_id, 'chat_user_id': request.auth.chat_user_id,
-                                          'chat_user_type': request.auth.chat_user_type}).chat(request.data)
+                                          'chat_user_type': request.auth.chat_user_type,
+                                          'ip_address': ip_address,
+                                          'source': {"type": ChatSourceChoices.API_CALL.value}}).chat(request.data)
 
 
 class AnonymousAuthentication(APIView):
@@ -108,7 +113,7 @@ class AnonymousAuthentication(APIView):
 
 
 class ApplicationProfile(APIView):
-    authentication_classes = [TokenAuth]
+    authentication_classes = [ChatTokenAuth]
 
     @extend_schema(
         methods=['GET'],
@@ -142,7 +147,7 @@ class AuthProfile(APIView):
 
 
 class ChatView(APIView):
-    authentication_classes = [TokenAuth]
+    authentication_classes = [ChatTokenAuth]
 
     @extend_schema(
         methods=['POST'],
@@ -155,16 +160,21 @@ class ChatView(APIView):
         tags=[_('Chat')]  # type: ignore
     )
     def post(self, request: Request, chat_id: str):
+        ip_address = _get_ip_address(request)
         return ChatSerializers(data={'chat_id': chat_id,
                                      'chat_user_id': request.auth.chat_user_id,
                                      'chat_user_type': request.auth.chat_user_type,
                                      'application_id': request.auth.application_id,
-                                     'debug': False}
+                                     'debug': False,
+                                     'ip_address': ip_address,
+                                     'source': {
+                                         'type': ChatSourceChoices.API_CALL.value if request.auth.chat_user_type == ChatUserType.APPLICATION_API_KEY.value else ChatSourceChoices.ONLINE.value}
+                                     }
                                ).chat(request.data)
 
 
 class OpenView(APIView):
-    authentication_classes = [TokenAuth]
+    authentication_classes = [ChatTokenAuth]
 
     @extend_schema(
         methods=['GET'],
@@ -176,9 +186,13 @@ class OpenView(APIView):
         tags=[_('Chat')]  # type: ignore
     )
     def get(self, request: Request):
+        ip_address = _get_ip_address(request)
         return result.success(OpenChatSerializers(
             data={'application_id': request.auth.application_id,
                   'chat_user_id': request.auth.chat_user_id, 'chat_user_type': request.auth.chat_user_type,
+                  'ip_address': ip_address,
+                  'source': {
+                      'type': ChatSourceChoices.API_CALL.value if request.auth.chat_user_type == ChatUserType.APPLICATION_API_KEY.value else ChatSourceChoices.ONLINE.value},
                   'debug': False}).open())
 
 
@@ -196,7 +210,7 @@ class CaptchaView(APIView):
 
 
 class SpeechToText(APIView):
-    authentication_classes = [TokenAuth]
+    authentication_classes = [ChatTokenAuth]
 
     @extend_schema(
         methods=['POST'],
@@ -215,7 +229,7 @@ class SpeechToText(APIView):
 
 
 class TextToSpeech(APIView):
-    authentication_classes = [TokenAuth]
+    authentication_classes = [ChatTokenAuth]
 
     @extend_schema(
         methods=['POST'],
@@ -234,7 +248,7 @@ class TextToSpeech(APIView):
 
 
 class UploadFile(APIView):
-    authentication_classes = [TokenAuth]
+    authentication_classes = [ChatTokenAuth]
     parser_classes = [MultiPartParser]
 
     @extend_schema(

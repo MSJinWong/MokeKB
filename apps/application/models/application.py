@@ -108,7 +108,10 @@ class Application(AppModelMixin):
     mcp_source = models.CharField(verbose_name="MCP Source", max_length=20, default="referencing")
     tool_enable = models.BooleanField(verbose_name="工具是否启用", default=False)
     tool_ids = models.JSONField(verbose_name="工具ID列表", default=list)
+    application_enable = models.BooleanField(verbose_name="应用是否启用", default=False)
+    application_ids = models.JSONField(verbose_name="应用ID列表", default=list)
     mcp_output_enable = models.BooleanField(verbose_name="MCP输出是否启用", default=True)
+    file_clean_time = models.IntegerField(verbose_name="文件清理时间", default=180)
 
     @staticmethod
     def get_default_model_prompt():
@@ -189,6 +192,8 @@ class ApplicationVersion(AppModelMixin):
     mcp_source = models.CharField(verbose_name="MCP Source", max_length=20, default="referencing")
     tool_enable = models.BooleanField(verbose_name="工具是否启用", default=False)
     tool_ids = models.JSONField(verbose_name="工具ID列表", default=list)
+    application_enable = models.BooleanField(verbose_name="应用是否启用", default=False)
+    application_ids = models.JSONField(verbose_name="应用ID列表", default=list)
     mcp_output_enable = models.BooleanField(verbose_name="MCP输出是否启用", default=True)
 
     class Meta:

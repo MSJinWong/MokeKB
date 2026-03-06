@@ -7,14 +7,15 @@
     @desc:
 """
 
-import ast
 import base64
 import io
 import json
 import mimetypes
 import time
+import traceback
 from typing import Dict
 
+import uuid_utils.compat as uuid
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.db.models import QuerySet
 from django.utils.translation import gettext as _
@@ -23,11 +24,13 @@ from application.flow.i_step_node import NodeResult
 from application.flow.step_node.tool_lib_node.i_tool_lib_node import IToolLibNode
 from common.database_model_manage.database_model_manage import DatabaseModelManage
 from common.exception.app_exception import AppApiException
+from common.utils.logger import maxkb_logger
 from common.utils.rsa_util import rsa_long_decrypt
 from common.utils.tool_code import ToolExecutor
 from knowledge.models import FileSourceType
+from knowledge.models.knowledge_action import State
 from oss.serializers.file import FileSerializer
-from tools.models import Tool
+from tools.models import Tool, ToolRecord, ToolTaskTypeChoices
 
 function_executor = ToolExecutor()
 
@@ -56,6 +59,8 @@ def valid_reference_value(_type, value, name):
     try:
         if _type == 'int':
             instance_type = int | float
+        elif _type == 'boolean':
+            instance_type = bool
         elif _type == 'float':
             instance_type = float | int
         elif _type == 'dict':
@@ -103,6 +108,9 @@ def convert_value(name: str, value, _type, is_required, source, node):
         value = node.workflow_manage.generate_prompt(value)
         if _type == 'int':
             return int(value)
+        if _type == 'boolean':
+            value = 0 if ['0', '[]'].__contains__(value) else value
+            return bool(value)
         if _type == 'float':
             return float(value)
         if _type == 'dict':
@@ -166,9 +174,22 @@ def bytes_to_uploaded_file(file_bytes, file_name="unknown"):
     return uploaded_file
 
 
+def _get_result_detail(result):
+    if isinstance(result, dict):
+        result_dict = {k: (str(v)[:500] if len(str(v)) > 500 else v) for k, v in result.items()}
+    elif isinstance(result, list):
+        result_dict = [str(item)[:500] if len(str(item)) > 500 else item for item in result]
+    elif isinstance(result, str):
+        result_dict = result[:500] if len(result) > 500 else result
+    else:
+        result_dict = result
+    return result_dict
+
+
 class BaseToolLibNodeNode(IToolLibNode):
     def save_context(self, details, workflow_manage):
         self.context['result'] = details.get('result')
+        self.context['exception_message'] = details.get('err_message')
         if self.node_params.get('is_result'):
             self.answer_text = str(details.get('result'))
 
@@ -197,16 +218,18 @@ class BaseToolLibNodeNode(IToolLibNode):
         else:
             all_params = init_params_default_value | params
         if self.node.properties.get('kind') == 'data-source':
-            exist = function_executor.exec_code(f'{tool_lib.code}\ndef function_exist(function_name): return callable(globals().get(function_name))', {'function_name': 'get_download_file_list'})
+            exist = function_executor.exec_code(
+                f'{tool_lib.code}\ndef function_exist(function_name): return callable(globals().get(function_name))',
+                {'function_name': 'get_download_file_list'})
+            all_params = {**all_params, **self.workflow_params.get('data_source')}
             if exist:
                 download_file_list = []
                 download_list = function_executor.exec_code(tool_lib.code,
-                                                            {**all_params, **self.workflow_params.get('data_source')},
+                                                            all_params,
                                                             function_name='get_download_file_list')
                 for item in download_list:
                     result = function_executor.exec_code(tool_lib.code,
-                                                         {**all_params, **self.workflow_params.get('data_source'),
-                                                          'download_item': item},
+                                                         {**all_params, 'download_item': item},
                                                          function_name='download')
                     file_bytes = result.get('file_bytes', [])
                     chunks = []
@@ -219,10 +242,52 @@ class BaseToolLibNodeNode(IToolLibNode):
             else:
                 result = function_executor.exec_code(tool_lib.code, all_params)
         else:
-            result = function_executor.exec_code(tool_lib.code, all_params)
+            result = self.tool_exec_record(tool_lib, all_params)
         return NodeResult({'result': result},
                           (self.workflow_manage.params.get('knowledge_base') or {}) if self.node.properties.get(
                               'kind') == 'data-source' else {}, _write_context=write_context)
+
+    def tool_exec_record(self, tool_lib, all_params):
+        task_record_id = uuid.uuid7()
+        start_time = time.time()
+        try:
+            # 过滤掉 tool_init_params 中的参数
+            tool_init_params = json.loads(rsa_long_decrypt(tool_lib.init_params)) if tool_lib.init_params else {}
+            if tool_init_params:
+                filtered_args = {
+                    k: v for k, v in all_params.items()
+                    if k not in tool_init_params
+                }
+            else:
+                filtered_args = all_params
+            ToolRecord(
+                id=task_record_id,
+                workspace_id=tool_lib.workspace_id,
+                tool_id=tool_lib.id,
+                source_type=ToolTaskTypeChoices.KNOWLEDGE.value if self.workflow_manage.params.get(
+                    'knowledge_id') else ToolTaskTypeChoices.APPLICATION.value,
+                source_id=self.workflow_manage.params.get('knowledge_id') or self.workflow_manage.params.get(
+                    'application_id'),
+                meta={'input': filtered_args, 'output': {}},
+                state=State.STARTED
+            ).save()
+
+            result = function_executor.exec_code(tool_lib.code, all_params)
+            result_dict = _get_result_detail(result)
+            QuerySet(ToolRecord).filter(id=task_record_id).update(
+                state=State.SUCCESS,
+                run_time=time.time() - start_time,
+                meta={'input': filtered_args, 'output': result_dict}
+            )
+
+            return result
+        except Exception as e:
+            maxkb_logger.error(f"Tool execution error: {traceback.format_exc()}")
+            QuerySet(ToolRecord).filter(id=task_record_id).update(
+                state=State.FAILURE,
+                run_time=time.time() - start_time,
+                meta={'input': filtered_args, 'output': 'Error: ' + str(e)}
+            )
 
     def upload_knowledge_file(self, file):
         knowledge_id = self.workflow_params.get('knowledge_id')
@@ -250,5 +315,6 @@ class BaseToolLibNodeNode(IToolLibNode):
             'run_time': self.context.get('run_time'),
             'type': self.node.type,
             'status': self.status,
-            'err_message': self.err_message
+            'err_message': self.err_message,
+            'enableException': self.node.properties.get('enableException'),
         }

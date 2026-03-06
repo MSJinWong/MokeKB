@@ -1,7 +1,7 @@
 <template>
   <ContentContainer>
     <template #header>
-      <slot name="header"> </slot>
+      <slot name="header"></slot>
     </template>
     <template #search>
       <div class="flex">
@@ -40,6 +40,7 @@
           v-if="!isShared && permissionPrecise.create()"
           @click="openToolStoreDialog()"
         >
+          <AppIcon iconName="app-tool-store" class="mr-4" />
           {{ $t('views.tool.toolStore.title') }}
         </el-button>
         <el-dropdown trigger="click">
@@ -171,12 +172,7 @@
                 :disabled="permissionPrecise.edit(item.id)"
               >
                 <template #icon>
-                  <el-avatar
-                    v-if="item?.icon"
-                    shape="square"
-                    :size="32"
-                    style="background: none"
-                  >
+                  <el-avatar v-if="item?.icon" shape="square" :size="32" style="background: none">
                     <img :src="resetUrl(item?.icon)" alt="" />
                   </el-avatar>
                   <ToolIcon v-else :size="32" :type="item?.tool_type" />
@@ -296,6 +292,40 @@
                             ></AppIcon>
                             {{ $t('views.system.resourceAuthorization.title') }}
                           </el-dropdown-item>
+
+                          <el-dropdown-item
+                            @click.stop="openTriggerDrawer(item)"
+                            v-if="
+                              ['workspace', 'systemManage'].includes(apiType) &&
+                              item.tool_type === 'CUSTOM' &&
+                              permissionPrecise.trigger_read(item.id)
+                            "
+                          >
+                            <AppIcon iconName="app-trigger" class="color-secondary"></AppIcon>
+                            {{ $t('views.trigger.title') }}
+                          </el-dropdown-item>
+                          <el-dropdown-item
+                            text
+                            @click.stop="openResourceMappingDrawer(item)"
+                            v-if="permissionPrecise.relate_map(item.id)"
+                          >
+                            <AppIcon
+                              iconName="app-resource-mapping"
+                              class="color-secondary"
+                            ></AppIcon>
+                            {{ $t('views.system.resourceMapping.title') }}
+                          </el-dropdown-item>
+                          <el-dropdown-item
+                            text
+                            @click.stop="openToolRecordDrawer(item)"
+                            v-if="item.tool_type === 'CUSTOM' && permissionPrecise.record(item.id)"
+                          >
+                            <AppIcon
+                              iconName="app-schedule-report"
+                              class="color-secondary"
+                            ></AppIcon>
+                            {{ $t('common.ExecutionRecord.subTitle') }}
+                          </el-dropdown-item>
                           <el-dropdown-item
                             @click.stop="openMoveToDialog(item)"
                             v-if="permissionPrecise.copy(item.id) && apiType === 'workspace'"
@@ -366,6 +396,12 @@
     v-if="apiType === 'workspace'"
   />
   <ToolStoreDescDrawer ref="toolStoreDescDrawerRef" />
+  <ResourceMappingDrawer ref="resourceMappingDrawerRef"></ResourceMappingDrawer>
+  <ResourceTriggerDrawer
+    ref="resourceTriggerDrawerRef"
+    :source="SourceTypeEnum.TOOL"
+  ></ResourceTriggerDrawer>
+  <ToolRecordDrawer ref="toolRecordDrawerRef" />
 </template>
 
 <script lang="ts" setup>
@@ -383,6 +419,7 @@ import AddInternalToolDialog from '@/views/tool/tool-store/AddInternalToolDialog
 import MoveToDialog from '@/components/folder-tree/MoveToDialog.vue'
 import ResourceAuthorizationDrawer from '@/components/resource-authorization-drawer/index.vue'
 import McpToolConfigDialog from '@/views/tool/component/McpToolConfigDialog.vue'
+import ResourceTriggerDrawer from '@/views/trigger/ResourceTriggerDrawer.vue'
 import { resetUrl } from '@/utils/common'
 import { MsgSuccess, MsgConfirm, MsgError } from '@/utils/message'
 import { SourceTypeEnum } from '@/enums/common'
@@ -393,8 +430,13 @@ import { t } from '@/locales'
 import { i18n_name } from '@/utils/common'
 import ToolStoreApi from '@/api/tool/store.ts'
 import ToolStoreDescDrawer from '@/views/tool/component/ToolStoreDescDrawer.vue'
+
 import bus from '@/bus'
+import ResourceMappingDrawer from '@/components/resource_mapping/index.vue'
+import ToolRecordDrawer from '@/views/tool/execution-record/TriggerRecordDrawer.vue'
+
 const route = useRoute()
+
 const { folder, user, tool } = useStore()
 onBeforeRouteLeave((to, from) => {
   tool.setToolList([])
@@ -428,13 +470,32 @@ const MoreFieldPermission = (id: any) => {
     permissionPrecise.value.export(id) ||
     permissionPrecise.value.delete(id) ||
     permissionPrecise.value.auth(id) ||
+    permissionPrecise.value.relate_map(id) ||
+    permissionPrecise.value.trigger_read(id) ||
+    permissionPrecise.value.record(id) ||
     isSystemShare.value
   )
 }
 
+const resourceTriggerDrawerRef = ref<InstanceType<typeof ResourceTriggerDrawer>>()
+const openTriggerDrawer = (data: any) => {
+  resourceTriggerDrawerRef.value?.open(data)
+}
+
+const resourceMappingDrawerRef = ref<InstanceType<typeof ResourceMappingDrawer>>()
+const openResourceMappingDrawer = (tool: any) => {
+  resourceMappingDrawerRef.value?.open('TOOL', tool)
+}
+
 const ResourceAuthorizationDrawerRef = ref()
+
 function openAuthorization(item: any) {
   ResourceAuthorizationDrawerRef.value.open(item.id)
+}
+
+const toolRecordDrawerRef = ref<InstanceType<typeof ToolRecordDrawer>>()
+const openToolRecordDrawer = (data: any) => {
+  toolRecordDrawerRef.value?.open(data)
 }
 
 const InitParamDrawerRef = ref()
@@ -464,6 +525,7 @@ const McpToolDrawertitle = ref('')
 const DataSourceToolDrawertitle = ref('')
 
 const MoveToDialogRef = ref()
+
 function openMoveToDialog(data: any) {
   const obj = {
     id: data.id,
@@ -473,13 +535,17 @@ function openMoveToDialog(data: any) {
 }
 
 function refreshToolList(row: any) {
-  const list = cloneDeep(tool.toolList)
-  const index = list.findIndex((v) => v.id === row.id)
-  list.splice(index, 1)
-  tool.setToolList(list)
+  // 不是根目录才会移除
+  if (folder.currentFolder?.parent_id) {
+    const list = cloneDeep(tool.toolList)
+    const index = list.findIndex((v) => v.id === row.id)
+    list.splice(index, 1)
+    tool.setToolList(list)
+  }
 }
 
 const AuthorizedWorkspaceDialogRef = ref()
+
 function openAuthorizedWorkspaceDialog(row: any) {
   if (AuthorizedWorkspaceDialogRef.value) {
     AuthorizedWorkspaceDialogRef.value.open(row, 'Tool')
@@ -487,6 +553,7 @@ function openAuthorizedWorkspaceDialog(row: any) {
 }
 
 const toolStoreDescDrawerRef = ref<InstanceType<typeof ToolStoreDescDrawer>>()
+
 function openCreateDialog(data?: any) {
   // mcp工具
   if (data?.tool_type === 'MCP') {
@@ -702,7 +769,7 @@ function exportTool(row: any) {
 function deleteTool(row: any) {
   MsgConfirm(
     `${t('views.tool.delete.confirmTitle')}：${row.name} ?`,
-    t('views.tool.delete.confirmMessage'),
+    row.resource_count > 0 ? t('views.tool.delete.resourceCountMessage', row.resource_count) : '',
     {
       confirmButtonText: t('common.confirm'),
       cancelButtonText: t('common.cancel'),
@@ -732,11 +799,13 @@ function configInitParams(item: any) {
 }
 
 const toolStoreDialogRef = ref<InstanceType<typeof ToolStoreDialog>>()
+
 function openToolStoreDialog() {
   toolStoreDialogRef.value?.open(folder.currentFolder.id)
 }
 
 const AddInternalToolDialogRef = ref<InstanceType<typeof AddInternalToolDialog>>()
+
 function addInternalTool(data?: any, isEdit?: boolean) {
   AddInternalToolDialogRef.value?.open(data, isEdit)
 }
@@ -753,6 +822,7 @@ function confirmAddInternalTool(data?: any, isEdit?: boolean) {
 }
 
 const storeTools = ref<any[]>([])
+
 function getStoreToolList() {
   ToolStoreApi.getStoreToolList({ name: '' }, loading).then((res: any) => {
     storeTools.value = res.data.apps
@@ -805,6 +875,7 @@ function updateStoreTool(item: any) {
 }
 
 const elUploadRef = ref()
+
 function importTool(file: any) {
   const formData = new FormData()
   formData.append('file', file.raw, file.name)
@@ -834,6 +905,7 @@ function importTool(file: any) {
 }
 
 const McpToolConfigDialogRef = ref()
+
 function showMcpConfig(item: any) {
   loadSharedApi({ type: 'tool', systemType: apiType.value })
     .getToolById(item?.id, loading)
@@ -858,6 +930,7 @@ function refresh(data?: any) {
 
 // 文件夹相关
 const CreateFolderDialogRef = ref()
+
 function openCreateFolder() {
   CreateFolderDialogRef.value.open(SourceTypeEnum.TOOL, folder.currentFolder.id)
 }

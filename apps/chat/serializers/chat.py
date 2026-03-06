@@ -28,7 +28,7 @@ from application.flow.common import Answer, Workflow
 from application.flow.i_step_node import WorkFlowPostHandler
 from application.flow.tools import to_stream_response_simple
 from application.flow.workflow_manage import WorkflowManage
-from application.models import Application, ApplicationTypeChoices, ApplicationKnowledgeMapping, \
+from application.models import Application, ApplicationTypeChoices, \
     ChatUserType, ApplicationChatUserStats, ApplicationAccessToken, ChatRecord, Chat, ApplicationVersion
 from application.serializers.application import ApplicationOperateSerializer
 from application.serializers.common import ChatInfo
@@ -37,11 +37,12 @@ from common.exception.app_exception import AppApiException, AppChatNumOutOfBound
 from common.handle.base_to_response import BaseToResponse
 from common.handle.impl.response.openai_to_response import OpenaiToResponse
 from common.handle.impl.response.system_to_response import SystemToResponse
-from common.utils.common import flat_map, get_file_content
+from common.utils.common import flat_map, get_file_content, is_valid_uuid
 from knowledge.models import Document, Paragraph
 from maxkb.conf import PROJECT_DIR
 from models_provider.models import Model, Status
 from models_provider.tools import get_model_instance_by_model_workspace_id
+from system_manage.models.resource_mapping import ResourceMapping
 
 
 class ChatMessagesSerializers(serializers.Serializer):
@@ -120,7 +121,10 @@ def get_post_handler(chat_info: ChatInfo):
                                      answer_tokens=manage.context['answer_tokens'],
                                      answer_text_list=answer_list,
                                      run_time=manage.context['run_time'],
-                                     index=len(chat_info.chat_record_list) + 1)
+                                     index=len(chat_info.chat_record_list) + 1,
+                                     ip_address=chat_info.ip_address,
+                                     source=chat_info.source
+                                     )
             chat_info.append_chat_record(chat_record)
             # 重新设置缓存
             chat_info.set_cache()
@@ -214,16 +218,18 @@ class OpenAIChatSerializer(serializers.Serializer):
     application_id = serializers.UUIDField(required=True, label=_("Application ID"))
     chat_user_id = serializers.CharField(required=True, label=_("Client id"))
     chat_user_type = serializers.CharField(required=True, label=_("Client Type"))
+    ip_address = serializers.CharField(required=False, label=_("IP Address"))
+    source = serializers.JSONField(required=False, label=_("Source"))
 
     @staticmethod
     def get_message(instance):
         return instance.get('messages')[-1].get('content')
 
     @staticmethod
-    def generate_chat(chat_id, application_id, message, chat_user_id, chat_user_type):
+    def generate_chat(chat_id, application_id, message, chat_user_id, chat_user_type, ip_address, source):
         if chat_id is None:
             chat_id = str(uuid.uuid1())
-            chat_info = ChatInfo(chat_id, chat_user_id, chat_user_type, [], [],
+            chat_info = ChatInfo(chat_id, chat_user_id, chat_user_type, ip_address, source, [], [],
                                  application_id)
             chat_info.set_cache()
         else:
@@ -233,7 +239,9 @@ class OpenAIChatSerializer(serializers.Serializer):
                     'chat_id': chat_id,
                     'chat_user_id': chat_user_id,
                     'chat_user_type': chat_user_type,
-                    'application_id': application_id
+                    'application_id': application_id,
+                    'ip_address': ip_address,
+                    'source': source,
                 })
                 open_chat.is_valid(raise_exception=True)
                 chat_info = open_chat.re_open_chat(chat_id)
@@ -251,13 +259,17 @@ class OpenAIChatSerializer(serializers.Serializer):
         application_id = self.data.get('application_id')
         chat_user_id = self.data.get('chat_user_id')
         chat_user_type = self.data.get('chat_user_type')
-        chat_id = self.generate_chat(chat_id, application_id, message, chat_user_id, chat_user_type)
+        ip_address = self.data.get('ip_address')
+        source = self.data.get('source')
+        chat_id = self.generate_chat(chat_id, application_id, message, chat_user_id, chat_user_type, ip_address, source)
         return ChatSerializers(
             data={
                 'chat_id': chat_id,
                 'chat_user_id': chat_user_id,
                 'chat_user_type': chat_user_type,
-                'application_id': application_id
+                'application_id': application_id,
+                'ip_address': ip_address,
+                'source': source,
             }
         ).chat({'message': message,
                 're_chat': re_chat,
@@ -277,6 +289,8 @@ class ChatSerializers(serializers.Serializer):
     application_id = serializers.UUIDField(required=True, allow_null=True,
                                            label=_("Application ID"))
     debug = serializers.BooleanField(required=False, label=_("Debug"))
+    ip_address = serializers.CharField(required=False, label=_("IP Address"), allow_null=True, allow_blank=True)
+    source = serializers.JSONField(required=False, label=_("Source"))
 
     def is_valid_application_workflow(self, *, raise_exception=False):
         self.is_valid_intraday_access_num()
@@ -326,7 +340,10 @@ class ChatSerializers(serializers.Serializer):
         stream = instance.get('stream')
         chat_user_id = self.data.get('chat_user_id')
         chat_user_type = self.data.get('chat_user_type')
+        ip_address = self.data.get('ip_address')
+        source = self.data.get('source')
         form_data = instance.get("form_data")
+        chat_record_id = instance.get('chat_record_id')
         pipeline_manage_builder = PipelineManage.builder()
         # 如果开启了问题优化,则添加上问题优化步骤
         if chat_info.application.problem_optimization:
@@ -349,7 +366,10 @@ class ChatSerializers(serializers.Serializer):
             exclude_paragraph_id_list = list(set(paragraph_id_list))
         # 构建运行参数
         params = chat_info.to_pipeline_manage_params(message, get_post_handler(chat_info), exclude_paragraph_id_list,
-                                                     chat_user_id, chat_user_type, stream, form_data)
+                                                     chat_user_id, chat_user_type, ip_address, source, stream,
+                                                     form_data)
+        if chat_record_id:
+            params['chat_record_id'] = chat_record_id
         chat_info.set_chat(message)
         # 运行流水线作业
         pipeline_message.run(params)
@@ -364,7 +384,8 @@ class ChatSerializers(serializers.Serializer):
                 return chat_record_list[-1]
         chat_record = QuerySet(ChatRecord).filter(id=chat_record_id, chat_id=chat_info.chat_id).first()
         if chat_record is None:
-            raise ChatException(500, _("Conversation record does not exist"))
+            if not is_valid_uuid(chat_record_id):
+                raise ChatException(500, _("Conversation record does not exist"))
         chat_record = QuerySet(ChatRecord).filter(id=chat_record_id).first()
         return chat_record
 
@@ -374,6 +395,8 @@ class ChatSerializers(serializers.Serializer):
         stream = instance.get('stream')
         chat_user_id = self.data.get("chat_user_id")
         chat_user_type = self.data.get('chat_user_type')
+        ip_address = self.data.get('ip_address')
+        source = self.data.get('source')
         form_data = instance.get('form_data')
         image_list = instance.get('image_list')
         video_list = instance.get('video_list')
@@ -387,19 +410,23 @@ class ChatSerializers(serializers.Serializer):
         history_chat_record = chat_info.chat_record_list
         if chat_record_id is not None:
             chat_record = self.get_chat_record(chat_info, chat_record_id)
-            history_chat_record = [r for r in chat_info.chat_record_list if str(r.id) != chat_record_id]
+            if chat_record:
+                history_chat_record = [r for r in chat_info.chat_record_list if str(r.id) != chat_record_id]
         work_flow = chat_info.application.work_flow
         work_flow_manage = WorkflowManage(Workflow.new_instance(work_flow),
                                           {'history_chat_record': history_chat_record, 'question': message,
                                            'chat_id': chat_info.chat_id, 'chat_record_id': str(
-                                              uuid.uuid7()) if chat_record is None else chat_record.id,
+                                              uuid.uuid7()) if chat_record_id is None else str(chat_record_id),
                                            'stream': stream,
                                            're_chat': re_chat,
                                            'chat_user_id': chat_user_id,
                                            'chat_user_type': chat_user_type,
+                                           'ip_address': ip_address,
+                                           'source': source,
                                            'workspace_id': workspace_id,
                                            'debug': debug,
                                            'chat_user': chat_info.get_chat_user(),
+                                           'chat_user_group': chat_info.get_chat_user_group(),
                                            'application_id': str(chat_info.application_id)},
                                           WorkFlowPostHandler(chat_info),
                                           base_to_response, form_data, image_list, document_list, audio_list,
@@ -466,16 +493,19 @@ class ChatSerializers(serializers.Serializer):
 
     def re_open_chat_simple(self, chat_id, application):
         # 数据集id列表
-        knowledge_id_list = [str(row.knowledge_id) for row in
-                             QuerySet(ApplicationKnowledgeMapping).filter(
-                                 application_id=application.id)]
+        knowledge_id_list = [str(row.target_id) for row in
+                             QuerySet(ResourceMapping).filter(source_id=str(application.id),
+                                                              source_type='APPLICATION',
+                                                              target_type='KNOWLEDGE')]
 
         # 需要排除的文档
         exclude_document_id_list = [str(document.id) for document in
                                     QuerySet(Document).filter(
                                         knowledge_id__in=knowledge_id_list,
                                         is_active=False)]
-        chat_info = ChatInfo(chat_id, self.data.get('chat_user_id'), self.data.get('chat_user_type'), knowledge_id_list,
+        chat_info = ChatInfo(chat_id, self.data.get('chat_user_id'), self.data.get('chat_user_type'),
+                             self.data.get('ip_address'),
+                             self.data.get('source'), knowledge_id_list,
                              exclude_document_id_list, application.id)
         chat_record_list = list(QuerySet(ChatRecord).filter(chat_id=chat_id).order_by('-create_time')[0:5])
         chat_record_list.sort(key=lambda r: r.create_time)
@@ -484,7 +514,9 @@ class ChatSerializers(serializers.Serializer):
         return chat_info
 
     def re_open_chat_work_flow(self, chat_id, application):
-        chat_info = ChatInfo(chat_id, self.data.get('chat_user_id'), self.data.get('chat_user_type'), [], [],
+        chat_info = ChatInfo(chat_id, self.data.get('chat_user_id'), self.data.get('chat_user_type'),
+                             self.data.get('ip_address'),
+                             self.data.get('source'), [], [],
                              application.id)
         chat_record_list = list(QuerySet(ChatRecord).filter(chat_id=chat_id).order_by('-create_time')[0:5])
         chat_record_list.sort(key=lambda r: r.create_time)
@@ -499,6 +531,8 @@ class OpenChatSerializers(serializers.Serializer):
     chat_user_id = serializers.CharField(required=True, label=_("Client id"))
     chat_user_type = serializers.CharField(required=True, label=_("Client Type"))
     debug = serializers.BooleanField(required=True, label=_("Debug"))
+    ip_address = serializers.CharField(required=False, label=_("IP Address"))
+    source = serializers.JSONField(required=False, label=_("Source"))
 
     def is_valid(self, *, raise_exception=False):
         super().is_valid(raise_exception=True)
@@ -531,9 +565,11 @@ class OpenChatSerializers(serializers.Serializer):
         application_id = self.data.get('application_id')
         chat_user_id = self.data.get("chat_user_id")
         chat_user_type = self.data.get("chat_user_type")
+        ip_address = self.data.get("ip_address")
+        source = self.data.get("source")
         debug = self.data.get("debug")
         chat_id = str(uuid.uuid7())
-        ChatInfo(chat_id, chat_user_id, chat_user_type, [],
+        ChatInfo(chat_id, chat_user_id, chat_user_type, ip_address, source, [],
                  [],
                  application_id, debug).set_cache()
         return chat_id
@@ -542,12 +578,16 @@ class OpenChatSerializers(serializers.Serializer):
         application_id = self.data.get('application_id')
         chat_user_id = self.data.get("chat_user_id")
         chat_user_type = self.data.get("chat_user_type")
+        ip_address = self.data.get("ip_address")
+        source = self.data.get("source")
         debug = self.data.get("debug")
-        knowledge_id_list = [str(row.knowledge_id) for row in
-                             QuerySet(ApplicationKnowledgeMapping).filter(
-                                 application_id=application_id)]
+        knowledge_id_list = [str(row.target_id) for row in
+                             QuerySet(ResourceMapping).filter(source_id=str(application_id),
+                                                              source_type='APPLICATION',
+                                                              target_type='KNOWLEDGE')]
+
         chat_id = str(uuid.uuid7())
-        ChatInfo(chat_id, chat_user_id, chat_user_type, knowledge_id_list,
+        ChatInfo(chat_id, chat_user_id, chat_user_type, ip_address, source, knowledge_id_list,
                  [str(document.id) for document in
                   QuerySet(Document).filter(
                       knowledge_id__in=knowledge_id_list,

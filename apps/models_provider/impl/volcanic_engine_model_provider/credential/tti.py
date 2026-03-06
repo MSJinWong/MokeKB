@@ -9,6 +9,7 @@ from common.forms import BaseForm, TooltipLabel
 from models_provider.base_model_provider import BaseModelCredential, ValidCode
 from common.utils.logger import maxkb_logger
 
+
 class VolcanicEngineTTIModelGeneralParams(BaseForm):
     size = forms.SingleSelect(
         TooltipLabel(_('Image size'),
@@ -32,6 +33,8 @@ class VolcanicEngineTTIModelGeneralParams(BaseForm):
 
 
 class VolcanicEngineTTIModelCredential(BaseForm, BaseModelCredential):
+    volcanic_api_url = forms.TextInputField('API URL', required=True,
+                                            default_value='https://ark.cn-beijing.volces.com/api/v3')
     api_key = forms.PasswordInputField('Api key', required=True)
 
     def is_valid(self, model_type: str, model_name, model_credential: Dict[str, object], model_params, provider,

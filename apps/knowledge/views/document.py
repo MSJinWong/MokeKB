@@ -571,6 +571,54 @@ class DocumentView(APIView):
                 data={'workspace_id': workspace_id, 'knowledge_id': knowledge_id}
             ).batch_generate_related(request.data))
 
+    class BatchExport(APIView):
+        authentication_classes = [TokenAuth]
+
+        @has_permissions(
+            PermissionConstants.KNOWLEDGE_DOCUMENT_EXPORT.get_workspace_knowledge_permission(),
+            PermissionConstants.KNOWLEDGE_DOCUMENT_EXPORT.get_workspace_permission_workspace_manage_role(),
+            RoleConstants.WORKSPACE_MANAGE.get_workspace_role(),
+            ViewPermission([RoleConstants.USER.get_workspace_role()],
+                           [PermissionConstants.KNOWLEDGE.get_workspace_knowledge_permission()], CompareConstants.AND),
+        )
+        @log(
+            menu='document', operate="Export multiple document",
+            get_operation_object=lambda r, keywords: get_knowledge_document_operation_object(
+                get_knowledge_operation_object(keywords.get('knowledge_id')),
+                get_document_operation_object(keywords.get('document_id'))
+            ),
+        )
+        def post(self, request: Request, workspace_id: str, knowledge_id: str):
+            return DocumentSerializers.Batch(data={
+                'workspace_id': workspace_id,
+                'knowledge_id': knowledge_id,
+                'user_id': request.user.id
+            }).batch_export({'id_list': request.data})
+
+    class BatchExportZip(APIView):
+        authentication_classes = [TokenAuth]
+
+        @has_permissions(
+            PermissionConstants.KNOWLEDGE_DOCUMENT_EXPORT.get_workspace_knowledge_permission(),
+            PermissionConstants.KNOWLEDGE_DOCUMENT_EXPORT.get_workspace_permission_workspace_manage_role(),
+            RoleConstants.WORKSPACE_MANAGE.get_workspace_role(),
+            ViewPermission([RoleConstants.USER.get_workspace_role()],
+                           [PermissionConstants.KNOWLEDGE.get_workspace_knowledge_permission()], CompareConstants.AND),
+        )
+        @log(
+            menu='document', operate="Export multiple document",
+            get_operation_object=lambda r, keywords: get_knowledge_document_operation_object(
+                get_knowledge_operation_object(keywords.get('knowledge_id')),
+                get_document_operation_object(keywords.get('document_id'))
+            ),
+        )
+        def post(self, request: Request, workspace_id: str, knowledge_id: str):
+            return DocumentSerializers.Batch(data={
+                'workspace_id': workspace_id,
+                'knowledge_id': knowledge_id,
+                'user_id': request.user.id
+            }).batch_export_zip({'id_list': request.data})
+
     class Page(APIView):
         authentication_classes = [TokenAuth]
 

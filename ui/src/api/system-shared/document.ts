@@ -1,5 +1,14 @@
 import { Result } from '@/request/Result'
-import { get, post, del, put, exportExcel, exportFile } from '@/request/index'
+import {
+  get,
+  post,
+  del,
+  put,
+  exportExcel,
+  exportFile,
+  exportExcelPost,
+  exportFilePost
+} from '@/request/index'
 import type { Ref } from 'vue'
 import type { KeyValue } from '@/api/type/common'
 import type { pageRequest } from '@/api/type/common'
@@ -165,6 +174,21 @@ const exportDocument: (
     loading,
   )
 }
+
+const exportMulDocument: (
+  document_name: string,
+  knowledge_id: string,
+  document_ids: string[],
+  loading?: Ref<boolean>,
+) => Promise<any> = (document_name, knowledge_id, document_ids, loading) => {
+  return exportExcelPost(
+    document_name.trim() + '.xlsx',
+    `${prefix}/${knowledge_id}/document/batch_export`,
+    {},
+    document_ids,
+    loading,
+  )
+}
 /**
  * 导出文档
  * @param document_name 文档名称
@@ -187,6 +211,20 @@ const exportDocumentZip: (
   )
 }
 
+const exportMulDocumentZip: (
+  document_name: string,
+  knowledge_id: string,
+  document_ids: string[],
+  loading?: Ref<boolean>,
+) => Promise<any> = (document_name, knowledge_id, document_ids, loading) => {
+  return exportFilePost(
+    document_name.trim() + '.zip',
+    `${prefix}/${knowledge_id}/document/batch_export_zip`,
+    {},
+    document_ids,
+    loading,
+  )
+}
 /**
  * 刷新文档向量库
  * @param 参数
@@ -581,6 +619,8 @@ export default {
   postReplaceSourceFile,
   exportDocument,
   exportDocumentZip,
+  exportMulDocument,
+  exportMulDocumentZip,
   putDocumentRefresh,
   putDocumentSync,
   putMulDocument,

@@ -188,7 +188,7 @@
                   <el-select
                     v-model="c.key"
                     filterable
-                    @focus="getAllTags(form_data.knowledge_id_list)"
+                    :filter-method="filterMethod"
                   >
                     <el-option
                       v-for="tag in form_data.knowledge_tags"
@@ -274,6 +274,7 @@ const apiType = computed(() => {
   }
 })
 
+const all_knowledge_tags = ref<Array<any>>([])
 const form = {
   knowledge_id_list: [],
   search_scope_type: 'custom',
@@ -350,9 +351,22 @@ function getAllTags(knowledge_ids: any) {
   loadSharedApi({ type: 'knowledge', systemType: apiType.value })
     .getAllTags({ knowledge_ids: knowledge_ids }, {})
     .then((res: any) => {
-      set(form_data.value, 'knowledge_tags', res.data)
+      set(form_data.value, 'knowledge_tags', res.data.slice(0, 100))
+      all_knowledge_tags.value = res.data
     })
 }
+
+function filterMethod(val: string) {
+  form_data.value.knowledge_tags = all_knowledge_tags.value.filter((item: any) => item.key.indexOf(val) > -1).slice(0, 100)
+}
+
+watch(
+  () => form_data.value.knowledge_id_list,
+  (newVal) => {
+    getAllTags(newVal)
+  },
+  {immediate: true, deep: true},
+)
 
 const validate = () => {
   return Promise.all([

@@ -16,6 +16,7 @@ from common.forms import BaseForm
 from models_provider.base_model_provider import BaseModelCredential, ValidCode
 from common.utils.logger import maxkb_logger
 
+
 class RegoloEmbeddingCredential(BaseForm, BaseModelCredential):
     def is_valid(self, model_type: str, model_name, model_credential: Dict[str, object], model_params, provider,
                  raise_exception=True):
@@ -24,7 +25,7 @@ class RegoloEmbeddingCredential(BaseForm, BaseModelCredential):
             raise AppApiException(ValidCode.valid_error.value,
                                   _('{model_type} Model type is not supported').format(model_type=model_type))
 
-        for key in ['api_key']:
+        for key in ['api_key', 'api_base']:
             if key not in model_credential:
                 if raise_exception:
                     raise AppApiException(ValidCode.valid_error.value, _('{key}  is required').format(key=key))
@@ -48,4 +49,6 @@ class RegoloEmbeddingCredential(BaseForm, BaseModelCredential):
     def encryption_dict(self, model: Dict[str, object]):
         return {**model, 'api_key': super().encryption(model.get('api_key', ''))}
 
+    api_base = forms.TextInputField(_('API URL'), required=True,
+                                    default_value='https://api.regolo.ai/v1')
     api_key = forms.PasswordInputField('API Key', required=True)

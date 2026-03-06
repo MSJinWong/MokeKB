@@ -24,6 +24,7 @@ import CardCheckbox from './card-checkbox/index.vue'
 import AiChat from './ai-chat/index.vue'
 import KnowledgeIcon from './app-icon/KnowledgeIcon.vue'
 import ToolIcon from './app-icon/ToolIcon.vue'
+import TriggerIcon from './app-icon/TriggerIcon.vue'
 import TagGroup from './tag-group/index.vue'
 import WorkspaceDropdown from './workspace-dropdown/index.vue'
 import FolderBreadcrumb from './folder-breadcrumb/index.vue'
@@ -54,6 +55,7 @@ export default {
     app.component('AiChat', AiChat)
     app.component('KnowledgeIcon', KnowledgeIcon)
     app.component('ToolIcon', ToolIcon)
+    app.component('TriggerIcon', TriggerIcon)
     app.component('TagGroup', TagGroup)
     app.component('WorkspaceDropdown', WorkspaceDropdown)
     app.component('FolderBreadcrumb', FolderBreadcrumb)

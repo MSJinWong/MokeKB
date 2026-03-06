@@ -22,7 +22,7 @@
             <el-card
               shadow="never"
               class="card-checkbox cursor w-full mb-8"
-              :class="base_form_data.node_id === node.id ? 'active' : ''"
+              :class="base_form_data.node_id === node.id ? 'border-active' : ''"
               style="--el-card-padding: 4px 12px"
               @click="sourceChange(node.id)"
             >

@@ -15,6 +15,7 @@ import chatUser from './chat-user'
 import login from './login'
 import operateLog from './operate-log'
 import shared from './shared'
+import trigger from './trigger'
 export default {
   application,
   applicationOverview,
@@ -33,4 +34,5 @@ export default {
   workspace,
   chatUser,
   shared,
+  trigger
 }

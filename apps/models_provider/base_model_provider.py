@@ -62,7 +62,14 @@ class IModelProvider(ABC):
 
     def get_model_credential(self, model_type, model_name):
         model_info = self.get_model_info_manage().get_model_info(model_type, model_name)
-        return model_info.model_credential
+        model_credential = model_info.model_credential
+
+        if model_type == 'TTI' and model_name.startswith(('qwen', 'wan2.6', 'wan')):
+            if hasattr(model_credential, 'api_base'):
+                api_base = model_credential.api_base
+                if hasattr(api_base, 'default_value') and not api_base.default_value:
+                    api_base.default_value = 'https://dashscope.aliyuncs.com/api/v1'
+        return model_credential
 
     def get_model_params(self, model_type, model_name):
         model_info = self.get_model_info_manage().get_model_info(model_type, model_name)
@@ -147,11 +154,9 @@ class ModelTypeConst(Enum):
     IMAGE = {'code': 'IMAGE', 'message': _('Vision Model')}
     TTI = {'code': 'TTI', 'message': _('Image Generation')}
     RERANKER = {'code': 'RERANKER', 'message': _('Rerank')}
-    #文生视频 图生视频
+    # 文生视频 图生视频
     TTV = {'code': 'TTV', 'message': _('Text to Video')}
     ITV = {'code': 'ITV', 'message': _('Image to Video')}
-
-
 
 
 class ModelInfo:

@@ -2,12 +2,14 @@
 #
 import logging
 import os
+import uuid_utils.compat as uuid
 
 from celery import subtask
 from celery.signals import (
     worker_ready, worker_shutdown, after_setup_logger, task_revoked, task_prerun
 )
 from django.core.cache import cache
+from django_apscheduler.models import DjangoJob
 from django_celery_beat.models import PeriodicTask
 
 from common.utils.logger import maxkb_logger
@@ -17,18 +19,49 @@ from .logger import CeleryThreadTaskFileHandler
 logger = logging.getLogger(__file__)
 safe_str = lambda x: x
 
+
 def init_scheduler():
     from common import job
+    from common.init import init_template
+    from trigger.models import Trigger
 
     job.run()
+    init_template.run()
+
+    # 清理已经不存在的 trigger job
+    trigger_jobs = DjangoJob.objects.filter(id__startswith="trigger:")
+    # 从 job id 中提取 trigger_id (格式: trigger:<trigger_id>:task:...)
+    trigger_ids_from_jobs = set()
+    job_id_to_trigger_id = {}  # 映射 job_id -> trigger_id
+
+    for job in trigger_jobs:
+        parts = job.id.split(':')
+        if len(parts) >= 2:
+            trigger_id = uuid.UUID(parts[1])  # 提取 trigger_id
+            trigger_ids_from_jobs.add(trigger_id)
+            job_id_to_trigger_id[job.id] = trigger_id
+
+    # 获取所有有效的 Trigger ID
+    valid_trigger_ids = set(Trigger.objects.filter(
+        id__in=trigger_ids_from_jobs, is_active=True
+    ).values_list('id', flat=True))
+
+    # 找出需要删除的 job (trigger 已不存在的)
+    jobs_to_delete = [
+        job_id for job_id, trigger_id in job_id_to_trigger_id.items()
+        if trigger_id not in valid_trigger_ids
+    ]
+
+    if jobs_to_delete:
+        DjangoJob.objects.filter(id__in=jobs_to_delete).delete()
+        logger.info(f"Cleaned up {len(jobs_to_delete)} orphaned trigger jobs")
 
     try:
         from xpack import job as xpack_job
 
         xpack_job.run()
     except ImportError:
-        pass 
-
+        pass
 
 
 @worker_ready.connect

@@ -336,7 +336,7 @@
     </div>
 
     <div class="text-center mt-8" v-if="applicationDetails.disclaimer">
-      <el-text type="info" v-if="applicationDetails.disclaimer" style="font-size: 12px">
+      <el-text type="info" v-if="applicationDetails.disclaimer" class="font-small">
         <auto-tooltip :content="applicationDetails.disclaimer_value">
           {{ applicationDetails.disclaimer_value }}
         </auto-tooltip>

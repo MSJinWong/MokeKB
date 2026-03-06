@@ -11,6 +11,8 @@ export default {
   },
   operation: {
     toImportDoc: '去導入文檔',
+    importWorkflow: '導入工作流',
+    exportWorkflow: '導出工作流',
   },
   setting: {
     restoreVersion: '恢復版本',
@@ -22,6 +24,7 @@ export default {
     copyParam: '複製參數',
     exit: '直接退出',
     exitSave: '保存並退出',
+    templateCenter: '模板中心',
   },
   tip: {
     noData: '沒有找到相關結果',
@@ -29,7 +32,7 @@ export default {
     onlyRight: '只允許從右邊的錨點連出',
     notRecyclable: '不可循環連線',
     onlyLeft: '只允許連接左邊的錨點',
-    applicationNodeError: '該應用不可用',
+    applicationNodeError: '該智能體不可用',
     toolNodeError: '該函數不可用',
     repeatedNodeError: '節點名稱已存在！',
     cannotCopy: '不能被複製',
@@ -51,6 +54,7 @@ export default {
   },
   variable: {
     global: '全局變量',
+    chat: '會話變量',
     Referencing: '引用變量',
     ReferencingRequired: '引用變量必填',
     ReferencingError: '引用變量錯誤',
@@ -116,13 +120,6 @@ export default {
       currentTime: '當前時間',
     },
     baseNode: {
-      label: '基本信息',
-      appName: {
-        label: '應用名稱',
-      },
-      appDescription: {
-        label: '應用描述',
-      },
       fileUpload: {
         label: '文件上傳',
         tooltip: '開啟後，問答頁面會顯示上傳文件的按鈕。',
@@ -165,6 +162,10 @@ export default {
       result: '檢索結果',
       directly_return: '滿足直接回答的分段內容',
       searchParam: '檢索參數',
+      showKnowledge: {
+        label: '結果顯示在知識來源',
+        requiredMessage: '請設定參數',
+      },
       searchQuestion: {
         label: '檢索問題',
         placeholder: '請選擇檢索問題',
@@ -186,10 +187,7 @@ export default {
       searchParam: '檢索參數',
       select_variable: '選擇變數',
       valueMessage: `值或變量`,
-      showKnowledge: {
-        label: '結果顯示在知識來源',
-        requiredMessage: '請設定參數',
-      },
+
       searchQuestion: {
         label: '檢索問題',
         placeholder: '請選擇檢索問題',
@@ -295,7 +293,7 @@ export default {
         label: '视觉模型',
         requiredMessage: '请选择视觉模型',
       },
-      image: {
+      video: {
         label: '选择视频',
         requiredMessage: '请选择视频',
       },
@@ -443,7 +441,7 @@ export default {
       },
     },
     applicationNode: {
-      label: '應用節點',
+      label: '智能體節點',
     },
     loopNode: {
       label: '循環節點',
@@ -519,10 +517,11 @@ export default {
     len_gt: '長度大於',
     len_le: '長度小於等於',
     len_lt: '長度小於',
+    is_true: '為真',
+    is_not_true: '不為真',
   },
   SystemPromptPlaceholder: '系統提示詞，可以引用系統中的變量：如',
   UserPromptPlaceholder: '用戶提示詞，可以引用系統中的變量：如',
-  ExecutionRecord: '執行記錄',
   initiator: '發起人',
-  debug: {},
+   abnormalInformation: '異常信息'
 }

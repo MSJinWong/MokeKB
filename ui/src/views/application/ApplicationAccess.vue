@@ -13,13 +13,13 @@
         v-for="(item, index) in platforms"
         :key="index"
       >
-        <el-card shadow="hover" class="border-none cursor">
+        <el-card shadow="never" class="border-none cursor">
           <div class="flex-between">
             <div class="flex align-center ml-8 mr-8">
               <img :src="item.logoSrc" alt="" class="icon" />
               <div class="ml-12">
                 <h5 class="mb-4">{{ item.name }}</h5>
-                <el-text type="info" style="font-size: 12px">{{ item.description }}</el-text>
+                <el-text type="info" class="font-small">{{ item.description }}</el-text>
               </div>
             </div>
             <div>

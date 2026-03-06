@@ -30,20 +30,20 @@
                 "config": {
                     "fields": [
                         {
-                            "label": "用户问题",
+                            "label": "User Question",
                             "value": "question"
                         }
                     ],
                     "globalFields": [
                         {
-                            "label": "当前时间",
+                            "label": "Current Time",
                             "value": "time"
                         }
                     ]
                 },
                 "fields": [
                     {
-                        "label": "用户问题",
+                        "label": "User Question",
                         "value": "question"
                     }
                 ],
@@ -51,7 +51,7 @@
                 "stepName": "Start",
                 "globalFields": [
                     {
-                        "label": "当前时间",
+                        "label": "Current Time",
                         "value": "time"
                     }
                 ]
@@ -66,19 +66,19 @@
                 "config": {
                     "fields": [
                         {
-                            "label": "检索结果的分段列表",
+                            "label": "List of Retrieved Paragraphs",
                             "value": "paragraph_list"
                         },
                         {
-                            "label": "满足直接回答的分段列表",
+                            "label": "List of Paragraphs Satisfying Direct Answer",
                             "value": "is_hit_handling_method_list"
                         },
                         {
-                            "label": "检索结果",
+                            "label": "Search Results",
                             "value": "data"
                         },
                         {
-                            "label": "满足直接回答的分段内容",
+                            "label": "Content of Paragraphs Satisfying Direct Answer",
                             "value": "directly_return"
                         }
                     ]
@@ -115,7 +115,7 @@
                 "config": {
                     "fields": [
                         {
-                            "label": "分支名称",
+                            "label": "Branch Name",
                             "value": "branch_name"
                         }
                     ]
@@ -192,7 +192,7 @@
                 "config": {
                     "fields": [
                         {
-                            "label": "内容",
+                            "label": "Content",
                             "value": "answer"
                         }
                     ]
@@ -219,7 +219,7 @@
                 "config": {
                     "fields": [
                         {
-                            "label": "AI 回答内容",
+                            "label": "AI Answer Content",
                             "value": "answer"
                         }
                     ]
@@ -244,7 +244,7 @@
                 "config": {
                     "fields": [
                         {
-                            "label": "AI 回答内容",
+                            "label": "AI Answer Content",
                             "value": "answer"
                         }
                     ]

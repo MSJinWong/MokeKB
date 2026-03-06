@@ -100,7 +100,13 @@
     >
       <template #header="{ titleId, titleClass }">
         <div class="flex-between">
-          <span class="medium ellipsis" :title="dialogTitle" :id="titleId" :class="titleClass">
+          <span
+            class="medium ellipsis"
+            style="max-width: 300px"
+            :title="dialogTitle"
+            :id="titleId"
+            :class="titleClass"
+          >
             {{ dialogTitle }}
           </span>
           <!-- <div class="flex align-center mr-8" v-if="dialogType === 'pdfDocument'">

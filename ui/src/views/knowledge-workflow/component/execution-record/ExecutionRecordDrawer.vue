@@ -1,10 +1,11 @@
 <template>
   <el-drawer
     v-model="drawer"
-    :title="$t('workflow.ExecutionRecord')"
+    :title="$t('common.ExecutionRecord.title')"
     direction="rtl"
     size="800px"
     :before-close="close"
+    destroy-on-close
   >
     <div class="flex mb-16">
       <div class="flex-between complex-search">
@@ -26,7 +27,8 @@
         >
           <el-option :label="$t('common.status.success')" value="SUCCESS" />
           <el-option :label="$t('common.status.fail')" value="FAILURE" />
-          <el-option :label="$t('common.status.padding')" value="PADDING" />
+          <el-option :label="$t('common.status.STARTED')" value="STARTED" />
+          <el-option :label="$t('common.status.REVOKED')" value="REVOKED" />
         </el-select>
         <el-input
           v-else
@@ -40,14 +42,16 @@
       </div>
     </div>
 
-    <app-table-infinite-scroll
-      :data="data"
-      class="w-full"
+    <app-table
+      ref="multipleTableRef"
+      class="mt-16 document-table"
+      :data="tableData"
+      :maxTableHeight="200"
+      :pagination-config="paginationConfig"
+      @sizeChange="changeSize"
+      @changePage="getList(true)"
       v-loading="loading"
-      @changePage="changePage"
-      :maxTableHeight="150"
-      :paginationConfig="paginationConfig"
-      :row-class-name="setRowClass"
+      :row-key="(row: any) => row.id"
     >
       <el-table-column prop="user_name" :label="$t('workflow.initiator')">
         <template #default="{ row }">
@@ -64,9 +68,17 @@
             <el-icon class="color-danger"><CircleCloseFilled /></el-icon>
             {{ $t('common.status.fail') }}
           </el-text>
+          <el-text class="color-text-primary" v-else-if="row.state === 'REVOKED'">
+            <el-icon class="color-danger"><CircleCloseFilled /></el-icon>
+            {{ $t('common.status.REVOKED') }}
+          </el-text>
+          <el-text class="color-text-primary" v-else-if="row.state === 'REVOKE'">
+            <el-icon class="is-loading color-primary"><Loading /></el-icon>
+            {{ $t('common.status.REVOKE') }}
+          </el-text>
           <el-text class="color-text-primary" v-else>
             <el-icon class="is-loading color-primary"><Loading /></el-icon>
-            {{ $t('common.status.padding') }}
+            {{ $t('common.status.STARTED') }}
           </el-text>
         </template>
       </el-table-column>
@@ -85,16 +97,29 @@
         </template>
       </el-table-column>
 
-      <el-table-column :label="$t('common.operation')" width="80">
+      <el-table-column :label="$t('common.operation')" width="90">
         <template #default="{ row }">
-          <el-tooltip effect="dark" :content="$t('chat.executionDetails.title')" placement="top">
-            <el-button type="primary" text @click.stop="toDetails(row)">
-              <AppIcon iconName="app-operate-log"></AppIcon>
-            </el-button>
-          </el-tooltip>
+          <div class="flex">
+            <el-tooltip effect="dark" :content="$t('chat.executionDetails.title')" placement="top">
+              <el-button type="primary" text @click.stop="toDetails(row)">
+                <AppIcon iconName="app-operate-log"></AppIcon>
+              </el-button>
+            </el-tooltip>
+            <el-tooltip
+              effect="dark"
+              :content="$t('chat.executionDetails.cancel')"
+              placement="top"
+              v-if="['PADDING', 'STARTED'].includes(row.state)"
+            >
+              <el-button type="danger" text @click.stop="cancelExecution(row)">
+                <el-icon><CircleCloseFilled /></el-icon>
+              </el-button>
+            </el-tooltip>
+          </div>
         </template>
       </el-table-column>
-    </app-table-infinite-scroll>
+    </app-table>
+
     <ExecutionDetailDrawer
       ref="ExecutionDetailDrawerRef"
       v-model:currentId="currentId"
@@ -108,12 +133,13 @@
 </template>
 <script setup lang="ts">
 import { loadSharedApi } from '@/utils/dynamics-api/shared-api'
-import AppTableInfiniteScroll from '@/components/app-table-infinite-scroll/index.vue'
 import ExecutionDetailDrawer from './ExecutionDetailDrawer.vue'
-import { computed, ref, reactive } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { computed, ref, reactive, onBeforeUnmount } from 'vue'
+import { useRoute } from 'vue-router'
 import { datetimeFormat } from '@/utils/time'
 import type { Dict } from '@/api/type/common'
+import { MsgError, MsgConfirm } from '@/utils/message'
+import { t } from '@/locales'
 const drawer = ref<boolean>(false)
 const route = useRoute()
 
@@ -128,7 +154,7 @@ const apiType = computed(() => {
 })
 const paginationConfig = reactive({
   current_page: 1,
-  page_size: 50,
+  page_size: 10,
   total: 0,
 })
 const query = ref<any>({
@@ -138,14 +164,8 @@ const query = ref<any>({
 const loading = ref(false)
 const filter_type = ref<string>('user_name')
 const active_knowledge_id = ref<string>('')
-const data = ref<Array<any>>([])
-const tableIndexMap = computed<Dict<number>>(() => {
-  return data.value
-    .map((row, index) => ({
-      [row.id]: index,
-    }))
-    .reduce((pre, next) => ({ ...pre, ...next }), {})
-})
+const tableData = ref<Array<any>>([])
+
 const ExecutionDetailDrawerRef = ref<any>()
 const currentId = ref<string>('')
 const currentContent = ref<string>('')
@@ -157,84 +177,117 @@ const toDetails = (row: any) => {
   ExecutionDetailDrawerRef.value?.open()
 }
 
+const cancelExecution = (row: any) => {
+  MsgConfirm(t('common.tip'), t('chat.executionDetails.cancelExecutionTip'), {
+    confirmButtonText: t('common.confirm'),
+    confirmButtonClass: 'danger',
+  }).then(() => {
+    loadSharedApi({ type: 'knowledge', systemType: apiType.value })
+      .cancelWorkflowAction(active_knowledge_id.value, row.id, loading)
+      .then((ok: any) => {})
+  })
+}
 const changeFilterHandle = () => {
   query.value = { user_name: '', status: '' }
 }
-const changePage = () => {
-  paginationConfig.current_page += 1
+const changeSize = () => {
+  paginationConfig.current_page = 1
   getList()
 }
 
-const getList = (clear?: boolean) => {
-  if (clear) {
-    paginationConfig.current_page = 1
-    data.value = []
-  }
+const getList = (isLoading?: boolean) => {
   return loadSharedApi({ type: 'knowledge', systemType: apiType.value })
-    .getWorkflowActionPage(active_knowledge_id.value, paginationConfig, query.value, loading)
+    .getWorkflowActionPage(
+      active_knowledge_id.value,
+      paginationConfig,
+      query.value,
+      isLoading ? loading : undefined,
+    )
     .then((ok: any) => {
       paginationConfig.total = ok.data?.total
-      data.value = data.value.concat(ok.data.records)
+      tableData.value = ok.data.records
     })
 }
 
+
 const pre_disable = computed(() => {
-  const index = tableIndexMap.value[currentId.value] - 1
-  return index < 0
+  const index = tableData.value.findIndex((item) => item.id === currentId.value)
+  return index === 0 && paginationConfig.current_page === 1
 })
 
 const next_disable = computed(() => {
-  const index = tableIndexMap.value[currentId.value] + 1
-  return index >= data.value.length && index >= paginationConfig.total - 1
+  const index = tableData.value.findIndex((item) => item.id === currentId.value) + 1
+  return (
+    index >= tableData.value.length &&
+    index + (paginationConfig.current_page - 1) * paginationConfig.page_size >=
+      paginationConfig.total - 1
+  )
 })
 
-const setRowClass = ({ row }: any) => {
-  return currentId.value === row?.id ? 'highlight' : ''
-}
 
+const interval = ref<any>()
 /**
  * 下一页
  */
 const nextRecord = () => {
-  const index = tableIndexMap.value[currentId.value] + 1
-  if (index >= data.value.length) {
-    if (index >= paginationConfig.total - 1) {
+  const index = tableData.value.findIndex((item) => item.id === currentId.value) + 1
+  if (index >= tableData.value.length) {
+    if (paginationConfig.current_page * paginationConfig.page_size >= paginationConfig.total) {
       return
     }
     paginationConfig.current_page = paginationConfig.current_page + 1
-    getList().then(() => {
-      currentId.value = data.value[index].id
-      currentContent.value = data.value[index]
+    getList(true).then(() => {
+      currentId.value = tableData.value[index].id
+      currentContent.value = tableData.value[index]
     })
+    return
   } else {
-    currentId.value = data.value[index].id
-    currentContent.value = data.value[index]
+    currentId.value = tableData.value[index].id
+    currentContent.value = tableData.value[index]
   }
 }
 /**
  * 上一页
  */
 const preRecord = () => {
-  const index = tableIndexMap.value[currentId.value] - 1
-  console.log('index', index)
-
-  if (index >= 0) {
-    currentId.value = data.value[index].id
-    currentContent.value = data.value[index]
+  const index = tableData.value.findIndex((item) => item.id === currentId.value) - 1
+  if (index < 0 && 1) {
+    if (paginationConfig.current_page === 1) {
+      return
+    }
+    paginationConfig.current_page = paginationConfig.current_page - 1
+    getList(true).then(() => {
+      currentId.value = tableData.value[tableData.value.length - 1].id
+      currentContent.value = tableData.value[tableData.value.length - 1]
+    })
+  } else {
+    currentId.value = tableData.value[index].id
+    currentContent.value = tableData.value[index]
   }
 }
 
 const open = (knowledge_id: string) => {
+  interval.value = setInterval(() => {
+    getList(false)
+  }, 6000)
   active_knowledge_id.value = knowledge_id
-  getList()
+  getList(true)
   drawer.value = true
 }
 const close = () => {
   paginationConfig.current_page = 1
   paginationConfig.total = 0
-  data.value = []
+  tableData.value = []
   drawer.value = false
+  if (interval.value) {
+    clearInterval(interval.value)
+  }
 }
+onBeforeUnmount(() => {
+  if (interval.value) {
+    clearInterval(interval.value)
+  }
+})
 defineExpose({ open, close })
 </script>
 <style lang="scss" scoped></style>

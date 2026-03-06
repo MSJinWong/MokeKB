@@ -21,7 +21,7 @@ class RegoloTextToImage(MaxKBBaseModel, BaseTextToImage):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.api_key = kwargs.get('api_key')
-        self.api_base = "https://api.regolo.ai/v1"
+        self.api_base = kwargs.get('api_base')
         self.model = kwargs.get('model')
         self.params = kwargs.get('params')
 
@@ -37,7 +37,7 @@ class RegoloTextToImage(MaxKBBaseModel, BaseTextToImage):
                 optional_params['params'][key] = value
         return RegoloTextToImage(
             model=model_name,
-            api_base="https://api.regolo.ai/v1",
+            api_base=model_credential.get('api_base') or "https://api.regolo.ai/v1",
             api_key=model_credential.get('api_key'),
             **optional_params,
         )
@@ -52,8 +52,10 @@ class RegoloTextToImage(MaxKBBaseModel, BaseTextToImage):
         chat = OpenAI(api_key=self.api_key, base_url=self.api_base)
         res = chat.images.generate(model=self.model, prompt=prompt, **self.params)
         file_urls = []
-        for content in res.data:
-            url = content.url
-            file_urls.append(url)
-
-        return file_urls
+        try:
+            for content in res.data:
+                url = content.url
+                file_urls.append(url)
+            return file_urls
+        except Exception as e:
+            raise f"RegoloTextToImage generate_image error: {e}"

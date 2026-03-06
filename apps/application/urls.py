@@ -5,7 +5,7 @@ from . import views
 app_name = 'application'
 # @formatter:off
 urlpatterns = [
-
+    path('workspace/store/application_template', views.ApplicationAPI.StoreApplication.as_view()),
     path('workspace/<str:workspace_id>/application', views.ApplicationAPI.as_view(), name='application'),
     path('workspace/<str:workspace_id>/application/folder/<str:folder_id>/import', views.ApplicationAPI.Import.as_view()),
     path('workspace/<str:workspace_id>/application/<int:current_page>/<int:page_size>', views.ApplicationAPI.Page.as_view(), name='application_page'),
@@ -16,6 +16,7 @@ urlpatterns = [
     path('workspace/<str:workspace_id>/application/<str:application_id>/application_token_usage', views.ApplicationStats.TokenUsageStatistics.as_view()),
     path('workspace/<str:workspace_id>/application/<str:application_id>/top_questions', views.ApplicationStats.TopQuestionsStatistics.as_view()),
     path('workspace/<str:workspace_id>/application/<str:application_id>/application_key/<str:api_key_id>', views.ApplicationKey.Operate.as_view()),
+    path('workspace/<str:workspace_id>/application/<str:application_id>/application_key/<int:current_page>/<int:page_size>', views.ApplicationKey.Page.as_view()),
     path('workspace/<str:workspace_id>/application/<str:application_id>/export', views.ApplicationAPI.Export.as_view()),
     path('workspace/<str:workspace_id>/application/<str:application_id>/application_version', views.ApplicationVersionView.as_view()),
     path('workspace/<str:workspace_id>/application/<str:application_id>/access_token', views.AccessToken.as_view()),

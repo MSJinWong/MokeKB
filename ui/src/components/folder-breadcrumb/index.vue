@@ -1,6 +1,6 @@
 <template>
   <h2 v-if="breadcrumbData?.length === 1" class="ellipsis" :title="breadcrumbData[0]?.name">
-    {{ breadcrumbData[0]?.name }}
+    {{ i18n_name(breadcrumbData[0]?.name) }}
   </h2>
   <el-breadcrumb separator-icon="ArrowRight" style="line-height: normal" class="mt-4" v-else>
     <template v-if="breadcrumbData?.length > 3">
@@ -39,6 +39,7 @@ import { computed } from 'vue'
 import { TreeToFlatten } from '@/utils/array'
 defineOptions({ name: 'FolderBreadcrumb' })
 import useStore from '@/stores'
+import {i18n_name} from "@/utils/common.ts";
 const { folder, user } = useStore()
 
 const props = defineProps({

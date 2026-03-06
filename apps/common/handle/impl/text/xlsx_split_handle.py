@@ -153,9 +153,8 @@ class XlsxSplitHandle(BaseSplitHandle):
                 md_table = '| ' + ' | '.join(headers) + ' |\n'
                 md_table += '| ' + ' | '.join(['---'] * len(headers)) + ' |\n'
                 for row in rows:
-                    r = [f'{value}' if value is not None else '' for key, value in row.items()]
-                    md_table += '| ' + ' | '.join(
-                        [str(cell).replace('\n', '<br>') if cell is not None else '' for cell in r]) + ' |\n'
+                    r = [self._escape_cell_content(value) for key, value in row.items()]
+                    md_table += '| ' + ' | '.join(r) + ' |\n'
 
                 md_tables += md_table + '\n\n'
 
@@ -163,6 +162,25 @@ class XlsxSplitHandle(BaseSplitHandle):
         except Exception as e:
             maxkb_logger.error(f'excel split handle error: {e}')
             return f'error: {e}'
+
+    def _escape_cell_content(self, cell_value):
+        """转义单元格内容,避免破坏 Markdown 表格结构"""
+        if cell_value is None:
+            return ''
+
+        cell_str = str(cell_value)
+
+        # 替换换行符为 <br>
+        cell_str = cell_str.replace('\n', '<br>')
+
+        # 转义管道符 | 为 HTML 实体
+        cell_str = cell_str.replace('|', '&#124;')
+
+        # 如果内容包含反引号,需要转义
+        if '`' in cell_str:
+            cell_str = cell_str.replace('`', '&#96;')
+
+        return cell_str
 
     def support(self, file, get_buffer):
         file_name: str = file.name.lower()

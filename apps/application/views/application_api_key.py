@@ -51,25 +51,29 @@ class ApplicationKey(APIView):
             data={'application_id': application_id, 'user_id': request.user.id,
                   'workspace_id': workspace_id}).generate())
 
-    @extend_schema(
-        methods=['GET'],
-        description=_('GET application ApiKey List'),
-        summary=_('Create application ApiKey List'),
-        operation_id=_('Create application ApiKey List'),  # type: ignore
-        parameters=ApplicationKeyAPI.get_parameters(),
-        responses=ApplicationKeyAPI.List.get_response(),
-        tags=[_('Application Api Key')]  # type: ignore
-    )
-    @has_permissions(PermissionConstants.APPLICATION_OVERVIEW_API_KEY.get_workspace_application_permission(),
-                     PermissionConstants.APPLICATION_OVERVIEW_API_KEY.get_workspace_permission_workspace_manage_role(),
-                     ViewPermission([RoleConstants.USER.get_workspace_role()],
-                                    [PermissionConstants.APPLICATION.get_workspace_application_permission()],
-                                    CompareConstants.AND),
-                     RoleConstants.WORKSPACE_MANAGE.get_workspace_role())
-    def get(self, request: Request, workspace_id: str, application_id: str):
-        return result.success(ApplicationKeySerializer(
-            data={'application_id': application_id,
-                  'workspace_id': workspace_id}).list())
+    class Page(APIView):
+        authentication_classes = [TokenAuth]
+
+        @extend_schema(
+            methods=['GET'],
+            description=_('GET application ApiKey List'),
+            summary=_('Create application ApiKey List'),
+            operation_id=_('Create application ApiKey List'),  # type: ignore
+            parameters=ApplicationKeyAPI.get_parameters(),
+            responses=ApplicationKeyAPI.List.get_response(),
+            tags=[_('Application Api Key')]  # type: ignore
+        )
+        @has_permissions(PermissionConstants.APPLICATION_OVERVIEW_API_KEY.get_workspace_application_permission(),
+                         PermissionConstants.APPLICATION_OVERVIEW_API_KEY.get_workspace_permission_workspace_manage_role(),
+                         ViewPermission([RoleConstants.USER.get_workspace_role()],
+                                        [PermissionConstants.APPLICATION.get_workspace_application_permission()],
+                                        CompareConstants.AND),
+                         RoleConstants.WORKSPACE_MANAGE.get_workspace_role())
+        def get(self, request: Request, workspace_id: str, application_id: str, current_page: int, page_size: int):
+            return result.success(ApplicationKeySerializer(
+                data={'application_id': application_id,
+                      'workspace_id': workspace_id,
+                      'order_by': request.query_params.get('order_by')}).page(current_page, page_size))
 
     class Operate(APIView):
         authentication_classes = [TokenAuth]

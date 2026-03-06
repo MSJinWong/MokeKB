@@ -11,6 +11,7 @@ const systemManage = {
       ],
       'OR',
     ),
+  jump_read: () => false,
   is_share: () =>
     hasPermission(
       new ComplexPermission(
@@ -28,6 +29,38 @@ const systemManage = {
         PermissionConst.RESOURCE_TOOL_DELETE,
       ],
       'OR',
+    ),
+  trigger_read: () =>
+        hasPermission(
+            [
+              RoleConst.ADMIN,
+              PermissionConst.RESOURCE_TOOL_TRIGGER_READ
+            ],
+            'OR'
+    ),
+  trigger_create: () =>
+        hasPermission(
+            [
+              RoleConst.ADMIN,
+              PermissionConst.RESOURCE_TOOL_TRIGGER_CREATE
+            ],
+            'OR'
+    ),
+  trigger_edit: () =>
+        hasPermission(
+            [
+              RoleConst.ADMIN,
+              PermissionConst.RESOURCE_TOOL_TRIGGER_EDIT
+            ],
+            'OR'
+    ),
+  trigger_delete: () =>
+        hasPermission(
+            [
+              RoleConst.ADMIN,
+              PermissionConst.RESOURCE_TOOL_TRIGGER_DELETE
+            ],
+            'OR'
     ),
   create: () => false,
   import: () => false,
@@ -73,7 +106,22 @@ const systemManage = {
       ],
       'OR',
     ),
-  
+  relate_map: () =>
+    hasPermission(
+      [
+        RoleConst.ADMIN,
+        PermissionConst.RESOURCE_TOOL_RELATE_RESOURCE_VIEW
+      ],
+      'OR'
+    ),
+  record: () =>
+    hasPermission(
+      [
+        RoleConst.ADMIN,
+        PermissionConst.RESOURCE_TOOL_EXECUTE_RECORD
+      ],
+      'OR'
+    ),
   folderRead: () => false,
   folderManage: () => false,
   folderCreate: () => false,

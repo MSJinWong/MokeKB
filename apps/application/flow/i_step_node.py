@@ -64,6 +64,7 @@ class WorkFlowPostHandler:
             answer_text_list)
         if workflow.chat_record is not None:
             chat_record = workflow.chat_record
+            chat_record.problem_text = question
             chat_record.answer_text = answer_text
             chat_record.details = details
             chat_record.message_tokens = message_tokens
@@ -81,7 +82,9 @@ class WorkFlowPostHandler:
                                      answer_text_list=answer_text_list,
                                      run_time=time.time() - workflow.context.get('start_time') if workflow.context.get(
                                          'start_time') is not None else 0,
-                                     index=0)
+                                     index=0,
+                                     ip_address=self.chat_info.ip_address,
+                                     source=self.chat_info.source)
 
         self.chat_info.append_chat_record(chat_record)
         self.chat_info.set_cache()
@@ -123,10 +126,12 @@ def get_loop_workflow_node(node_list):
 
 
 def get_workflow_state(workflow):
+    if workflow.is_the_task_interrupted():
+        return State.REVOKED
     details = workflow.get_runtime_details()
     node_list = details.values()
     all_node = [*node_list, *get_loop_workflow_node(node_list)]
-    err = any([True for value in all_node if value.get('status') == 500])
+    err = any([True for value in all_node if value.get('status') == 500 and not value.get('enableException')])
     if err:
         return State.FAILURE
     write_is_exist = any([True for value in all_node if value.get('type') == 'knowledge-write-node'])

@@ -22,13 +22,13 @@
     <div>
       <el-scrollbar>
         <h4 class="title-decoration-1 mb-16 mt-4">
-          {{ $t('workflow.ExecutionRecord') }}
+          {{ $t('common.ExecutionRecord.title') }}
         </h4>
         <el-card class="mb-24" shadow="never" style="--el-card-padding: 12px 16px">
           <el-row :gutter="16" class="lighter">
             <el-col :span="6">
               <p class="color-secondary mb-4">{{ $t('workflow.initiator') }}</p>
-              <p>{{ props.currentContent?.meta.user_name || '-' }}</p>
+              <p>{{ props.currentContent?.meta?.user_name || '-' }}</p>
             </el-col>
             <el-col :span="6">
               <p class="color-secondary mb-4">{{ $t('common.status.label') }}</p>
@@ -47,9 +47,23 @@
                   <el-icon class="color-danger"><CircleCloseFilled /></el-icon>
                   {{ $t('common.status.fail') }}
                 </el-text>
+                <el-text
+                  class="color-text-primary"
+                  v-else-if="props.currentContent?.state === 'REVOKED'"
+                >
+                  <el-icon class="color-danger"><CircleCloseFilled /></el-icon>
+                  {{ $t('common.status.REVOKED') }}
+                </el-text>
+                <el-text
+                  class="color-text-primary"
+                  v-else-if="props.currentContent?.state === 'REVOKE'"
+                >
+                  <el-icon class="is-loading color-primary"><Loading /></el-icon>
+                  {{ $t('common.status.REVOKE') }}
+                </el-text>
                 <el-text class="color-text-primary" v-else>
                   <el-icon class="is-loading color-primary"><Loading /></el-icon>
-                  {{ $t('common.status.padding') }}
+                  {{ $t('common.status.STARTED') }}
                 </el-text>
               </p>
             </el-col>
@@ -91,11 +105,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, watch } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import Result from '@/views/knowledge-workflow/component/action/Result.vue'
 import { datetimeFormat } from '@/utils/time'
-import { t } from '@/locales'
 const props = withDefaults(
   defineProps<{
     /**

@@ -17,8 +17,8 @@
           >
             <el-option :label="$t('common.creator')" value="create_user" />
             <el-option :label="$t('common.name')" value="name" />
-            <el-option :label="$t('common.type')" value="tool_type"/>
-            <el-option :label="$t('views.tool.form.source.label')" value="source"/>
+            <el-option :label="$t('common.type')" value="tool_type" />
+            <el-option :label="$t('views.tool.form.source.label')" value="source" />
           </el-select>
           <el-input
             v-if="search_type === 'name'"
@@ -46,7 +46,7 @@
             filterable
             style="width: 220px"
           >
-            <el-option v-for="u in type_options" :key="u.id"  :value="u.value" :label="u.label"/>
+            <el-option v-for="u in type_options" :key="u.id" :value="u.value" :label="u.label" />
           </el-select>
           <el-select
             v-else-if="search_type === 'source'"
@@ -56,7 +56,7 @@
             filterable
             style="width: 220px"
           >
-            <el-option v-for="u in source_options" :key="u.id"  :value="u.value" :label="u.label"/>
+            <el-option v-for="u in source_options" :key="u.id" :value="u.value" :label="u.label" />
           </el-select>
         </div>
       </div>
@@ -71,36 +71,34 @@
         <!-- <el-table-column type="selection" width="55" /> -->
         <el-table-column width="220" :label="$t('common.name')" show-overflow-tooltip>
           <template #default="{ row }">
-            <div class="table-name flex align-center">
-              <el-icon size="24" class="mr-8">
-                <el-avatar
-                  v-if="row?.icon"
-                  shape="square"
-                  :size="24"
-                  style="background: none"
-                  class="mr-8"
-                >
+            <el-space :size="8">
+              <el-icon size="24">
+                <el-avatar v-if="row?.icon" shape="square" :size="24" style="background: none">
                   <img :src="resetUrl(row?.icon)" alt="" />
                 </el-avatar>
 
                 <ToolIcon v-else :size="24" :type="row?.tool_type" />
               </el-icon>
-              {{ row.name }}
-            </div>
+              <span class="ellipsis" style="max-width: 160px">
+                {{ row.name }}
+              </span>
+            </el-space>
           </template>
         </el-table-column>
 
         <el-table-column prop="tool_type" :label="$t('common.type')">
           <template #default="scope">
             <span v-if="scope.row.tool_type === 'MCP'"> MCP </span>
-            <span v-else-if="scope.row.tool_type === 'DATA_SOURCE'"> {{ $t('views.tool.dataSource.title') }} </span>
+            <span v-else-if="scope.row.tool_type === 'DATA_SOURCE'">
+              {{ $t('views.tool.dataSource.title') }}
+            </span>
             <span v-else> {{ $t('views.tool.title') }} </span>
           </template>
         </el-table-column>
         <el-table-column prop="source" :label="$t('views.tool.form.source.label')">
           <template #default="scope">
             <span v-if="scope.row.template_id">{{ $t('views.tool.toolStore.title') }}</span>
-            <span v-else> {{ $t( ToolType['CUSTOM'] ) }} </span>
+            <span v-else> {{ $t(ToolType['CUSTOM']) }} </span>
           </template>
         </el-table-column>
         <el-table-column :label="$t('common.status.label')" width="120">
@@ -318,17 +316,42 @@
                   </el-dropdown-item>
 
                   <el-dropdown-item
-                    v-if="
-                      !row.template_id && permissionPrecise.export()
-                    "
+                    v-if="!row.template_id && permissionPrecise.export()"
                     @click.stop="exportTool(row)"
                   >
                     <AppIcon iconName="app-export" class="color-secondary"></AppIcon>
                     {{ $t('common.export') }}
                   </el-dropdown-item>
-                  <el-dropdown-item v-if="row.tool_type === 'MCP' && permissionPrecise.edit()" @click.stop="showMcpConfig(row)">
+                  <el-dropdown-item
+                    v-if="row.tool_type === 'MCP' && permissionPrecise.edit()"
+                    @click.stop="showMcpConfig(row)"
+                  >
                     <AppIcon iconName="app-operate-log" class="color-secondary"></AppIcon>
                     {{ $t('views.tool.mcpConfig') }}
+                  </el-dropdown-item>
+
+                  <el-dropdown-item
+                    @click.stop="openTriggerDrawer(row)"
+                    v-if="row.tool_type === 'CUSTOM' && permissionPrecise.trigger_read()"
+                  >
+                    <AppIcon iconName="app-trigger" class="color-secondary"></AppIcon>
+                    {{ $t('views.trigger.title') }}
+                  </el-dropdown-item>
+                  <el-dropdown-item
+                    text
+                    @click.stop="openResourceMappingDrawer(row)"
+                    v-if="permissionPrecise.relate_map()"
+                  >
+                    <AppIcon iconName="app-resource-mapping" class="color-secondary"></AppIcon>
+                    {{ $t('views.system.resourceMapping.title') }}
+                  </el-dropdown-item>
+                  <el-dropdown-item
+                    text
+                    @click.stop="openToolRecordDrawer(row)"
+                    v-if="permissionPrecise.record()"
+                  >
+                    <AppIcon iconName="app-schedule-report" class="color-secondary" />
+                    {{ $t('common.ExecutionRecord.subTitle') }}
                   </el-dropdown-item>
                   <el-dropdown-item
                     v-if="permissionPrecise.delete()"
@@ -349,10 +372,20 @@
     <InitParamDrawer ref="InitParamDrawerRef" @refresh="refresh" />
     <ToolFormDrawer ref="ToolFormDrawerRef" @refresh="refresh" :title="ToolDrawertitle" />
     <McpToolFormDrawer ref="McpToolFormDrawerRef" @refresh="refresh" :title="McpToolDrawertitle" />
-    <DataSourceToolFormDrawer ref="DataSourceToolFormDrawerRef" @refresh="refresh" :title="DataSourceToolDrawertitle" />
+    <DataSourceToolFormDrawer
+      ref="DataSourceToolFormDrawerRef"
+      @refresh="refresh"
+      :title="DataSourceToolDrawertitle"
+    />
     <AddInternalToolDialog ref="AddInternalToolDialogRef" @refresh="confirmAddInternalTool" />
     <McpToolConfigDialog ref="McpToolConfigDialogRef" @refresh="refresh" />
     <ResourceAuthorizationDrawer :type="SourceTypeEnum.TOOL" ref="ResourceAuthorizationDrawerRef" />
+    <ResourceMappingDrawer ref="resourceMappingDrawerRef"></ResourceMappingDrawer>
+    <ToolRecordDrawer ref="toolRecordDrawerRef" />
+    <ResourceTriggerDrawer
+      ref="resourceTriggerDrawerRef"
+      :source="SourceTypeEnum.TOOL"
+    ></ResourceTriggerDrawer>
   </div>
 </template>
 
@@ -366,6 +399,7 @@ import ToolFormDrawer from '@/views/tool/ToolFormDrawer.vue'
 import McpToolFormDrawer from '@/views/tool/McpToolFormDrawer.vue'
 import DataSourceToolFormDrawer from '@/views/tool/DataSourceToolFormDrawer.vue'
 import ResourceAuthorizationDrawer from '@/components/resource-authorization-drawer/index.vue'
+import ResourceTriggerDrawer from '@/views/trigger/ResourceTriggerDrawer.vue'
 import { t } from '@/locales'
 import { SourceTypeEnum } from '@/enums/common'
 import { resetUrl } from '@/utils/common'
@@ -377,6 +411,8 @@ import UserApi from '@/api/user/user.ts'
 import { MsgSuccess, MsgConfirm, MsgError } from '@/utils/message'
 import permissionMap from '@/permission'
 import McpToolConfigDialog from '@/views/tool/component/McpToolConfigDialog.vue'
+import ResourceMappingDrawer from '@/components/resource_mapping/index.vue'
+import ToolRecordDrawer from '@/views/tool/execution-record/TriggerRecordDrawer.vue'
 
 const { user } = useStore()
 
@@ -433,11 +469,19 @@ const MoreFilledPermission = (row: any) => {
     permissionPrecise.value.export() ||
     permissionPrecise.value.delete() ||
     permissionPrecise.value.auth() ||
+    permissionPrecise.value.relate_map() ||
+    permissionPrecise.value.trigger_read() ||
     (row.init_field_list?.length > 0 && permissionPrecise.value.edit())
   )
 }
 
+const resourceTriggerDrawerRef = ref<InstanceType<typeof ResourceTriggerDrawer>>()
+const openTriggerDrawer = (data: any) => {
+  resourceTriggerDrawerRef.value?.open(data)
+}
+
 const ResourceAuthorizationDrawerRef = ref()
+
 function openAuthorization(item: any) {
   ResourceAuthorizationDrawerRef.value.open(item.id)
 }
@@ -453,6 +497,7 @@ function exportTool(row: any) {
 }
 
 const McpToolConfigDialogRef = ref()
+
 function showMcpConfig(item: any) {
   ToolResourceApi.getToolById(item?.id, loading).then((res: any) => {
     McpToolConfigDialogRef.value.open(res.data)
@@ -462,7 +507,7 @@ function showMcpConfig(item: any) {
 function deleteTool(row: any) {
   MsgConfirm(
     `${t('views.tool.delete.confirmTitle')}：${row.name} ?`,
-    t('views.tool.delete.confirmMessage'),
+    row.resource_count > 0 ? t('views.tool.delete.resourceCountMessage', row.resource_count) : '',
     {
       confirmButtonText: t('common.confirm'),
       cancelButtonText: t('common.cancel'),
@@ -538,7 +583,9 @@ function openCreateDataSourceDialog(data?: any) {
     return
   }
 
-  DataSourceToolDrawertitle.value = data ? t('views.tool.dataSource.editDataSource') : t('views.tool.dataSource.createDataSource')
+  DataSourceToolDrawertitle.value = data
+    ? t('views.tool.dataSource.editDataSource')
+    : t('views.tool.dataSource.createDataSource')
   if (data) {
     ToolResourceApi.getToolById(data?.id, loading).then((res: any) => {
       DataSourceToolFormDrawerRef.value.open(res.data)
@@ -549,6 +596,7 @@ function openCreateDataSourceDialog(data?: any) {
 }
 
 const AddInternalToolDialogRef = ref<InstanceType<typeof AddInternalToolDialog>>()
+
 function addInternalTool(data?: any, isEdit?: boolean) {
   AddInternalToolDialogRef.value?.open(data, isEdit)
 }
@@ -563,6 +611,7 @@ function confirmAddInternalTool(data?: any, isEdit?: boolean) {
 }
 
 const InitParamDrawerRef = ref()
+
 async function changeState(row: any) {
   if (row.is_active) {
     MsgConfirm(
@@ -634,6 +683,7 @@ function filterWorkspaceChange(val: string) {
   getList()
   workspaceVisible.value = false
 }
+
 async function getWorkspaceList() {
   if (user.isEE()) {
     const res = await loadPermissionApi('workspace').getSystemWorkspaceList(loading)
@@ -643,6 +693,7 @@ async function getWorkspaceList() {
     }))
   }
 }
+
 const search_type_change = () => {
   search_form.value = { name: '', create_user: '' }
 }
@@ -669,6 +720,16 @@ function refresh(data?: any) {
     paginationConfig.current_page = 1
     getList()
   }
+}
+
+const resourceMappingDrawerRef = ref<InstanceType<typeof ResourceMappingDrawer>>()
+const openResourceMappingDrawer = (tool: any) => {
+  resourceMappingDrawerRef.value?.open('TOOL', tool)
+}
+
+const toolRecordDrawerRef = ref<InstanceType<typeof ToolRecordDrawer>>()
+const openToolRecordDrawer = (data: any) => {
+  toolRecordDrawerRef.value?.open(data)
 }
 
 onMounted(() => {

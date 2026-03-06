@@ -2,6 +2,7 @@ import { Result } from '@/request/Result'
 import { get, put, post, del } from '@/request/index'
 import type { Ref } from 'vue'
 import type { pageRequest } from '@/api/type/common'
+import { t } from '@/locales/index'
 const prefix = '/workspace'
 
 /**
@@ -84,7 +85,7 @@ const getSystemFolder: (
       Result.success([
         {
           id: 'default',
-          name: '根目录',
+          name: t('layout.about.root'),
           desc: null,
           parent_id: null,
           children: [],
@@ -101,5 +102,4 @@ export default {
   getUserList,
   getUserMember,
   getSystemFolder,
-
 }

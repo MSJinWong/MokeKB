@@ -7,7 +7,7 @@
           <el-scrollbar>
             <div class="left-height" @click.stop>
               <el-radio-group v-model="radio" class="card__radio">
-                <el-card shadow="never" class="mb-16" :class="radio === '1' ? 'active' : ''">
+                <el-card shadow="never" class="mb-16" :class="radio === '1' ? 'border-active' : ''">
                   <el-radio value="1" size="large">
                     <p class="mb-4">{{ $t('views.document.setRules.intelligent.label') }}</p>
                     <el-text type="info">{{
@@ -15,7 +15,7 @@
                     }}</el-text>
                   </el-radio>
                 </el-card>
-                <el-card shadow="never" class="mb-16" :class="radio === '2' ? 'active' : ''">
+                <el-card shadow="never" class="mb-16" :class="radio === '2' ? 'border-active' : ''">
                   <el-radio value="2" size="large">
                     <p class="mb-4">{{ $t('views.document.setRules.advanced.label') }}</p>
                     <el-text type="info">

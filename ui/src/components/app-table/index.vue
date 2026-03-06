@@ -1,6 +1,13 @@
 <template>
   <div class="app-table" :class="quickCreate ? 'table-quick-append' : ''">
-    <el-table :max-height="tableHeight" v-bind="$attrs" ref="appTableRef">
+    <el-table
+      :max-height="tableHeight"
+      v-bind="$attrs"
+      ref="appTableRef"
+      :tooltip-options="{
+        popperClass: 'max-w-350',
+      }"
+    >
       <template #append v-if="quickCreate">
         <div v-if="showInput">
           <el-input

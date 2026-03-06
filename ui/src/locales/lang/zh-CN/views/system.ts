@@ -7,6 +7,7 @@ export default {
   testSuccess: '测试连接成功',
   testFailed: '测试连接失败',
   password: '密码',
+  defaultPassword: '默认密码',
   authentication: {
     title: '登录认证',
     ldap: {
@@ -145,6 +146,8 @@ export default {
       currentOnly: '仅当前资源',
       includeAll: '包含所有子资源',
       effectiveResource: '生效资源',
+      defaultPermission: '默认权限',
+      defaultPermissionTip: '所选工作空间下所有资源的默认权限',
     },
   },
   resource_management: {
@@ -155,7 +158,14 @@ export default {
   display_code: '账号登录验证码设置',
   loginFailed: '登录失败',
   loginFailedMessage: '次显示验证码',
+  failedTip: '次，锁定账号',
+  minute: '分钟',
   display_codeTip: '值为-1时，不显示验证码',
   time: '次',
   setting: '登录设置',
+  third_party_user_default_role: '第三方用户默认角色分配',
+  resourceMapping: {
+    title: '查看关联资源',
+    sub_title: '关联资源',
+  },
 }

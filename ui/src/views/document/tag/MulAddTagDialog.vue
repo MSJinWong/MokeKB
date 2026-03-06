@@ -30,6 +30,7 @@
                   v-model="tag.key"
                   @change="tagKeyChange(tag)"
                   filterable
+                  :filter-method="filterMethod"
                   :placeholder="$t('views.document.tag.requiredMessage1')"
                   :loading="optionLoading"
                 >
@@ -139,7 +140,8 @@ const optionLoading = ref<boolean>(false)
 const FormRef = ref()
 const dialogVisible = ref<boolean>(false)
 const tagList = ref<Array<any>>([])
-const keyOptions = ref()
+const keyOptions = ref<Array<any>>([])
+const allKeyOptions = ref([])
 
 const add = () => {
   tagList.value.push({})
@@ -174,8 +176,13 @@ function getTags(Key?: string) {
   loadSharedApi({ type: 'knowledge', systemType: props.apiType, isShared: isShared.value })
     .getTags(id, {}, optionLoading)
     .then((res: any) => {
-      keyOptions.value = res.data
+      keyOptions.value = res.data.slice(0, 100)
+      allKeyOptions.value = res.data
     })
+}
+
+function filterMethod(val: string) {
+  keyOptions.value = allKeyOptions.value.filter((item: any) => item.key.indexOf(val) > -1).slice(0, 100)
 }
 
 const createTagDialogRef = ref()

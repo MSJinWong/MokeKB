@@ -11,8 +11,8 @@
     align-center
     class="scrollbar-dialog"
   >
-    <el-scrollbar max-height="550">
-      <div class="p-8">
+    <el-scrollbar>
+      <div class="p-8" style="max-height: calc(100vh - 273px)">
         <el-form
           label-position="top"
           ref="fieldFormRef"
@@ -43,7 +43,7 @@
             <el-card
               shadow="hover"
               class="card-checkbox cursor w-full mb-8"
-              :class="form_data.document ? 'active' : ''"
+              :class="form_data.document ? 'border-active' : ''"
               style="--el-card-padding: 8px 16px"
               @click.stop="form_data.document = !form_data.document"
             >
@@ -73,7 +73,7 @@
             <el-card
               shadow="hover"
               class="card-checkbox cursor w-full mb-8"
-              :class="form_data.image ? 'active' : ''"
+              :class="form_data.image ? 'border-active' : ''"
               style="--el-card-padding: 8px 16px"
               @click.stop="form_data.image = !form_data.image"
             >
@@ -102,7 +102,7 @@
             <el-card
               shadow="hover"
               class="card-checkbox cursor w-full mb-8"
-              :class="form_data.audio ? 'active' : ''"
+              :class="form_data.audio ? 'border-active' : ''"
               style="--el-card-padding: 8px 16px"
               @click.stop="form_data.audio = !form_data.audio"
             >
@@ -130,7 +130,7 @@
             <el-card
               shadow="hover"
               class="card-checkbox cursor w-full mb-8"
-              :class="form_data.video ? 'active' : ''"
+              :class="form_data.video ? 'border-active' : ''"
               style="--el-card-padding: 8px 16px"
               @click.stop="form_data.video = !form_data.video"
             >
@@ -163,7 +163,7 @@
             <el-card
               shadow="hover"
               class="card-checkbox cursor w-full mb-8"
-              :class="form_data.other ? 'active' : ''"
+              :class="form_data.other ? 'border-active' : ''"
               style="--el-card-padding: 8px 16px"
               @click.stop="form_data.other = !form_data.other"
             >
@@ -179,7 +179,7 @@
                         }}
                       </el-text>
                     </p>
-                    <el-space wrap :size="2" class="mt-4">
+                    <el-space wrap :size="6" class="mt-4">
                       <el-tag
                         v-for="tag in form_data.otherExtensions"
                         :key="tag"
@@ -187,12 +187,8 @@
                         :disable-transitions="false"
                         @close="handleClose(tag)"
                         type="info"
-                        class="mr-4"
                         effect="plain"
-                        style="
-                          --el-tag-border-radius: 4px;
-                          --el-tag-border-color: var(--el-border-color);
-                        "
+                        class="upload-file-tag"
                       >
                         {{ tag }}
                       </el-tag>
@@ -203,9 +199,13 @@
                         size="small"
                         @keyup.enter="handleInputConfirm"
                         @blur="handleInputConfirm"
+                        :style="{
+                          '--el-input-border-radius': '4px',
+                        }"
                       />
                       <el-button v-else class="button-new-tag" size="small" @click.stop="showInput">
-                        + {{ $t('common.fileUpload.addExtensions') }}
+                        <AppIcon iconName="app-add-outlined" class="mr-4"></AppIcon>
+                        {{ $t('common.fileUpload.addExtensions') }}
                       </el-button>
                     </el-space>
                   </div>
@@ -238,6 +238,7 @@
         </el-form>
       </div>
     </el-scrollbar>
+
     <template #footer>
       <span class="dialog-footer">
         <el-button @click.prevent="close"> {{ $t('common.cancel') }} </el-button>

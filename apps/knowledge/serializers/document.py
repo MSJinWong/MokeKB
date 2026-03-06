@@ -25,8 +25,8 @@ from rest_framework import serializers
 from xlwt import Utils
 
 from common.db.search import native_search, get_dynamics_model, native_page_search
-from common.event.listener_manage import ListenerManagement
 from common.event.common import work_thread_pool
+from common.event.listener_manage import ListenerManagement
 from common.exception.app_exception import AppApiException
 from common.field.common import UploadedFileField
 from common.handle.impl.qa.csv_parse_qa_handle import CsvParseQAHandle
@@ -601,7 +601,7 @@ class DocumentSerializers(serializers.Serializer):
 
             workbook = DocumentSerializers.Operate.get_workbook(data_dict, document_dict)
             response = HttpResponse(content_type='application/zip')
-            response['Content-Disposition'] = f'attachment; filename="{document.name}.zip"'
+            response['Content-Disposition'] = f'attachment; filename="{document.name.strip()}.zip"'
             zip_buffer = io.BytesIO()
             with TemporaryDirectory() as tempdir:
                 knowledge_file = os.path.join(tempdir, 'document.xlsx')
@@ -1331,6 +1331,68 @@ class DocumentSerializers(serializers.Serializer):
 
             if new_relations:
                 QuerySet(DocumentTag).bulk_create(new_relations)
+
+
+        def batch_export(self, instance: Dict, with_valid=True):
+            if with_valid:
+                BatchSerializer(data=instance).is_valid(model=Document, raise_exception=True)
+                self.is_valid(raise_exception=True)
+            document_ids = instance.get("id_list")
+            document_list = QuerySet(Document).filter(id__in=document_ids)
+            paragraph_list = native_search(
+                QuerySet(Paragraph).filter(document_id__in=document_ids),
+                get_file_content(
+                    os.path.join(PROJECT_DIR, "apps", "knowledge", 'sql', 'list_paragraph_document_name.sql')
+                )
+            )
+            problem_mapping_list = native_search(
+                QuerySet(ProblemParagraphMapping).filter(document_id__in=document_ids),
+                get_file_content(os.path.join(PROJECT_DIR, "apps", "knowledge", 'sql', 'list_problem_mapping.sql')),
+                with_table_name=True
+            )
+            data_dict, document_dict = DocumentSerializers.Operate.merge_problem(
+                paragraph_list, problem_mapping_list, document_list
+            )
+            workbook = DocumentSerializers.Operate.get_workbook(data_dict, document_dict)
+            response = HttpResponse(content_type='application/vnd.ms-excel')
+            workbook.save(response)
+            return response
+
+        def batch_export_zip(self, instance: Dict, with_valid=True):
+            if with_valid:
+                BatchSerializer(data=instance).is_valid(model=Document, raise_exception=True)
+                self.is_valid(raise_exception=True)
+            knowledge = QuerySet(Knowledge).filter(id=self.data.get('knowledge_id')).first()
+            document_ids = instance.get("id_list")
+            document_list = QuerySet(Document).filter(id__in=document_ids)
+            paragraph_list = native_search(
+                QuerySet(Paragraph).filter(document_id__in=document_ids),
+                get_file_content(
+                    os.path.join(PROJECT_DIR, "apps", "knowledge", 'sql', 'list_paragraph_document_name.sql')
+                )
+            )
+            problem_mapping_list = native_search(
+                QuerySet(ProblemParagraphMapping).filter(document_id__in=document_ids),
+                get_file_content(os.path.join(PROJECT_DIR, "apps", "knowledge", 'sql', 'list_problem_mapping.sql')),
+                with_table_name=True
+            )
+            data_dict, document_dict = DocumentSerializers.Operate.merge_problem(
+                paragraph_list, problem_mapping_list, document_list
+            )
+            res = [parse_image(paragraph.get('content')) for paragraph in paragraph_list]
+
+            workbook = DocumentSerializers.Operate.get_workbook(data_dict, document_dict)
+            response = HttpResponse(content_type='application/zip')
+            zip_buffer = io.BytesIO()
+            with TemporaryDirectory() as tempdir:
+                knowledge_file = os.path.join(tempdir, f'{knowledge.name}.xlsx')
+                workbook.save(knowledge_file)
+                for r in res:
+                    write_image(tempdir, r)
+                zip_dir(tempdir, zip_buffer)
+            response.write(zip_buffer.getvalue())
+            return response
+
 
     class BatchGenerateRelated(serializers.Serializer):
         workspace_id = serializers.CharField(required=True, label=_('workspace id'))

@@ -31,6 +31,7 @@ class ZhiPuImageModelParams(BaseForm):
 
 
 class ZhiPuImageModelCredential(BaseForm, BaseModelCredential):
+    api_base = forms.TextInputField('API URL', required=True, default_value='https://open.bigmodel.cn/api/paas/v4')
     api_key = forms.PasswordInputField('API Key', required=True)
 
     def is_valid(self, model_type: str, model_name, model_credential: Dict[str, object], model_params, provider,
@@ -40,7 +41,7 @@ class ZhiPuImageModelCredential(BaseForm, BaseModelCredential):
             raise AppApiException(ValidCode.valid_error.value,
                                   gettext('{model_type} Model type is not supported').format(model_type=model_type))
 
-        for key in ['api_key']:
+        for key in ['api_key', 'api_base']:
             if key not in model_credential:
                 if raise_exception:
                     raise AppApiException(ValidCode.valid_error.value, gettext('{key}  is required').format(key=key))

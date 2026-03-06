@@ -16,12 +16,14 @@ from volcenginesdkarkruntime import Ark
 
 class VolcanicEngineTextToImage(MaxKBBaseModel, BaseTextToImage):
     api_key: str
+    api_base: str
     model_version: str
     params: dict
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.api_key = kwargs.get('api_key')
+        self.api_base = kwargs.get('api_base')
         self.model_version = kwargs.get('model_version')
         self.params = kwargs.get('params')
 
@@ -38,6 +40,7 @@ class VolcanicEngineTextToImage(MaxKBBaseModel, BaseTextToImage):
         return VolcanicEngineTextToImage(
             model_version=model_name,
             api_key=model_credential.get('api_key'),
+            api_base=model_credential.get('volcanic_api_url') or 'https://ark-api.volcengine.com',
             **optional_params
         )
 
@@ -47,7 +50,7 @@ class VolcanicEngineTextToImage(MaxKBBaseModel, BaseTextToImage):
     def generate_image(self, prompt: str, negative_prompt: str = None):
         client = Ark(
             # 此为默认路径，您可根据业务所在地域进行配置
-            base_url="https://ark.cn-beijing.volces.com/api/v3",
+            base_url=self.api_base,
             # 从环境变量中获取您的 API Key。此为默认方式，您可根据需要进行修改
             api_key=self.api_key,
         )
@@ -57,5 +60,8 @@ class VolcanicEngineTextToImage(MaxKBBaseModel, BaseTextToImage):
             prompt=prompt,
             **self.params
         )
-        file_urls.append(imagesResponse.data[0].url)
+        if imagesResponse.data[0].url:
+            file_urls.append(imagesResponse.data[0].url)
+        elif imagesResponse.data[0].b64_json:
+            file_urls.append(imagesResponse.data[0].b64_json)
         return file_urls

@@ -68,6 +68,7 @@ const loading = ref(false)
 
 const APIKeyId = ref('')
 const APIType = ref('APPLICATION')
+const isCreate = ref(false)
 
 watch(dialogVisible, (bool) => {
   if (!bool) {
@@ -79,12 +80,17 @@ watch(dialogVisible, (bool) => {
 })
 
 const open = (data: any, type: string) => {
-  APIKeyId.value = data.id
+  if (data) {
+    isCreate.value = false
+    APIKeyId.value = data.id
+    form.value.allow_cross_domain = data.allow_cross_domain
+    form.value.cross_domain_list = data.cross_domain_list?.length
+      ? data.cross_domain_list?.join('\n')
+      : ''
+  } else {
+    isCreate.value = true
+  }
   APIType.value = type
-  form.value.allow_cross_domain = data.allow_cross_domain
-  form.value.cross_domain_list = data.cross_domain_list?.length
-    ? data.cross_domain_list?.join('\n')
-    : ''
   dialogVisible.value = true
 }
 

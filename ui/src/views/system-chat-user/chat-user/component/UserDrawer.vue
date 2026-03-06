@@ -4,27 +4,33 @@
       <h4>{{ props.title }}</h4>
     </template>
     <h4 class="title-decoration-1 mb-16 mt-8">{{ $t('common.info') }}</h4>
-    <el-form ref="userFormRef" :model="userForm" :rules="rules" label-position="top" require-asterisk-position="right"
-      @submit.prevent :close-on-click-modal="false" :close-on-press-escape="false">
-      <el-form-item :prop="isEdit ? '' : 'username'" :label="$t('views.login.loginForm.username.label')">
-        <el-input v-model="userForm.username" :placeholder="$t('views.login.loginForm.username.placeholder')"
-          maxlength="64" show-word-limit :disabled="isEdit">
+    <el-form ref="userFormRef" :model="userForm" :rules="rules" label-position="top"
+             require-asterisk-position="right"
+             @submit.prevent :close-on-click-modal="false" :close-on-press-escape="false">
+      <el-form-item :prop="isEdit ? '' : 'username'"
+                    :label="$t('views.login.loginForm.username.label')">
+        <el-input v-model="userForm.username"
+                  :placeholder="$t('views.login.loginForm.username.placeholder')"
+                  maxlength="64" show-word-limit :disabled="isEdit">
         </el-input>
       </el-form-item>
       <el-form-item prop="nick_name" :label="$t('views.userManage.userForm.nick_name.label')">
-        <el-input v-model="userForm.nick_name" :placeholder="$t('views.userManage.userForm.nick_name.placeholder')"
-          maxlength="64" show-word-limit>
+        <el-input v-model="userForm.nick_name"
+                  :placeholder="$t('views.userManage.userForm.nick_name.placeholder')"
+                  maxlength="64" show-word-limit>
         </el-input>
       </el-form-item>
       <el-form-item :label="$t('views.login.loginForm.email.label')" prop="email">
-        <el-input type="email" v-model="userForm.email" :placeholder="$t('views.login.loginForm.email.placeholder')">
+        <el-input type="email" v-model="userForm.email"
+                  :placeholder="$t('views.login.loginForm.email.placeholder')">
         </el-input>
       </el-form-item>
       <el-form-item :label="$t('views.userManage.userForm.phone.label')" prop="phone">
-        <el-input v-model="userForm.phone" :placeholder="$t('views.userManage.userForm.phone.placeholder')">
+        <el-input v-model="userForm.phone"
+                  :placeholder="$t('views.userManage.userForm.phone.placeholder')">
         </el-input>
       </el-form-item>
-      <el-form-item label="默认密码" v-if="!isEdit">
+      <el-form-item :label="$t('views.userManage.defaultPassword')" v-if="!isEdit">
         <span class="mr-8">{{ userForm.password }}</span>
         <el-button type="primary" link @click="copyClick(userForm.password)">
           <AppIcon iconName="app-copy"></AppIcon>
@@ -33,9 +39,10 @@
       <h4 class="title-decoration-1 mb-16 mt-8">{{ $t('views.chatUser.group.title') }}</h4>
       <el-form-item :label="$t('views.chatUser.group.title')" prop="user_group_ids">
         <el-select v-model="userForm.user_group_ids" multiple filterable
-          :placeholder="`${$t('common.selectPlaceholder')}${$t('views.chatUser.group.title')}`"
-          :loading="props.optionLoading">
-          <el-option v-for="item in props.chatGroupList" :key="item.id" :label="item.name" :value="item.id">
+                   :placeholder="`${$t('common.selectPlaceholder')}${$t('views.chatUser.group.title')}`"
+                   :loading="props.optionLoading">
+          <el-option v-for="item in props.chatGroupList" :key="item.id" :label="item.name"
+                     :value="item.id">
           </el-option>
         </el-select>
       </el-form-item>
@@ -49,13 +56,13 @@
   </el-drawer>
 </template>
 <script setup lang="ts">
-import { ref, reactive, watch } from 'vue'
-import type { FormInstance } from 'element-plus'
+import {ref, reactive, watch} from 'vue'
+import type {FormInstance} from 'element-plus'
 import userManageApi from '@/api/system/user-manage'
-import { MsgSuccess } from '@/utils/message'
-import { t } from '@/locales'
-import type { ListItem } from '@/api/type/common'
-import { copyClick } from '@/utils/clipboard'
+import {MsgSuccess} from '@/utils/message'
+import {t} from '@/locales'
+import type {ListItem} from '@/api/type/common'
+import {copyClick} from '@/utils/clipboard'
 import {loadPermissionApi} from "@/utils/dynamics-api/permission-api.ts";
 
 const props = defineProps<{
@@ -177,7 +184,7 @@ const submit = async (formEl: FormInstance | undefined) => {
   })
 }
 
-defineExpose({ open })
+defineExpose({open})
 </script>
 <style lang="scss" scoped>
 

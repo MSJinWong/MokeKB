@@ -116,16 +116,17 @@
         </el-form-item>
         <div v-for="(field, index) in form_data.api_input_field_list" :key="'api-input-' + index">
           <el-form-item
-            :label="field.variable"
+            :label="typeof field.variable === 'object' && field.variable !== null ? field.variable.label : field.variable"
             :prop="'api_input_field_list.' + index + '.value'"
             :rules="[
-              {
-                required: field.is_required,
-                message: `${$t('common.inputPlaceholder')}${field.variable}`,
-                trigger: 'blur',
-              },
-            ]"
+    {
+      required: field.is_required,
+      message: `${$t('common.inputPlaceholder')}${typeof field.variable === 'object' && field.variable !== null ? field.variable.label : field.variable}`,
+      trigger: 'blur',
+    },
+  ]"
           >
+
             <NodeCascader
               ref="nodeCascaderRef"
               :nodeModel="nodeModel"
@@ -140,26 +141,27 @@
 
         <div v-for="(field, index) in form_data.user_input_field_list" :key="'user-input-' + index">
           <el-form-item
-            :label="field.label"
+            :label="typeof field.label === 'object' && field.label !== null ? field.label.label : field.label"
             :prop="'user_input_field_list.' + index + '.value'"
             :rules="[
-              {
-                required: field.required,
-                message: `${$t('common.inputPlaceholder')}${field.label}`,
-                trigger: 'blur',
-              },
-            ]"
+    {
+      required: field.required,
+      message: `${$t('common.inputPlaceholder')}${typeof field.label === 'object' && field.label !== null ? field.label.label : field.label}`,
+      trigger: 'blur',
+    },
+  ]"
           >
             <NodeCascader
               ref="nodeCascaderRef"
               :nodeModel="nodeModel"
               class="w-full"
               :placeholder="
-                $t('workflow.nodes.searchKnowledgeNode.searchQuestion.placeholder')
-              "
+      $t('workflow.nodes.searchKnowledgeNode.searchQuestion.placeholder')
+    "
               v-model="form_data.user_input_field_list[index].value"
             />
           </el-form-item>
+
         </div>
         <el-form-item
           :label="$t('workflow.nodes.aiChatNode.returnContent.label')"
@@ -169,8 +171,8 @@
             <div class="flex align-center">
               <div class="mr-4">
                 <span>{{
-                  $t('workflow.nodes.aiChatNode.returnContent.label')
-                }}</span>
+                    $t('workflow.nodes.aiChatNode.returnContent.label')
+                  }}</span>
               </div>
               <el-tooltip effect="dark" placement="right" popper-class="max-w-200">
                 <template #content>
@@ -180,7 +182,7 @@
               </el-tooltip>
             </div>
           </template>
-          <el-switch size="small" v-model="form_data.is_result" />
+          <el-switch size="small" v-model="form_data.is_result"/>
         </el-form-item>
       </el-form>
     </el-card>
@@ -188,14 +190,14 @@
 </template>
 
 <script setup lang="ts">
-import { set, groupBy, create, cloneDeep } from 'lodash'
+import {set, groupBy, create, cloneDeep} from 'lodash'
 import NodeContainer from '@/workflow/common/NodeContainer.vue'
-import { ref, computed, onMounted, onActivated } from 'vue'
+import {ref, computed, onMounted, onActivated} from 'vue'
 import NodeCascader from '@/workflow/common/NodeCascader.vue'
-import type { FormInstance } from 'element-plus'
-import { isWorkFlow } from '@/utils/application'
-import { useRoute } from 'vue-router'
-import { loadSharedApi } from '@/utils/dynamics-api/shared-api'
+import type {FormInstance} from 'element-plus'
+import {isWorkFlow} from '@/utils/application'
+import {useRoute} from 'vue-router'
+import {loadSharedApi} from '@/utils/dynamics-api/shared-api'
 
 const route = useRoute()
 
@@ -249,7 +251,7 @@ const update_field = () => {
     set(props.nodeModel.properties, 'status', 500)
     return
   }
-  loadSharedApi({ type: 'application', systemType: apiType.value })
+  loadSharedApi({type: 'application', systemType: apiType.value})
     .getApplicationDetail(props.nodeModel.properties.node_data.application_id)
     .then((ok: any) => {
       const old_api_input_field_list = cloneDeep(
@@ -337,7 +339,7 @@ const props = defineProps<{ nodeModel: any }>()
 
 const validate = () => {
   return applicationNodeFormRef.value?.validate().catch((err) => {
-    return Promise.reject({ node: props.nodeModel, errMessage: err })
+    return Promise.reject({node: props.nodeModel, errMessage: err})
   })
 }
 

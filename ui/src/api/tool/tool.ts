@@ -179,6 +179,27 @@ const updateStoreTool: (
   return post(`${prefix.value}/${tool_id}/update_store_tool`, param, undefined, loading)
 }
 
+const pageToolRecord = (
+  tool_id: string,
+  page: pageRequest,
+  param: any,
+  loading?: Ref<boolean>,
+) => {
+  return get(
+    `${prefix.value}/${tool_id}/tool_record/${page.current_page}/${page.page_size}`,
+    param,
+    loading,
+  )
+}
+
+const getToolRecordDetail = (
+ tool_id: string,
+ record_id: string
+) => {
+  return get(`${prefix.value}/${tool_id}/tool_record/${record_id}`)
+}
+
+
 
 export default {
   getToolList,
@@ -196,5 +217,7 @@ export default {
   addInternalTool,
   addStoreTool,
   updateStoreTool,
-  postToolTestConnection
+  postToolTestConnection,
+  pageToolRecord,
+  getToolRecordDetail,
 }

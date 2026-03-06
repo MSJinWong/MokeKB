@@ -380,6 +380,69 @@ export const exportExcelPost: (
   })
 }
 
+export const exportFilePost: (
+  fileName: string,
+  url: string,
+  params: any,
+  data: any,
+  loading?: NProgress | Ref<boolean>,
+) => Promise<any> = (
+  fileName: string,
+  url: string,
+  params: any,
+  data: any,
+  loading?: NProgress | Ref<boolean>,
+) => {
+  return promise(
+    request({
+      url: url,
+      method: 'post',
+      params,
+      data,
+      responseType: 'blob',
+      transformResponse: [
+        function (data, headers) {
+          // 在这里可以访问 headers
+          if (data.type === 'application/json') {
+            data.text().then((text: string) => {
+              try {
+                const json = JSON.parse(text)
+                MsgError(json.message || text)
+              } catch {
+                MsgError(text)
+              }
+            })
+            throw new Error('Response is not a valid file')
+          }
+          // const contentType = headers['content-type'];
+          const contentDisposition = headers['content-disposition']
+          // console.log('Content-Type:', contentType);
+          // console.log('Content-Disposition:', contentDisposition);
+          // 如果没有提供文件名，则使用默认名称
+          fileName = extractFilename(contentDisposition) || fileName
+          return data // 必须返回数据
+        },
+      ],
+    }),
+    loading,
+  )
+    .then((res: any) => {
+      if (res) {
+        const blob = new Blob([res], {
+          type: 'application/octet-stream',
+        })
+        const link = document.createElement('a')
+        link.href = window.URL.createObjectURL(blob)
+        link.download = fileName
+        link.click()
+        //释放内存
+        window.URL.revokeObjectURL(link.href)
+      }
+      return true
+    })
+    .catch(() => {})
+}
+
 export const download: (
   url: string,
   method: string,

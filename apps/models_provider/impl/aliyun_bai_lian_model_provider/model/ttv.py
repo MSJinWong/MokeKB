@@ -44,8 +44,7 @@ class GenerationVideoModel(MaxKBBaseModel, BaseGenerationVideo):
         )
 
     def check_auth(self):
-        chat = ChatTongyi(api_key=self.api_key, model_name='qwen-max')
-        self._safe_call(chat.invoke, input=[HumanMessage([{"type": "text", "text": gettext('Hello')}])])
+        return True
 
     def _safe_call(self, func, **kwargs):
         """带重试的请求封装"""

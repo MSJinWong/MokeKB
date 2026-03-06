@@ -1,10 +1,10 @@
-// 复合搜索框
+// 复合框
 .complex-search {
   border: 1px solid var(--el-border-color);
   border-radius: var(--el-border-radius-base);
   .el-select__wrapper {
     box-shadow: none !important;
-    border-radius: var(--el-border-radius-base) 0 0 var(--el-border-radius-base);
+    border-radius: 0 var(--el-border-radius-base) var(--el-border-radius-base) 0;
   }
   .el-input__wrapper {
     box-shadow: none !important;
@@ -12,6 +12,21 @@
   }
   &__left {
     border-right: 1px solid var(--el-border-color);
+    .el-select__wrapper {
+      box-shadow: none !important;
+      border-radius: var(--el-border-radius-base) 0 0 var(--el-border-radius-base);
+    }
+  }
+}
+.complex-input {
+  border: 1px solid var(--el-border-color);
+  border-radius: var(--el-border-radius-base);
+
+  &__left {
+    .el-input__wrapper {
+      box-shadow: none !important;
+      border-radius: var(--el-border-radius-base) 0 0 var(--el-border-radius-base);
+    }
   }
 }
 
@@ -78,9 +93,6 @@
   .el-radio__input {
     position: absolute;
     top: 5px;
-  }
-  .active {
-    border: 1px solid var(--el-color-primary);
   }
   .el-card__body {
     padding: calc(var(--app-base-px) + 4px) calc(var(--app-base-px) * 2);
@@ -252,9 +264,6 @@
 }
 
 .card-checkbox {
-  &.active {
-    border: 1px solid var(--el-color-primary);
-  }
   input.checkbox[type='checkbox'] {
     -webkit-appearance: none;
     -moz-appearance: none;
@@ -321,15 +330,6 @@
   }
 }
 
-.template-radio-card {
-  height: 120px !important;
-  min-height: 120px !important;
-
-  &.active {
-    border-color: var(--el-color-primary);
-  }
-}
-
 // 分段预览的tab样式
 .paragraph-tabs {
   .el-tabs__item {
@@ -355,5 +355,23 @@
   }
   .el-tabs__active-bar {
     display: none;
+  }
+}
+
+// 添加标签样式
+.upload-file-tag {
+  height: 24px !important;
+  padding: 0 6px !important;
+  font-size: 14px !important;
+}
+.button-new-tag {
+  color: var(--app-input-color-placeholder);
+  border: 1px dashed var(--el-button-border-color);
+  padding: 5px 6px !important;
+  font-size: 14px !important;
+  &:hover {
+    background: var(--app-layout-bg-color);
+    color: var(--app-input-color-placeholder);
+    border: 1px dashed var(--el-button-border-color);
   }
 }
