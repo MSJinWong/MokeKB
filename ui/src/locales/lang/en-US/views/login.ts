@@ -41,6 +41,8 @@ export default {
   jump: 'Redirect',
   resetPassword: 'Change Password',
   forgotPassword: 'Forgot Password',
+  forgotPasswordContactAdmin:
+    'Email password recovery is disabled in this deployment. Please contact your administrator to reset your password.',
   userRegister: 'User Registration',
   buttons: {
     login: 'Login',

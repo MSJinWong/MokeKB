@@ -41,6 +41,7 @@ export default {
   jump: '跳轉',
   resetPassword: '修改密碼',
   forgotPassword: '忘記密碼',
+  forgotPasswordContactAdmin: '目前部署未啟用郵件找回功能，請聯絡管理員重設密碼。',
   userRegister: '用戶註冊',
   buttons: {
     login: '登錄',
