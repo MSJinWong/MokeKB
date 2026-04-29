@@ -1064,6 +1064,9 @@ class SendEmailSerializer(serializers.Serializer):
         :return:   是否发送成功
         :exception 发送失败异常
         """
+        from maxkb.const import CONFIG
+        if not CONFIG.get_enable_email():
+            raise AppApiException(1004, _('Email feature is disabled.'))
         email = self.data.get("email")
         state = self.data.get("type")
         # 生成随机验证码

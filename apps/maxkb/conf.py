@@ -61,6 +61,12 @@ class Config(dict):
             return os.environ.get('SERVER_NAME', 'web') == 'web'
         return str(val).lower() in ('1', 'true', 'yes', 'on')
 
+    def get_enable_email(self) -> bool:
+        val = self.get('ENABLE_EMAIL')
+        if val is None:
+            return False  # 默认关闭
+        return str(val).lower() in ('1', 'true', 'yes', 'on')
+
     def get_time_zone(self) -> str:
         return self.get('TIME_ZONE') if 'TIME_ZONE' in self else 'Asia/Shanghai'
 

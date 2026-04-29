@@ -324,6 +324,9 @@ class SendEmail(APIView):
          get_operation_object=lambda r, k: {'name': r.data.get('email', None)},
          get_user=lambda r: {'user_name': None, 'email': r.data.get('email', None)})
     def post(self, request: Request):
+        from common.exception.app_exception import AppApiException
+        if not CONFIG.get_enable_email():
+            raise AppApiException(1004, _('Email feature is disabled. Contact administrator to reset password.'))
         serializer_obj = SendEmailSerializer(data=request.data)
         if serializer_obj.is_valid(raise_exception=True):
             return result.success(serializer_obj.send())
