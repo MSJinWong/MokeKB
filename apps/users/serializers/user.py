@@ -1158,7 +1158,7 @@ class AdminResetPasswordSerializer(serializers.Serializer):
         self.is_valid(raise_exception=True)
         user = QuerySet(User).filter(id=self.validated_data['target_user_id']).first()
         if user is None:
-            raise AppApiException(500, _("User does not exist"))
+            raise AppApiException(1004, _("User does not exist"))
         user.password = password_encrypt(self.validated_data['new_password'])
         user.save()
         return {'id': str(user.id), 'username': user.username}

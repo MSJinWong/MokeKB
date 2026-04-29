@@ -231,8 +231,9 @@ class SwitchUserLanguageAPI(APIMixin):
 
 
 class AdminResetPasswordRequest(serializers.Serializer):
-    target_user_id = serializers.UUIDField(required=True)
-    new_password = serializers.CharField(required=True, min_length=6, max_length=64)
+    target_user_id = serializers.UUIDField(required=True, label=_("Target user id"))
+    new_password = serializers.CharField(required=True, min_length=6, max_length=64,
+                                         label=_("New password"))
 
 
 class AdminResetPasswordAPI(APIMixin):

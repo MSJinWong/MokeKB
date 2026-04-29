@@ -42,6 +42,14 @@ def get_user_operation_object(user_id):
     return {}
 
 
+def _admin_reset_target_name(request, kwargs):
+    target_id = request.data.get('target_user_id')
+    if target_id:
+        username = QuerySet(User).filter(id=target_id).values_list('username', flat=True).first()
+        if username:
+            return {'name': username}
+    return {'name': str(target_id)}
+
 
 def get_re_password_details(request):
     path = request.path
@@ -389,9 +397,9 @@ class AdminResetPassword(APIView):
                    tags=[_("User Management")],  # type: ignore
                    request=AdminResetPasswordAPI.get_request(),
                    responses=AdminResetPasswordAPI.get_response())
-    @log(menu='User management', operate='Admin reset password',
-         get_operation_object=lambda r, k: {'name': r.data.get('target_user_id', None)})
     @has_permissions(RoleConstants.ADMIN)
+    @log(menu='User management', operate='Admin reset password',
+         get_operation_object=_admin_reset_target_name)
     def post(self, request: Request):
         from users.serializers.user import AdminResetPasswordSerializer
         return result.success(AdminResetPasswordSerializer(data=request.data).reset())
