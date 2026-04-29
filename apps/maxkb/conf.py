@@ -67,6 +67,12 @@ class Config(dict):
             return False  # 默认关闭
         return str(val).lower() in ('1', 'true', 'yes', 'on')
 
+    def get_enable_ui(self) -> bool:
+        val = self.get('ENABLE_UI')
+        if val is None:
+            return True  # 默认开启，兼容 all-in-one
+        return str(val).lower() in ('1', 'true', 'yes', 'on')
+
     def get_time_zone(self) -> str:
         return self.get('TIME_ZONE') if 'TIME_ZONE' in self else 'Asia/Shanghai'
 

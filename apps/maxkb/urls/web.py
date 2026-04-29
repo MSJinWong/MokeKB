@@ -75,7 +75,7 @@ def pro():
     )
 
 
-if not settings.DEBUG:
+if not settings.DEBUG and CONFIG.get_enable_ui():
     pro()
 
 
@@ -106,6 +106,9 @@ def page_not_found(request, exception):
     """
     页面不存在处理
     """
+    if not CONFIG.get_enable_ui():
+        return Result(response_status=status.HTTP_404_NOT_FOUND, code=404, message="HTTP_404_NOT_FOUND")
+    # 以下是原有 UI fallback 逻辑
     if request.path.startswith(admin_ui_prefix + '/api/'):
         return Result(response_status=status.HTTP_404_NOT_FOUND, code=404, message="HTTP_404_NOT_FOUND")
     if request.path.startswith(chat_ui_prefix + '/api/'):
