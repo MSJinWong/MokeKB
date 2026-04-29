@@ -161,7 +161,7 @@
           />
           <img
             v-else
-            src="/MaxKB.gif"
+            src="/InsightHub.gif"
             height="50px"
             style="width: 40px; height: 40px; display: block"
           />

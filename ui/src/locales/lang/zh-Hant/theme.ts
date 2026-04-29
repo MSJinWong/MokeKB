@@ -1,6 +1,6 @@
 export default {
   title: '外觀設置',
-  defaultSlogan: '強大易用的企業級智能體平台',
+  defaultSlogan: 'AI-powered knowledge hub for enterprise search, Q&A, and insight generation.',
   platformDisplayTheme: '平台顯示主題',
   customTheme: '自定義主題',
   platformLoginSettings: '平台登錄設置',
@@ -25,9 +25,9 @@ export default {
   websiteSlogan: '歡迎語',
   websiteSloganPlaceholder: '請輸入歡迎語',
   websiteSloganTip: '產品 Logo 下的歡迎語',
-  logoDefaultTip: '默认为 MaxKB 登錄界面，支持自定义设置',
+  logoDefaultTip: '默认为 InsightHub 登錄界面，支持自定义设置',
 
-  defaultTip: '默認為 MaxKB 平台界面，支持自定義設置',
+  defaultTip: '默認為 InsightHub 平台界面，支持自定義設置',
   platformSetting: '平台設置',
   showUserManual: '顯示用戶手冊',
   showForum: '顯示論壇求助',

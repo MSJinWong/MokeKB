@@ -38,7 +38,7 @@ export default {
     neverExpires: '永不过期',
     daysValid: '天有效',
   },
-  copyright: '版权所有 © 2014-2026 杭州飞致云信息科技有限公司',
-  userManualUrl: 'https://maxkb.cn/docs/v2/',
-  forumUrl: 'https://bbs.fit2cloud.com/c/mk/11',
+  copyright: '© 2026 hoyanai.com All rights reserved.',
+  userManualUrl: 'https://hoyanai.com/docs/',
+  forumUrl: 'https://hoyanai.com/community',
 }

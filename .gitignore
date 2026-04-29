@@ -190,3 +190,6 @@ apps/models_provider/impl/tencent_model_provider/model/stt.py
 tmp/
 config.yml
 .SANDBOX_BANNED_HOSTS
+/kohler_data
+/tools/node_modules
+/tools

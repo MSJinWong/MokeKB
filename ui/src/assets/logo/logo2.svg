@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <defs>
+    <linearGradient id="g1" x1="100" y1="20" x2="100" y2="180" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#3370FF"/>
+      <stop offset="1" stop-color="#7F3BF5"/>
+    </linearGradient>
+    <linearGradient id="g2" x1="100" y1="20" x2="100" y2="180" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#3370FF"/>
+      <stop offset="1" stop-color="#7F3BF5"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Antenna stick -->
+  <rect x="97" y="18" width="6" height="20" rx="3" fill="url(#g1)"/>
+  <!-- Antenna dot -->
+  <circle cx="100" cy="14" r="8" fill="url(#g1)"/>
+
+  <!-- Robot head -->
+  <rect x="30" y="38" width="140" height="110" rx="28" fill="url(#g1)"/>
+
+  <!-- Left ear -->
+  <rect x="14" y="72" width="16" height="36" rx="8" fill="url(#g2)"/>
+  <!-- Right ear -->
+  <rect x="170" y="72" width="16" height="36" rx="8" fill="url(#g2)"/>
+
+  <!-- Left eye -->
+  <rect x="58" y="72" width="28" height="32" rx="10" fill="white"/>
+  <circle cx="72" cy="92" r="6" fill="url(#g1)"/>
+
+  <!-- Right eye -->
+  <rect x="114" y="72" width="28" height="32" rx="10" fill="white"/>
+  <circle cx="128" cy="92" r="6" fill="url(#g1)"/>
+
+  <!-- Mouth -->
+  <rect x="76" y="118" width="48" height="8" rx="4" fill="white"/>
+
+  <!-- Chin / neck -->
+  <rect x="88" y="148" width="24" height="14" rx="4" fill="url(#g1)"/>
+
+  <!-- Body top -->
+  <rect x="50" y="162" width="100" height="24" rx="12" fill="url(#g1)"/>
+</svg>

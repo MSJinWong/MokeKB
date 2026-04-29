@@ -38,7 +38,7 @@ export default {
     neverExpires: 'Never expires',
     daysValid: 'Days valid',
   },
-  copyright: 'Copyright © 2014-2026 FIT2CLOUD, All rights reserved.',
-  userManualUrl: 'http://docs.maxkb.hk/',
-  forumUrl: 'https://github.com/1Panel-dev/MaxKB/discussions',
+  copyright: '© 2026 hoyanai.com All rights reserved.',
+  userManualUrl: 'https://hoyanai.com/docs/',
+  forumUrl: 'https://hoyanai.com/community',
 }

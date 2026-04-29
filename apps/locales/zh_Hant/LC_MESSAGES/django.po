@@ -6606,8 +6606,8 @@ msgstr "獲取郵箱設置"
 
 #: apps/system_manage/views/system_profile.py:22
 #: apps/system_manage/views/system_profile.py:23
-msgid "Get MaxKB related information"
-msgstr "獲取 MaxKB 相關信息"
+msgid "Get InsightHub related information"
+msgstr "獲取 InsightHub 相關信息"
 
 #: apps/system_manage/views/system_profile.py:25
 msgid "System parameters"
