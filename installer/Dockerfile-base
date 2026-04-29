@@ -15,8 +15,7 @@ ARG DEPENDENCIES="                    \
         vim                           \
         wait-for-it                   \
         redis-server                  \
-        postgresql-17-pgvector        \
-        postgresql-17-age"
+        postgresql-17-pgvector"
 
 RUN ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
     echo "Asia/Shanghai" > /etc/timezone && \
