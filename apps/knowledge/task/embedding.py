@@ -13,6 +13,7 @@ from common.event.listener_manage import ListenerManagement, UpdateProblemArgs, 
 from common.utils.logger import maxkb_logger
 from knowledge.models import Document, TaskType, State
 from knowledge.serializers.common import drop_knowledge_index
+from knowledge.task.index import drop_knowledge_index_task
 from models_provider.models import Model
 from models_provider.tools import get_model, get_model_default_params
 from ops import celery_app
@@ -105,7 +106,7 @@ def embedding_by_knowledge(knowledge_id, model_id):
     maxkb_logger.info(_('Start--->Vectorized knowledge: {knowledge_id}').format(knowledge_id=knowledge_id))
     try:
         ListenerManagement.delete_embedding_by_knowledge(knowledge_id)
-        drop_knowledge_index(knowledge_id=knowledge_id)
+        drop_knowledge_index_task.delay(str(knowledge_id))
         document_list = QuerySet(Document).filter(knowledge_id=knowledge_id)
         maxkb_logger.info(_('Knowledge documentation: {document_names}').format(
             document_names=", ".join([d.name for d in document_list])))

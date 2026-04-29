@@ -47,6 +47,7 @@ from knowledge.serializers.common import ProblemParagraphManage, drop_knowledge_
 from knowledge.serializers.document import DocumentSerializers
 from knowledge.task.embedding import embedding_by_knowledge, delete_embedding_by_knowledge
 from knowledge.task.generate import generate_related_by_knowledge_id
+from knowledge.task.index import drop_knowledge_index_task
 from knowledge.task.sync import sync_web_knowledge, sync_replace_web_knowledge
 from maxkb.conf import PROJECT_DIR
 from maxkb.const import CONFIG
@@ -419,7 +420,7 @@ class KnowledgeSerializer(serializers.Serializer):
             QuerySet(Paragraph).filter(knowledge=knowledge).delete()
             QuerySet(Problem).filter(knowledge=knowledge).delete()
             QuerySet(WorkspaceUserResourcePermission).filter(target=knowledge.id).delete()
-            drop_knowledge_index(knowledge_id=knowledge.id)
+            drop_knowledge_index_task.delay(str(knowledge.id))
             knowledge.delete()
             File.objects.filter(
                 source_id=knowledge.id,
@@ -1288,7 +1289,7 @@ class KnowledgeBatchOperateSerializer(serializers.Serializer):
         QuerySet(WorkspaceUserResourcePermission).filter(target__in=id_list).delete()
 
         for k_id in id_list:
-            drop_knowledge_index(knowledge_id=k_id)
+            drop_knowledge_index_task.delay(str(k_id))
             delete_embedding_by_knowledge(k_id)
 
         File.objects.filter(source_id__in=id_list).delete()
