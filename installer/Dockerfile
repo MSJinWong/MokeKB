@@ -16,7 +16,7 @@ WORKDIR /opt/maxkb-app
 RUN gcc -shared -fPIC -o ${MAXKB_SANDBOX_HOME}/lib/sandbox.so /opt/maxkb-app/installer/sandbox.c -ldl && \
     rm -rf /opt/maxkb-app/ui && \
     pip install uv --break-system-packages && \
-    python -m uv pip install -r pyproject.toml && \
+    python -m uv pip install ".[local-model,multimodal,providers-cn,providers-extras,tools]" && \
     find /opt/maxkb-app  -depth \( -name ".git*" -o -name ".docker*" -o -name ".idea*" -o -name ".editorconfig*" -o -name ".prettierrc*" -o -name "README.md" -o -name "poetry.lock" -o -name "pyproject.toml"  \) -exec rm -rf {} + && \
     python /opt/maxkb-app/apps/manage.py compilemessages && \
     export PIP_TARGET=/opt/maxkb-app/sandbox/python-packages && \
