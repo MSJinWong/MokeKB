@@ -24,7 +24,7 @@ from common.db.search import native_search, get_dynamics_model, native_update
 from common.utils.common import get_file_content
 from common.utils.lock import RedisLock
 from common.utils.logger import maxkb_logger
-from common.utils.page_utils import page_desc
+from common.utils.page_utils import page_desc, page_keyset
 from knowledge.models import Paragraph, Status, Document, ProblemParagraphMapping, TaskType, State, SourceType, \
     SearchMode
 from maxkb.conf import (PROJECT_DIR)
@@ -278,18 +278,18 @@ class ListenerManagement:
             ListenerManagement.update_status(QuerySet(Document).filter(id=document_id), TaskType.EMBEDDING,
                                              State.STARTED)
 
-            # 根据段落进行向量化处理
-            page_desc(QuerySet(Paragraph)
-                      .annotate(
+            # 根据段落进行向量化处理（keyset 分页：避免 offset 在大文档上的 O(n²) 退化）
+            page_keyset(QuerySet(Paragraph)
+                        .annotate(
                 reversed_status=Reverse('status'),
                 task_type_status=Substr('reversed_status', TaskType.EMBEDDING.value,
                                         1),
             ).filter(task_type_status__in=state_list, document_id=document_id)
-                      .values('id'), 5,
-                      ListenerManagement.get_embedding_paragraph_apply(embedding_model, is_the_task_interrupted,
-                                                                       ListenerManagement.get_aggregation_document_status(
-                                                                           document_id)),
-                      is_the_task_interrupted)
+                        .values('id'), 5,
+                        ListenerManagement.get_embedding_paragraph_apply(embedding_model, is_the_task_interrupted,
+                                                                         ListenerManagement.get_aggregation_document_status(
+                                                                             document_id)),
+                        is_the_task_interrupted=is_the_task_interrupted)
             # 检查是否存在索引（异步路由到 rag_index 队列）
             from knowledge.task.index import create_knowledge_index_task
             doc = QuerySet(Document).filter(id=document_id).only('knowledge_id').first()
