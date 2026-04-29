@@ -42,12 +42,19 @@ class PGVector(BaseVectorStore):
     def vector_create(self):
         return True
 
+    @staticmethod
+    def _resolve_workspace_id(knowledge_id):
+        from knowledge.models import Knowledge
+        k = QuerySet(Knowledge).filter(id=knowledge_id).only('workspace_id').first()
+        return k.workspace_id if k and k.workspace_id else 'default'
+
     def _save(self, text, source_type: SourceType, knowledge_id: str, document_id: str, paragraph_id: str,
               source_id: str,
               is_active: bool,
               embedding: Embeddings):
         text = normalize_for_embedding(text)
         text_embedding = [float(x) for x in embedding.embed_query(text)]
+        workspace_id = self._resolve_workspace_id(knowledge_id)
         embedding = Embedding(
             id=uuid.uuid7(),
             knowledge_id=knowledge_id,
@@ -57,6 +64,7 @@ class PGVector(BaseVectorStore):
             source_id=source_id,
             embedding=text_embedding,
             source_type=source_type,
+            workspace_id=workspace_id,
             search_vector=to_ts_vector(text)
         )
         embedding.save()
@@ -65,18 +73,24 @@ class PGVector(BaseVectorStore):
     def _batch_save(self, text_list: List[Dict], embedding: Embeddings, is_the_task_interrupted):
         texts = [normalize_for_embedding(row.get('text')) for row in text_list]
         embeddings = embedding.embed_documents(texts)
-        embedding_list = [
-            Embedding(
+        workspace_cache = {}
+        embedding_list = []
+        for index in range(0, len(texts)):
+            kid = text_list[index].get('knowledge_id')
+            if kid not in workspace_cache:
+                workspace_cache[kid] = self._resolve_workspace_id(kid)
+            embedding_list.append(Embedding(
                 id=uuid.uuid7(),
                 document_id=text_list[index].get('document_id'),
                 paragraph_id=text_list[index].get('paragraph_id'),
-                knowledge_id=text_list[index].get('knowledge_id'),
+                knowledge_id=kid,
+                workspace_id=workspace_cache[kid],
                 is_active=text_list[index].get('is_active', True),
                 source_id=text_list[index].get('source_id'),
                 source_type=text_list[index].get('source_type'),
                 embedding=[float(x) for x in embeddings[index]],
                 search_vector=SearchVector(Value(to_ts_vector(text_list[index]['text'])))
-            ) for index in range(0, len(texts))]
+            ))
         if not is_the_task_interrupted():
             QuerySet(Embedding).bulk_create(embedding_list) if len(embedding_list) > 0 else None
         return True
