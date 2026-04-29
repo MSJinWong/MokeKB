@@ -1147,3 +1147,18 @@ class SwitchLanguageSerializer(serializers.Serializer):
         if not support_language_list.__contains__(language):
             raise AppApiException(500, _('language only support:') + ','.join(support_language_list))
         QuerySet(User).filter(id=self.data.get('user_id')).update(language=language)
+
+
+class AdminResetPasswordSerializer(serializers.Serializer):
+    target_user_id = serializers.UUIDField(required=True, label=_("Target user id"))
+    new_password = serializers.CharField(required=True, min_length=6, max_length=64,
+                                         label=_("New password"))
+
+    def reset(self):
+        self.is_valid(raise_exception=True)
+        user = QuerySet(User).filter(id=self.validated_data['target_user_id']).first()
+        if user is None:
+            raise AppApiException(500, _("User does not exist"))
+        user.password = password_encrypt(self.validated_data['new_password'])
+        user.save()
+        return {'id': str(user.id), 'username': user.username}

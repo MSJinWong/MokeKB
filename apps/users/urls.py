@@ -26,4 +26,5 @@ urlpatterns = [
     path("user_manage/<str:user_id>", views.UserManage.Operate.as_view(), name="user_manage_operate"),
     path("user_manage/<str:user_id>/re_password", views.UserManage.RePassword.as_view(), name="user_manage_re_password"),
     path("user_manage/<int:current_page>/<int:page_size>", views.UserManage.Page.as_view(), name="user_manage_page"),
+    path('user/admin_reset_password', views.AdminResetPassword.as_view()),
 ]

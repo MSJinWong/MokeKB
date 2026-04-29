@@ -25,7 +25,7 @@ from models_provider.api.model import DefaultModelResponse
 from tools.serializers.tool import encryption
 from users.api.user import UserProfileAPI, TestWorkspacePermissionUserApi, DeleteUserApi, EditUserApi, \
     ChangeUserPasswordApi, UserPageApi, UserListApi, UserPasswordResponse, WorkspaceUserAPI, ResetPasswordAPI, \
-    SendEmailAPI, CheckCodeAPI, SwitchUserLanguageAPI
+    SendEmailAPI, CheckCodeAPI, SwitchUserLanguageAPI, AdminResetPasswordAPI
 from users.models import User
 from users.serializers.user import UserProfileSerializer, UserManageSerializer, CheckCodeSerializer, \
     SendEmailSerializer, RePasswordSerializer, SwitchLanguageSerializer, ResetCurrentUserPassword
@@ -377,3 +377,21 @@ class ResetCurrentUserPasswordView(APIView):
             cache.delete(get_key(token=request.auth), version=version)
             return result.success(True)
         return result.error(_("Failed to change password"))
+
+
+class AdminResetPassword(APIView):
+    authentication_classes = [TokenAuth]
+
+    @extend_schema(methods=['POST'],
+                   summary=_("Admin reset user password"),
+                   description=_("Admin reset another user's password"),
+                   operation_id=_("Admin reset user password"),  # type: ignore
+                   tags=[_("User Management")],  # type: ignore
+                   request=AdminResetPasswordAPI.get_request(),
+                   responses=AdminResetPasswordAPI.get_response())
+    @log(menu='User management', operate='Admin reset password',
+         get_operation_object=lambda r, k: {'name': r.data.get('target_user_id', None)})
+    @has_permissions(RoleConstants.ADMIN)
+    def post(self, request: Request):
+        from users.serializers.user import AdminResetPasswordSerializer
+        return result.success(AdminResetPasswordSerializer(data=request.data).reset())

@@ -228,3 +228,18 @@ class SwitchUserLanguageAPI(APIMixin):
     @staticmethod
     def get_request():
         return LanguageSerializer
+
+
+class AdminResetPasswordRequest(serializers.Serializer):
+    target_user_id = serializers.UUIDField(required=True)
+    new_password = serializers.CharField(required=True, min_length=6, max_length=64)
+
+
+class AdminResetPasswordAPI(APIMixin):
+    @staticmethod
+    def get_request():
+        return AdminResetPasswordRequest
+
+    @staticmethod
+    def get_response():
+        return DefaultResultSerializer
