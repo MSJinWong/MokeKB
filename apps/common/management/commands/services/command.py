@@ -5,6 +5,7 @@ from django.core.management.base import BaseCommand
 from django.db.models import TextChoices
 
 from .utils import ServicesUtil
+from ops.celery.routing import all_queues
 
 
 class Services(TextChoices):
@@ -19,25 +20,31 @@ class Services(TextChoices):
     @classmethod
     def get_service_object_class(cls, name):
         from . import services
-        services_map = {
-            cls.gunicorn.value: services.GunicornService,
-            cls.celery_default: services.CeleryDefaultService,
-            cls.local_model: services.GunicornLocalModelService,
-        }
-        return services_map.get(name)
+        if name == cls.gunicorn.value:
+            return services.GunicornService
+        if name == cls.local_model.value:
+            return services.GunicornLocalModelService
+        if name == cls.celery_default.value:
+            return services.CeleryDefaultService
+        if name.startswith('celery_'):
+            queue = name[len('celery_'):]
+            if queue in all_queues():
+                return services.make_queue_service(queue)
+        return None
 
     @classmethod
     def web_services(cls):
-        return [cls.gunicorn, cls.local_model]
+        return [cls.gunicorn.value, cls.local_model.value]
 
     @classmethod
     def celery_services(cls):
-        return [cls.celery_default]
+        if os.environ.get('MAXKB_TASK_QUEUE_PREFIX_ENABLED'):
+            return [f'celery_{q}' for q in all_queues()]
+        return [cls.celery_default.value]
 
     @classmethod
     def task_services(cls):
         return cls.celery_services()
-
 
     @classmethod
     def all_services(cls):
@@ -45,31 +52,46 @@ class Services(TextChoices):
 
     @classmethod
     def export_services_values(cls):
-        return [cls.all.value, cls.web.value, cls.task.value] + [s.value for s in cls.all_services()]
+        per_queue = [f'celery_{q}' for q in all_queues()]
+        base = [cls.all.value, cls.web.value, cls.task.value,
+                cls.gunicorn.value, cls.celery_default.value, cls.local_model.value]
+        # 去重保序
+        seen = set()
+        result = []
+        for v in base + per_queue:
+            if v not in seen:
+                seen.add(v)
+                result.append(v)
+        return result
 
     @classmethod
     def get_service_objects(cls, service_names, **kwargs):
-        services = set()
-        for name in service_names:
-            method_name = f'{name}_services'
+        """Resolve service-name strings (with shortcut groups like 'all') to instances."""
+        names = []
+        seen = set()
+        for raw in service_names:
+            method_name = f'{raw}_services'
             if hasattr(cls, method_name):
-                _services = getattr(cls, method_name)()
-            elif hasattr(cls, name):
-                _services = [getattr(cls, name)]
+                expanded = getattr(cls, method_name)()
+            elif hasattr(cls, raw):
+                expanded = [getattr(cls, raw).value]
+            elif raw.startswith('celery_'):
+                expanded = [raw]
             else:
                 continue
-            services.update(set(_services))
+            for n in expanded:
+                if n in seen:
+                    continue
+                seen.add(n)
+                names.append(n)
 
         service_objects = []
-        for s in services:
-            service_class = cls.get_service_object_class(s.value)
-            if not service_class:
+        for n in names:
+            service_class = cls.get_service_object_class(n)
+            if service_class is None:
                 continue
-            kwargs.update({
-                'name': s.value
-            })
-            service_object = service_class(**kwargs)
-            service_objects.append(service_object)
+            kwargs_with_name = {**kwargs, 'name': n}
+            service_objects.append(service_class(**kwargs_with_name))
         return service_objects
 
 
