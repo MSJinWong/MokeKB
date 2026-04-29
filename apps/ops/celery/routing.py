@@ -10,6 +10,8 @@ import os
 TASK_NAME_PREFIX_TO_QUEUE = {
     'celery:embedding_': 'rag_embedding',
     'celery:sync_web_': 'rag_parse',
+    # Exact-name match: 同类工作流但不共用 sync_web_ 前缀
+    'celery:sync_replace_web_knowledge': 'rag_parse',
     'celery:generate_related_': 'rag_embedding',
     'celery:create_knowledge_index': 'rag_index',
     'celery:drop_knowledge_index': 'rag_index',

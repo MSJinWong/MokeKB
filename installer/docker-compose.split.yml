@@ -45,6 +45,9 @@ services:
       MAXKB_ENABLE_UI: "false"
       MAXKB_ENABLE_API_DOCS: ${MAXKB_ENABLE_API_DOCS:-false}
       MAXKB_ENABLE_EMAIL: ${MAXKB_ENABLE_EMAIL:-false}
+      # Producer-side queue routing: HTTP-handler-originated task.delay() must route
+      # to dedicated queues (rag_parse / rag_embedding / rag_index / maintenance).
+      MAXKB_TASK_QUEUE_PREFIX_ENABLED: "1"
       # Phase 5 split-queue mode: scheduler is now hosted by maxkb-worker-maintenance.
       MAXKB_ENABLE_SCHEDULER: "false"
       MAXKB_ENABLED_PROVIDERS: ${MAXKB_ENABLED_PROVIDERS:?MAXKB_ENABLED_PROVIDERS must be set in .env}
