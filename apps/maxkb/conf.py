@@ -54,7 +54,7 @@ class Config(dict):
             return False  # 生产默认关闭
         return str(val).lower() in ('1', 'true', 'yes', 'on')
 
-    def get_enable_scheduler(self):
+    def get_enable_scheduler(self) -> bool:
         val = self.get('ENABLE_SCHEDULER')
         if val is None:
             # 兼容老行为：默认 web 进程开启，celery worker 不开
