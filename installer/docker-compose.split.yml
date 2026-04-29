@@ -45,7 +45,8 @@ services:
       MAXKB_ENABLE_UI: "false"
       MAXKB_ENABLE_API_DOCS: ${MAXKB_ENABLE_API_DOCS:-false}
       MAXKB_ENABLE_EMAIL: ${MAXKB_ENABLE_EMAIL:-false}
-      MAXKB_ENABLE_SCHEDULER: "true"
+      # Phase 5 split-queue mode: scheduler is now hosted by maxkb-worker-maintenance.
+      MAXKB_ENABLE_SCHEDULER: "false"
       MAXKB_ENABLED_PROVIDERS: ${MAXKB_ENABLED_PROVIDERS:?MAXKB_ENABLED_PROVIDERS must be set in .env}
       MAXKB_SECRET_KEY: ${MAXKB_DJANGO_SECRET_KEY}
     command: ["start", "web"]
@@ -58,13 +59,13 @@ services:
       retries: 20
       start_period: 60s
 
-  maxkb-worker:
+  maxkb-worker-rag:
     image: maxkb-app:latest
     restart: unless-stopped
     depends_on:
       maxkb-app:
         condition: service_healthy
-    environment:
+    environment: &worker-env
       MAXKB_DB_HOST: postgres
       MAXKB_DB_PORT: 5432
       MAXKB_DB_USER: ${POSTGRES_USER}
@@ -76,13 +77,41 @@ services:
       MAXKB_REDIS_DB: 0
       MAXKB_ENABLE_UI: "false"
       MAXKB_ENABLE_SCHEDULER: "false"
+      MAXKB_TASK_QUEUE_PREFIX_ENABLED: "1"
       MAXKB_ENABLED_PROVIDERS: ${MAXKB_ENABLED_PROVIDERS:?MAXKB_ENABLED_PROVIDERS must be set in .env}
       MAXKB_SECRET_KEY: ${MAXKB_DJANGO_SECRET_KEY}
+      MAXKB_TMPDIR: /opt/maxkb-app/tmp
       SERVER_NAME: celery
-    # Bypass main.py to skip collect_static + perform_db_migrate on every worker restart;
-    # also forward-compatible with Phase 5 per-queue worker names that aren't in main.py choices.
+    # Direct Django manage.py — main.py:121 only accepts all/web/task as service names.
     entrypoint: ["python", "/opt/maxkb-app/apps/manage.py"]
-    command: ["start", "task"]
+    command: ["start", "celery_rag_parse", "celery_rag_embedding", "celery_rag_index"]
+    volumes:
+      - maxkb-data:/opt/maxkb
+
+  maxkb-worker-default:
+    image: maxkb-app:latest
+    restart: unless-stopped
+    depends_on:
+      maxkb-app:
+        condition: service_healthy
+    environment: *worker-env
+    entrypoint: ["python", "/opt/maxkb-app/apps/manage.py"]
+    command: ["start", "celery_celery"]
+    volumes:
+      - maxkb-data:/opt/maxkb
+
+  maxkb-worker-maintenance:
+    image: maxkb-app:latest
+    restart: unless-stopped
+    depends_on:
+      maxkb-app:
+        condition: service_healthy
+    environment:
+      <<: *worker-env
+      # Cluster-wide single scheduler lives on this worker (apscheduler + celery-beat).
+      MAXKB_ENABLE_SCHEDULER: "true"
+    entrypoint: ["python", "/opt/maxkb-app/apps/manage.py"]
+    command: ["start", "celery_maintenance"]
     volumes:
       - maxkb-data:/opt/maxkb
 
