@@ -17,21 +17,13 @@ from models_provider.base_model_provider import BaseModelCredential, ValidCode
 from common.utils.logger import maxkb_logger
 
 class OpenAIEmbeddingModelParams(BaseForm):
-    dimensions = forms.SingleSelect(
+    dimensions = forms.TextInputField(
         TooltipLabel(
             _('Dimensions'),
-            _('')
+            _('Vector dimensions returned by the embedding model. Leave empty to use server default.')
         ),
-        required=True,
-        default_value=1024,
-        value_field='value',
-        text_field='label',
-        option_list=[
-            {'label': '1536', 'value': '1536'},
-            {'label': '1024', 'value': '1024'},
-            {'label': '768', 'value': '768'},
-            {'label': '512', 'value': '512'},
-        ]
+        required=False,
+        default_value='',
     )
 
 
