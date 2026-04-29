@@ -40,7 +40,7 @@ from knowledge.models import Knowledge, KnowledgeScope, KnowledgeType, Document,
     ProblemParagraphMapping, TaskType, State, SearchMode, KnowledgeFolder, File, Tag, DocumentTag, KnowledgeWorkflow, \
     FileSourceType
 from knowledge.serializers.common import BatchSerializer, BatchMoveSerializer, ProblemParagraphObject
-from knowledge.serializers.common import ProblemParagraphManage, drop_knowledge_index, \
+from knowledge.serializers.common import ProblemParagraphManage, \
     get_embedding_model_id_by_knowledge_id, MetaSerializer, \
     GenerateRelatedSerializer, get_embedding_model_by_knowledge_id, list_paragraph, write_image, zip_dir, \
     update_resource_mapping_by_knowledge

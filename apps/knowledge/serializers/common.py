@@ -278,7 +278,7 @@ def create_knowledge_index(knowledge_id=None, document_id=None):
         return
 
     create_sql = (
-        f'CREATE INDEX "embedding_hnsw_idx_{k_id}" '
+        f'CREATE INDEX IF NOT EXISTS "embedding_hnsw_idx_{k_id}" '
         f'ON embedding USING hnsw ((embedding::vector({dims})) vector_cosine_ops) '
         f"WHERE knowledge_id = '{k_id}'"
     )

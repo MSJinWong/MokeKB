@@ -2,18 +2,34 @@ from django.db import migrations, models
 
 
 def backfill_workspace_id(apps, schema_editor):
-    """从 Knowledge 表回填 workspace_id 到 Embedding。"""
-    with schema_editor.connection.cursor() as c:
-        c.execute("""
-            UPDATE embedding
-               SET workspace_id = COALESCE(k.workspace_id, 'default')
-              FROM knowledge k
-             WHERE embedding.knowledge_id = k.id
-               AND (embedding.workspace_id IS NULL OR embedding.workspace_id = 'default')
-        """)
+    """从 Knowledge 表回填 workspace_id 到 Embedding。
+    按 knowledge_id 分批，每个 knowledge_id 一个事务，避免单一长事务在大表上阻塞写入。
+    """
+    conn = schema_editor.connection
+    with conn.cursor() as c:
+        c.execute(
+            "SELECT DISTINCT knowledge_id FROM embedding "
+            "WHERE workspace_id IS NULL OR workspace_id = 'default'"
+        )
+        kids = [r[0] for r in c.fetchall()]
+    for kid in kids:
+        with conn.cursor() as c:
+            c.execute(
+                """
+                UPDATE embedding
+                   SET workspace_id = COALESCE(
+                       (SELECT workspace_id FROM knowledge WHERE id = %s),
+                       'default')
+                 WHERE knowledge_id = %s
+                   AND (workspace_id IS NULL OR workspace_id = 'default')
+                """,
+                [kid, kid],
+            )
 
 
 class Migration(migrations.Migration):
+
+    atomic = False  # chunk-by-chunk commit prevents long-held locks on large tables
 
     dependencies = [
         ('knowledge', '0008_file_sha256_index'),

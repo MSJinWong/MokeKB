@@ -9,7 +9,7 @@ from langchain_core.messages import HumanMessage
 from common.config.embedding_config import ModelManage
 from common.event.listener_manage import ListenerManagement
 from common.utils.logger import maxkb_logger
-from common.utils.page_utils import page, page_desc
+from common.utils.page_utils import page, page_keyset
 from knowledge.models import Paragraph, Document, Status, TaskType, State
 from knowledge.task.handler import save_problem
 from models_provider.models import Model
@@ -97,7 +97,7 @@ def generate_related_by_document_id(document_id, model_id, model_params_setting,
             task_type_status=Substr('reversed_status', TaskType.GENERATE_PROBLEM.value,
                                     1),
         ).filter(task_type_status__in=state_list, document_id=document_id)
-        page_desc(query_set, 10, generate_problem, is_the_task_interrupted)
+        page_keyset(query_set, 10, generate_problem, is_the_task_interrupted=is_the_task_interrupted)
     except Exception as e:
         maxkb_logger.error(f'根据文档生成问题:{document_id}出现错误{str(e)}{traceback.format_exc()}')
         maxkb_logger.error(_('Generate issue based on document: {document_id} error {error}{traceback}').format(

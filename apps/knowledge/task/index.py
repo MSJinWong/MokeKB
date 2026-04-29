@@ -8,7 +8,9 @@ from common.utils.logger import maxkb_logger
 from ops import celery_app
 
 
-@celery_app.task(base=QueueOnce, once={'keys': ['knowledge_id']},
+# QueueOnce timeout=600 (10min): long enough for any HNSW build, short enough that
+# a Redis lock left by a crashed worker doesn't permanently block re-queues.
+@celery_app.task(base=QueueOnce, once={'keys': ['knowledge_id'], 'timeout': 600},
                  name='celery:create_knowledge_index')
 def create_knowledge_index_task(knowledge_id):
     from knowledge.serializers.common import create_knowledge_index

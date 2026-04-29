@@ -12,7 +12,6 @@ from common.event.listener_manage import ListenerManagement, UpdateProblemArgs, 
     UpdateEmbeddingDocumentIdArgs
 from common.utils.logger import maxkb_logger
 from knowledge.models import Document, TaskType, State
-from knowledge.serializers.common import drop_knowledge_index
 from knowledge.task.index import drop_knowledge_index_task
 from models_provider.models import Model
 from models_provider.tools import get_model, get_model_default_params
