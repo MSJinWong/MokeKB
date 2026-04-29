@@ -13,7 +13,6 @@ class Services(TextChoices):
     local_model = 'local_model', 'local_model'
     web = 'web', 'web'
     celery = 'celery', 'celery'
-    celery_model = 'celery_model', 'celery_model'
     task = 'task', 'task'
     all = 'all', 'all'
 
@@ -33,7 +32,7 @@ class Services(TextChoices):
 
     @classmethod
     def celery_services(cls):
-        return [cls.celery_default, cls.celery_model]
+        return [cls.celery_default]
 
     @classmethod
     def task_services(cls):

@@ -23,7 +23,6 @@ configs['worker_concurrency'] = 5
 
 configs["task_queues"] = [
     Queue("celery", Exchange("celery"), routing_key="celery"),
-    Queue("model", Exchange("model"), routing_key="model")
 ]
 app.namespace = 'CELERY'
 app.conf.update(
