@@ -45,6 +45,7 @@ ENV PATH=/opt/py3/bin:$PATH \
     MAXKB_CONFIG_TYPE=ENV \
     MAXKB_LOG_LEVEL=INFO \
     MAXKB_ENABLE_API_DOCS=false \
+    MAXKB_ENABLE_EMAIL=false \
     MAXKB_SANDBOX=1 \
     MAXKB_SANDBOX_HOME=/opt/maxkb-app/sandbox \
     MAXKB_SANDBOX_PYTHON_PACKAGE_PATHS="/opt/py3/lib/python3.11/site-packages,/opt/maxkb-app/sandbox/python-packages,/opt/maxkb/python-packages" \

@@ -1066,7 +1066,7 @@ class SendEmailSerializer(serializers.Serializer):
         """
         from maxkb.const import CONFIG
         if not CONFIG.get_enable_email():
-            raise AppApiException(1004, _('Email feature is disabled.'))
+            raise AppApiException(1004, _('Email feature is disabled. Contact administrator to reset password.'))
         email = self.data.get("email")
         state = self.data.get("type")
         # 生成随机验证码
@@ -1154,8 +1154,20 @@ class SwitchLanguageSerializer(serializers.Serializer):
 
 class AdminResetPasswordSerializer(serializers.Serializer):
     target_user_id = serializers.UUIDField(required=True, label=_("Target user id"))
-    new_password = serializers.CharField(required=True, min_length=6, max_length=64,
-                                         label=_("New password"))
+    new_password = serializers.CharField(
+        required=True,
+        min_length=6,
+        max_length=20,
+        label=_("New password"),
+        validators=[
+            validators.RegexValidator(
+                regex=PASSWORD_REGEX,
+                message=_(
+                    "The password must be 6-20 characters long and must be a combination of letters, numbers, and special characters."
+                )
+            )
+        ]
+    )
 
     def reset(self):
         self.is_valid(raise_exception=True)

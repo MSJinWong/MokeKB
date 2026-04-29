@@ -361,6 +361,9 @@ class SendEmailToCurrentUserView(APIView):
     @log(menu='User management', operate='Send email to current user',
          get_operation_object=lambda r, k: {'name': r.user.username})
     def post(self, request: Request):
+        from common.exception.app_exception import AppApiException
+        if not CONFIG.get_enable_email():
+            raise AppApiException(1004, _('Email feature is disabled. Contact administrator to reset password.'))
         serializer_obj = SendEmailSerializer(data={'email': request.user.email, 'type': "reset_password"})
         if serializer_obj.is_valid(raise_exception=True):
             return result.success(serializer_obj.send())
@@ -393,6 +396,8 @@ class ResetCurrentUserPasswordView(APIView):
 class AdminResetPassword(APIView):
     authentication_classes = [TokenAuth]
 
+    # Decorators ordered so @log wraps @has_permissions, ensuring rejected admin-reset
+    # attempts are still audited (security-sensitive operation).
     @extend_schema(methods=['POST'],
                    summary=_("Admin reset user password"),
                    description=_("Admin reset another user's password"),
@@ -400,9 +405,9 @@ class AdminResetPassword(APIView):
                    tags=[_("User Management")],  # type: ignore
                    request=AdminResetPasswordAPI.get_request(),
                    responses=AdminResetPasswordAPI.get_response())
-    @has_permissions(RoleConstants.ADMIN)
     @log(menu='User management', operate='Admin reset password',
          get_operation_object=_admin_reset_target_name)
+    @has_permissions(RoleConstants.ADMIN)
     def post(self, request: Request):
         from users.serializers.user import AdminResetPasswordSerializer
         return result.success(AdminResetPasswordSerializer(data=request.data).reset())
