@@ -54,6 +54,13 @@ class Config(dict):
             return False  # 生产默认关闭
         return str(val).lower() in ('1', 'true', 'yes', 'on')
 
+    def get_enable_scheduler(self):
+        val = self.get('ENABLE_SCHEDULER')
+        if val is None:
+            # 兼容老行为：默认 web 进程开启，celery worker 不开
+            return os.environ.get('SERVER_NAME', 'web') == 'web'
+        return str(val).lower() in ('1', 'true', 'yes', 'on')
+
     def get_time_zone(self) -> str:
         return self.get('TIME_ZONE') if 'TIME_ZONE' in self else 'Asia/Shanghai'
 
