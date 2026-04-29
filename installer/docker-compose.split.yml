@@ -1,0 +1,91 @@
+services:
+  postgres:
+    image: pgvector/pgvector:pg17
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: redis-server --requirepass ${REDIS_PASSWORD}
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  maxkb-app:
+    image: maxkb-app:latest
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      MAXKB_DB_HOST: postgres
+      MAXKB_DB_PORT: 5432
+      MAXKB_DB_USER: ${POSTGRES_USER}
+      MAXKB_DB_PASSWORD: ${POSTGRES_PASSWORD}
+      MAXKB_DB_NAME: ${POSTGRES_DB}
+      MAXKB_REDIS_HOST: redis
+      MAXKB_REDIS_PORT: 6379
+      MAXKB_REDIS_PASSWORD: ${REDIS_PASSWORD}
+      MAXKB_REDIS_DB: 0
+      MAXKB_ENABLE_UI: "false"
+      MAXKB_ENABLE_API_DOCS: ${MAXKB_ENABLE_API_DOCS:-false}
+      MAXKB_ENABLE_EMAIL: ${MAXKB_ENABLE_EMAIL:-false}
+      MAXKB_ENABLE_SCHEDULER: "true"
+      MAXKB_ENABLED_PROVIDERS: ${MAXKB_ENABLED_PROVIDERS}
+      MAXKB_SECRET_KEY: ${MAXKB_DJANGO_SECRET_KEY}
+    command: ["start", "web"]
+    volumes:
+      - maxkb-data:/opt/maxkb
+
+  maxkb-worker:
+    image: maxkb-app:latest
+    restart: unless-stopped
+    depends_on:
+      maxkb-app:
+        condition: service_started
+    environment:
+      MAXKB_DB_HOST: postgres
+      MAXKB_DB_PORT: 5432
+      MAXKB_DB_USER: ${POSTGRES_USER}
+      MAXKB_DB_PASSWORD: ${POSTGRES_PASSWORD}
+      MAXKB_DB_NAME: ${POSTGRES_DB}
+      MAXKB_REDIS_HOST: redis
+      MAXKB_REDIS_PORT: 6379
+      MAXKB_REDIS_PASSWORD: ${REDIS_PASSWORD}
+      MAXKB_REDIS_DB: 0
+      MAXKB_ENABLE_UI: "false"
+      MAXKB_ENABLE_SCHEDULER: "false"
+      MAXKB_ENABLED_PROVIDERS: ${MAXKB_ENABLED_PROVIDERS}
+      MAXKB_SECRET_KEY: ${MAXKB_DJANGO_SECRET_KEY}
+      SERVER_NAME: celery
+    # main.py supports `start task` — see apps/main.py choices
+    command: ["start", "task"]
+    volumes:
+      - maxkb-data:/opt/maxkb
+
+  maxkb-ui:
+    image: maxkb-ui:latest
+    restart: unless-stopped
+    depends_on:
+      - maxkb-app
+    ports:
+      - "${MAXKB_PUBLIC_PORT:-8080}:80"
+
+volumes:
+  pgdata:
+  maxkb-data:
