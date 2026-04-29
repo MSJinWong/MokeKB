@@ -25,6 +25,8 @@ MaxKB 三分钟视频介绍：https://www.bilibili.com/video/BV18JypYeEkj/
 
 ## 快速开始
 
+> 生产环境拆分部署：见 [docs/deployment-split.md](docs/deployment-split.md)
+
 ```
 # Linux 机器
 docker run -d --name=maxkb --restart=always -p 8080:8080 -v ~/.maxkb:/opt/maxkb registry.fit2cloud.com/maxkb/maxkb

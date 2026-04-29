@@ -21,6 +21,8 @@ MaxKB = Max Knowledge Brain, it is an open-source platform for building enterpri
 
 ## Quick start
 
+> Production split deployment: see [docs/deployment-split.md](docs/deployment-split.md)
+
 Execute the script below to start a MaxKB container using Docker:
 
 ```bash
