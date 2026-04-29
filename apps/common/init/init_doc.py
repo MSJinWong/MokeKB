@@ -69,7 +69,8 @@ init_list = [(init_app_doc, {'valid': lambda: CONFIG.get('DOC_PASSWORD') is not 
                              'get_call': get_call,
                              'get_params': lambda application_urlpatterns, patterns: (application_urlpatterns,)}),
              (init_chat_doc, {'valid': lambda: CONFIG.get('DOC_PASSWORD') is not None and encrypt(
-                 CONFIG.get('DOC_PASSWORD')) == 'd4fc097197b4b90a122b92cbd5bbe867' or True, 'get_call': get_call,
+                 CONFIG.get('DOC_PASSWORD')) == 'd4fc097197b4b90a122b92cbd5bbe867',
+                              'get_call': get_call,
                               'get_params': lambda application_urlpatterns, patterns: (
                                   application_urlpatterns, patterns)})]
 
