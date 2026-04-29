@@ -1,0 +1,63 @@
+# app-only: backend + Python runtime only. No PG, no Redis, no frontend, no model files.
+FROM python:3.11-slim-trixie AS stage-build
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        gcc g++ gettext libexpat1-dev libffi-dev \
+        ca-certificates curl && \
+    rm -rf /var/lib/apt/lists/*
+
+WORKDIR /opt/maxkb-app
+COPY --chmod=700 . /opt/maxkb-app
+
+# Compile sandbox.so (LD_PRELOAD-based syscall filter for tool execution)
+ENV MAXKB_SANDBOX_HOME=/opt/maxkb-app/sandbox
+RUN mkdir -p ${MAXKB_SANDBOX_HOME}/lib && \
+    gcc -shared -fPIC -o ${MAXKB_SANDBOX_HOME}/lib/sandbox.so \
+        /opt/maxkb-app/installer/sandbox.c -ldl
+
+# Install Python deps WITHOUT local-model extra (split deployment uses local-model service separately)
+RUN pip install uv --break-system-packages && \
+    python -m uv pip install --system ".[multimodal,providers-cn,providers-extras,tools]" && \
+    find /opt/maxkb-app -depth \
+         \( -name ".git*" -o -name ".docker*" -o -name ".idea*" \
+            -o -name ".editorconfig*" -o -name ".prettierrc*" \) \
+         -exec rm -rf {} + && \
+    python /opt/maxkb-app/apps/manage.py compilemessages && \
+    rm -rf /opt/maxkb-app/ui /opt/maxkb-app/installer
+
+FROM python:3.11-slim-trixie
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        libexpat1 libffi8 libpq5 ca-certificates wait-for-it && \
+    rm -rf /var/lib/apt/lists/*
+
+ARG DOCKER_IMAGE_TAG=dev \
+    BUILD_AT \
+    GITHUB_COMMIT
+ENV MAXKB_VERSION="${DOCKER_IMAGE_TAG} (build at ${BUILD_AT}, commit: ${GITHUB_COMMIT})" \
+    MAXKB_CONFIG_TYPE=ENV \
+    MAXKB_LOG_LEVEL=INFO \
+    MAXKB_ENABLE_UI=false \
+    MAXKB_ENABLE_API_DOCS=false \
+    MAXKB_ENABLE_EMAIL=false \
+    MAXKB_SANDBOX=1 \
+    MAXKB_SANDBOX_HOME=/opt/maxkb-app/sandbox \
+    MAXKB_SANDBOX_PYTHON_BANNED_HOSTS="127.0.0.0/8,localhost,169.254.0.0/16,::1/128" \
+    PYTHONUNBUFFERED=1 \
+    PIP_TARGET=/opt/maxkb/python-packages \
+    PATH=/usr/local/bin:$PATH
+
+WORKDIR /opt/maxkb-app
+COPY --from=stage-build /opt/maxkb-app /opt/maxkb-app
+COPY --from=stage-build /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
+COPY --from=stage-build /usr/local/bin /usr/local/bin
+
+EXPOSE 8080
+VOLUME /opt/maxkb
+
+ENTRYPOINT ["python", "/opt/maxkb-app/main.py"]
+CMD ["start", "web"]
