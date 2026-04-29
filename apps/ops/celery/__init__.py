@@ -21,9 +21,12 @@ configs['worker_concurrency'] = 5
 # pickle the object when using Windows.
 # app.config_from_object('django.conf:settings', namespace='CELERY')
 
+from .routing import all_queues, task_router
+
 configs["task_queues"] = [
-    Queue("celery", Exchange("celery"), routing_key="celery"),
+    Queue(name, Exchange(name), routing_key=name) for name in all_queues()
 ]
+configs["task_routes"] = (task_router,)
 app.namespace = 'CELERY'
 app.conf.update(
     {key.replace('CELERY_', '') if key.replace('CELERY_', '').lower() == key.replace('CELERY_',
