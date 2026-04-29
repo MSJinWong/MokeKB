@@ -250,19 +250,40 @@ def create_knowledge_index(knowledge_id=None, document_id=None):
         document = QuerySet(Document).filter(id=document_id).first()
         k_id = document.knowledge_id
 
-    sql = f"SELECT indexname, indexdef FROM pg_indexes WHERE tablename = 'embedding' AND indexname = 'embedding_hnsw_idx_{k_id}'"
-    index = sql_execute(sql, [])
-    if not index:
-        sql = f"SELECT vector_dims(embedding) AS dims FROM embedding WHERE knowledge_id = '{k_id}' LIMIT 1"
-        result = sql_execute(sql, [])
-        if len(result) == 0:
-            return
-        dims = result[0]['dims']
-        # 超过2000维度不创建索引，pgvector hnsw索引不支持超过2000维度
-        if dims < 2000:
-            sql = f"""CREATE INDEX "embedding_hnsw_idx_{k_id}" ON embedding USING hnsw ((embedding::vector({dims})) vector_cosine_ops) WHERE knowledge_id = '{k_id}'"""
-            update_execute(sql, [])
-            maxkb_logger.info(f'Created index for knowledge ID: {k_id}')
+    # 已存在索引：跳过
+    sql = f"SELECT indexname FROM pg_indexes WHERE tablename = 'embedding' AND indexname = 'embedding_hnsw_idx_{k_id}'"
+    if sql_execute(sql, []):
+        return
+
+    # 检查行数，未达阈值不建（用复合索引兜底）
+    from maxkb.const import CONFIG
+    min_rows = CONFIG.get_hnsw_min_rows()
+    count_sql = f"SELECT count(*) AS c FROM embedding WHERE knowledge_id = '{k_id}'"
+    count_result = sql_execute(count_sql, [])
+    if not count_result or count_result[0]['c'] < min_rows:
+        rows_seen = count_result[0]['c'] if count_result else 0
+        maxkb_logger.info(
+            f'Skip HNSW index creation for knowledge_id={k_id}: rows={rows_seen} < {min_rows}'
+        )
+        return
+
+    # 取维度
+    dims_sql = f"SELECT vector_dims(embedding) AS dims FROM embedding WHERE knowledge_id = '{k_id}' LIMIT 1"
+    dims_result = sql_execute(dims_sql, [])
+    if not dims_result:
+        return
+    dims = dims_result[0]['dims']
+    if dims >= 2000:
+        maxkb_logger.warning(f'HNSW does not support dims>=2000, skip k_id={k_id}')
+        return
+
+    create_sql = (
+        f'CREATE INDEX "embedding_hnsw_idx_{k_id}" '
+        f'ON embedding USING hnsw ((embedding::vector({dims})) vector_cosine_ops) '
+        f"WHERE knowledge_id = '{k_id}'"
+    )
+    update_execute(create_sql, [])
+    maxkb_logger.info(f'Created HNSW index for knowledge ID: {k_id} (rows={count_result[0]["c"]})')
 
 
 def drop_knowledge_index(knowledge_id=None, document_id=None):

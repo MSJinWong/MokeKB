@@ -143,6 +143,13 @@ class Config(dict):
     def get_session_timeout(self):
         return int(self.get('SESSION_TIMEOUT', 28800))
 
+    def get_hnsw_min_rows(self) -> int:
+        val = self.get('HNSW_INDEX_MIN_ROWS')
+        try:
+            return int(val) if val else 5000
+        except (TypeError, ValueError):
+            return 5000
+
     def __init__(self, *args):
         super().__init__(*args)
 
