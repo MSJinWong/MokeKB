@@ -32,7 +32,7 @@ FROM python:3.11-slim-trixie
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-        libexpat1 libffi8 libpq5 ca-certificates wait-for-it && \
+        libexpat1 libffi8 libpq5 ca-certificates curl wait-for-it && \
     rm -rf /var/lib/apt/lists/*
 
 ARG DOCKER_IMAGE_TAG=dev \

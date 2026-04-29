@@ -46,18 +46,24 @@ services:
       MAXKB_ENABLE_API_DOCS: ${MAXKB_ENABLE_API_DOCS:-false}
       MAXKB_ENABLE_EMAIL: ${MAXKB_ENABLE_EMAIL:-false}
       MAXKB_ENABLE_SCHEDULER: "true"
-      MAXKB_ENABLED_PROVIDERS: ${MAXKB_ENABLED_PROVIDERS}
+      MAXKB_ENABLED_PROVIDERS: ${MAXKB_ENABLED_PROVIDERS:?MAXKB_ENABLED_PROVIDERS must be set in .env}
       MAXKB_SECRET_KEY: ${MAXKB_DJANGO_SECRET_KEY}
     command: ["start", "web"]
     volumes:
       - maxkb-data:/opt/maxkb
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8080/admin/api/profile || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+      start_period: 60s
 
   maxkb-worker:
     image: maxkb-app:latest
     restart: unless-stopped
     depends_on:
       maxkb-app:
-        condition: service_started
+        condition: service_healthy
     environment:
       MAXKB_DB_HOST: postgres
       MAXKB_DB_PORT: 5432
@@ -70,10 +76,12 @@ services:
       MAXKB_REDIS_DB: 0
       MAXKB_ENABLE_UI: "false"
       MAXKB_ENABLE_SCHEDULER: "false"
-      MAXKB_ENABLED_PROVIDERS: ${MAXKB_ENABLED_PROVIDERS}
+      MAXKB_ENABLED_PROVIDERS: ${MAXKB_ENABLED_PROVIDERS:?MAXKB_ENABLED_PROVIDERS must be set in .env}
       MAXKB_SECRET_KEY: ${MAXKB_DJANGO_SECRET_KEY}
       SERVER_NAME: celery
-    # main.py supports `start task` — see apps/main.py choices
+    # Bypass main.py to skip collect_static + perform_db_migrate on every worker restart;
+    # also forward-compatible with Phase 5 per-queue worker names that aren't in main.py choices.
+    entrypoint: ["python", "/opt/maxkb-app/apps/manage.py"]
     command: ["start", "task"]
     volumes:
       - maxkb-data:/opt/maxkb

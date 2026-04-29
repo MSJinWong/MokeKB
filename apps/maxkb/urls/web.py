@@ -88,6 +88,8 @@ def get_index_html(index_path):
 
 def get_all_files(directory):
     base_path = Path(directory)
+    if not base_path.exists():
+        return []
     file_paths = [
         '/' + str(file.relative_to(base_path)).replace('\\', '/')
         for file in base_path.rglob('*')
@@ -96,10 +98,13 @@ def get_all_files(directory):
     return sorted(file_paths, key=len, reverse=True)
 
 
-static_dict = {
-    chat_ui_prefix: get_all_files(os.path.join(PROJECT_DIR, 'apps', "static", 'chat')),
-    admin_ui_prefix: get_all_files(os.path.join(PROJECT_DIR, 'apps', "static", 'admin'))
-}
+if CONFIG.get_enable_ui():
+    static_dict = {
+        chat_ui_prefix: get_all_files(os.path.join(PROJECT_DIR, 'apps', "static", 'chat')),
+        admin_ui_prefix: get_all_files(os.path.join(PROJECT_DIR, 'apps', "static", 'admin'))
+    }
+else:
+    static_dict = {chat_ui_prefix: [], admin_ui_prefix: []}
 
 
 def page_not_found(request, exception):
