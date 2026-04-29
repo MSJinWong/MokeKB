@@ -62,5 +62,10 @@ class OpenAIEmbeddingCredential(BaseForm, BaseModelCredential):
     def get_model_params_setting_form(self, model_name):
         return OpenAIEmbeddingModelParams()
 
-    api_base = forms.TextInputField('API URL', required=True)
+    api_base = forms.TextInputField(
+        TooltipLabel(_('API URL'),
+                     _('Custom OpenAI-compatible base URL. Leave empty to use OpenAI official.')),
+        required=True,
+        default_value='https://api.openai.com/v1',
+    )
     api_key = forms.PasswordInputField('API Key', required=True)
