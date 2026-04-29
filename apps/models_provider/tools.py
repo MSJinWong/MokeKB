@@ -56,7 +56,17 @@ def get_provider(provider):
     @param provider: 供应商字符串
     @return: 供应商实例
     """
-    return ModelProvideConstants[provider].value
+    try:
+        return ModelProvideConstants[provider].value
+    except KeyError:
+        from common.exception.app_exception import AppApiException
+        from models_provider.base_model_provider import ValidCode
+        raise AppApiException(
+            ValidCode.valid_error.value,
+            _('Provider "{provider}" is not enabled. Set MAXKB_ENABLED_PROVIDERS to include it or use "all".').format(
+                provider=provider
+            )
+        )
 
 
 def get_model_list(provider, model_type):

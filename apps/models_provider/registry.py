@@ -68,6 +68,11 @@ _DEFAULT_ENABLED = [
     'model_siliconCloud_provider',
 ]
 
+# 单一全局 _lock 用于：
+# (1) _Registry._ensure 中的成员字典构建（一次性）
+# (2) _Member.value 中的 provider 实例化（每个 provider 一次）
+# 两者从不嵌套调用，因此用普通 Lock 而非 RLock 没有死锁风险；
+# 如未来出现嵌套，请改为 RLock。
 _lock = threading.Lock()
 
 
