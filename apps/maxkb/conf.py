@@ -48,6 +48,12 @@ class Config(dict):
     def get_debug(self) -> bool:
         return self.get('DEBUG') if 'DEBUG' in self else True
 
+    def get_enable_api_docs(self) -> bool:
+        val = self.get('ENABLE_API_DOCS')
+        if val is None:
+            return False  # 生产默认关闭
+        return str(val).lower() in ('1', 'true', 'yes', 'on')
+
     def get_time_zone(self) -> str:
         return self.get('TIME_ZONE') if 'TIME_ZONE' in self else 'Asia/Shanghai'
 
