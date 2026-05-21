@@ -209,6 +209,12 @@
         @keydown.enter="sendChatHandle($event)"
         @paste="handlePaste"
         class="chat-operate-textarea"
+        enterkeyhint="send"
+        autocomplete="off"
+        autocorrect="off"
+        autocapitalize="off"
+        spellcheck="false"
+        inputmode="text"
       />
 
       <div class="operate flex-between">
@@ -1415,9 +1421,10 @@ async function saveUrl() {
 
 @media only screen and (max-width: 768px) {
   .ai-chat__operate {
-    position: fixed;
+    position: sticky;
     bottom: 0;
     font-size: 1rem;
+    padding-bottom: max(8px, env(safe-area-inset-bottom));
 
     .el-icon {
       font-size: 1.4rem !important;

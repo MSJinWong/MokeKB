@@ -5,7 +5,7 @@
       :with-header="false"
       class="chat-history-drawer"
       direction="ltr"
-      :size="320"
+      :size="drawerWidth"
       style="--el-drawer-padding-primary: 0"
     >
       <HistoryPanel
@@ -43,6 +43,13 @@ import { ref, computed } from 'vue'
 import useStore from '@/stores'
 import UserCenterDrawer from './UserCenterDrawer.vue'
 import HistoryPanel from '@/views/chat/component/HistoryPanel.vue'
+
+const drawerWidth = computed(() => {
+  if (typeof window !== 'undefined' && window.innerWidth <= 480) {
+    return Math.min(window.innerWidth * 0.85, 320)
+  }
+  return 320
+})
 
 const show = defineModel<boolean>('show')
 

@@ -66,22 +66,20 @@
         </div>
       </div>
     </div>
-    <div>
-      <div class="chat-mobile__main">
-        <AiChat
-          ref="AiChatRef"
-          v-model:applicationDetails="applicationDetail"
-          :available="applicationAvailable"
-          :appId="applicationDetail?.id"
-          :record="currentRecordList"
-          :chatId="currentChatId"
-          type="ai-chat"
-          @refresh="refresh"
-          @scroll="handleScroll"
-          v-model:selection="showSelection"
-        >
-        </AiChat>
-      </div>
+    <div class="chat-mobile__body">
+      <AiChat
+        ref="AiChatRef"
+        v-model:applicationDetails="applicationDetail"
+        :available="applicationAvailable"
+        :appId="applicationDetail?.id"
+        :record="currentRecordList"
+        :chatId="currentChatId"
+        type="ai-chat"
+        @refresh="refresh"
+        @scroll="handleScroll"
+        v-model:selection="showSelection"
+      >
+      </AiChat>
     </div>
     <ChatHistoryDrawer
       v-model:show="show"
@@ -289,24 +287,39 @@ onMounted(() => {
 </script>
 <style lang="scss" scoped>
 .chat-mobile {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  height: 100dvh; /* iOS Safari URL bar adaptive */
   overflow: hidden;
+
   &__header {
-    background: var(--app-header-bg-color);
-    position: fixed;
-    width: 100%;
-    left: 0;
+    position: sticky;
     top: 0;
-    z-index: 100;
+    z-index: 10;
     height: var(--app-header-height);
-    line-height: var(--app-header-height);
-    box-sizing: border-box;
+    background: var(--app-header-bg-color);
     border-bottom: 1px solid var(--el-border-color);
+    display: flex;
+    align-items: center;
+    box-sizing: border-box;
+    flex-shrink: 0;
   }
-  &__main {
-    padding-top: calc(var(--app-header-height) + 16px);
-    height: calc(100vh - var(--app-header-height) - 16px);
+
+  &__body {
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    /* AiChat already fills 100% height via its own el-scrollbar */
     overflow: hidden;
+  }
+
+  /* Mobile history drawer responsive width */
+  @media (max-width: 480px) {
+    :deep(.el-drawer.chat-history-drawer) {
+      width: min(85vw, 320px) !important;
+    }
   }
 }
 </style>
-<style lang="scss" scoped></style>

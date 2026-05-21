@@ -58,9 +58,16 @@
   }
 }
 
-@media only screen and (max-width: 768px) {
-  .ai-chat {
-    height: calc(100% - 116px) !important;
+@media only screen and (max-width: 480px) {
+  /* Mobile message body tweaks */
+  .ai-answer__body {
+    font-size: var(--font-size-base);
+    padding: 12px 0;
+  }
+
+  .question-content .content {
+    max-width: 85%;
+    font-size: var(--font-size-base);
   }
 }
 .chat-mobile {
