@@ -8,7 +8,7 @@ export const routes: Array<RouteRecordRaw> = [
   {
     path: '/',
     name: 'home',
-    redirect: '/application',
+    redirect: '/workbench',
     children: [
       ...rolesRoutes,
       {
