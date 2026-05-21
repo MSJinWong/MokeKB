@@ -122,6 +122,12 @@ export default {
       'The current user does not have permission to access, please contact the administrator',
     operate: 'Back to Home',
   },
+  error: {
+    notFound: { title: 'Page not found', hint: 'The page you visited does not exist or has been removed.' },
+    serverError: { title: 'Server error', hint: 'Please try again later.' },
+    noPermission: { title: 'Access denied', hint: 'Your role does not have permission to view this page.' },
+    backHome: 'Back to home',
+  },
   custom: 'Custom',
   moveTo: 'Move To',
   deleteConfirm: 'Confirm delete',

@@ -122,6 +122,12 @@ export default {
     NoPermission: '当前用户暂无权限访问，请联系管理员',
     operate: '返回首页',
   },
+  error: {
+    notFound: { title: '页面走丢了', hint: '你访问的页面不存在或已被移除。' },
+    serverError: { title: '服务异常', hint: '请稍后重试。' },
+    noPermission: { title: '无权访问', hint: '你的角色暂无该页面的权限。' },
+    backHome: '返回首页',
+  },
   custom: '自定义',
   moveTo: '转移到',
   deleteConfirm: '是否删除',

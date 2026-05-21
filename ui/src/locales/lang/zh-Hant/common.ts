@@ -121,6 +121,12 @@ export default {
     NoPermission: '當前用戶暫無權限訪問，請聯系管理員',
     operate: '返回首頁',
   },
+  error: {
+    notFound: { title: '頁面走丟了', hint: '你訪問的頁面不存在或已被移除。' },
+    serverError: { title: '服務異常', hint: '請稍後重試。' },
+    noPermission: { title: '無權訪問', hint: '你的角色暫無該頁面的權限。' },
+    backHome: '返回首頁',
+  },
   custom: '自定義',
   moveTo: '移動到',
   deleteConfirm: '是否刪除',
