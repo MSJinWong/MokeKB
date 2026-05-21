@@ -189,12 +189,6 @@ MAXKB_SANDBOX_HOME=/home/$USER/projects/MokeKB/sandbox
 MAXKB_SANDBOX_PYTHON_PACKAGE_PATHS=/home/$USER/projects/MokeKB/.venv/lib/python3.11/site-packages
 MAXKB_SANDBOX_PYTHON_BANNED_HOSTS=127.0.0.0/8,localhost
 
-# === 本地模型路径（如果装了 local-model extra） ===
-MAXKB_EMBEDDING_MODEL_PATH=/home/$USER/projects/MokeKB/model/embedding
-MAXKB_LOCAL_MODEL_HOST=127.0.0.1
-MAXKB_LOCAL_MODEL_PORT=11636
-MAXKB_LOCAL_MODEL_PROTOCOL=http
-
 # === Celery 队列（开发时不开拆分，单队列简单） ===
 # MAXKB_TASK_QUEUE_PREFIX_ENABLED=1
 ```
@@ -361,14 +355,6 @@ celery -A ops inspect active_queues
 sudo apt install -y libpq5
 ```
 
-### `ModuleNotFoundError: No module named 'torch'`
-
-只有启用 `MAXKB_ENABLED_PROVIDERS` 包含 `model_local_provider` 时才需要 torch。要么把 local 从白名单去掉，要么装 local-model extra：
-
-```bash
-uv pip install -e ".[local-model,...]"
-```
-
 ### Sandbox 报错 `Permission denied to create subprocess`
 
 开发模式建议关沙箱：
@@ -408,5 +394,3 @@ DROP INDEX IF EXISTS embedding_hnsw_idx_<uuid>;
 ## 10. 下一步
 
 - 跑通本文档后，对照 `docs/deployment-docker.md` 验证 docker 部署
-- 阅读 `docs/superpowers/plans/2026-04-29-deployment-and-capacity-optimization.md` 了解全部改动
-- 后续工作 backlog 见 `docs/superpowers/plans/2026-04-29-followup-roadmap.md`

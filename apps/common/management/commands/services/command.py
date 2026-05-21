@@ -11,7 +11,6 @@ from ops.celery.routing import all_queues
 class Services(TextChoices):
     gunicorn = 'gunicorn', 'gunicorn'
     celery_default = 'celery_default', 'celery_default'
-    local_model = 'local_model', 'local_model'
     web = 'web', 'web'
     celery = 'celery', 'celery'
     task = 'task', 'task'
@@ -22,8 +21,6 @@ class Services(TextChoices):
         from . import services
         if name == cls.gunicorn.value:
             return services.GunicornService
-        if name == cls.local_model.value:
-            return services.GunicornLocalModelService
         if name == cls.celery_default.value:
             return services.CeleryDefaultService
         if name.startswith('celery_'):
@@ -34,7 +31,7 @@ class Services(TextChoices):
 
     @classmethod
     def web_services(cls):
-        return [cls.gunicorn.value, cls.local_model.value]
+        return [cls.gunicorn.value]
 
     @classmethod
     def celery_services(cls):
@@ -54,7 +51,7 @@ class Services(TextChoices):
     def export_services_values(cls):
         per_queue = [f'celery_{q}' for q in all_queues()]
         base = [cls.all.value, cls.web.value, cls.task.value,
-                cls.gunicorn.value, cls.celery_default.value, cls.local_model.value]
+                cls.gunicorn.value, cls.celery_default.value]
         # 去重保序
         seen = set()
         result = []

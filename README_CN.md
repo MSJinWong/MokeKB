@@ -45,7 +45,6 @@ docker run -d --name=maxkb --restart=always -p 8080:8080 -v C:/maxkb:/opt/maxkb 
 
 如你有更多问题，可以查看使用手册，或者通过论坛与我们交流。
 
-- [案例展示](USE-CASES.md)
 - [使用手册](https://maxkb.cn/docs/)
 - [论坛求助](https://bbs.fit2cloud.com/c/mk/11)
 - 技术交流群

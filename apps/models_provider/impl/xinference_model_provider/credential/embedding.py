@@ -7,7 +7,6 @@ from common import forms
 from common.exception.app_exception import AppApiException
 from common.forms import BaseForm
 from models_provider.base_model_provider import BaseModelCredential, ValidCode
-from models_provider.impl.local_model_provider.model.embedding import LocalEmbedding
 
 
 class XinferenceEmbeddingModelCredential(BaseForm, BaseModelCredential):
@@ -23,7 +22,7 @@ class XinferenceEmbeddingModelCredential(BaseForm, BaseModelCredential):
         except Exception as e:
             raise AppApiException(ValidCode.valid_error.value, _('API domain name is invalid'))
         exist = provider.get_model_info_by_name(model_list, model_name)
-        model: LocalEmbedding = provider.get_model(model_type, model_name, model_credential)
+        model = provider.get_model(model_type, model_name, model_credential)
         if len(exist) == 0:
             model.start_down_model_thread()
             raise AppApiException(ValidCode.model_not_fount,

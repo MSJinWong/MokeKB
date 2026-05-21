@@ -10,17 +10,23 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 WORKDIR /opt/maxkb-app
+
+# --- Layer 1: dependencies (changes rarely) ---
+# Copy only the dep manifest first so editing application .py files doesn't bust the pip cache.
+# TODO: once `uv lock` has been run locally and uv.lock is committed, add
+#   COPY uv.lock ./
+# and pass --frozen below to enable reproducible builds.
+COPY pyproject.toml ./
+RUN pip install uv --break-system-packages && \
+    python -m uv pip install --system ".[multimodal,providers-cn,providers-extras,tools]"
+
+# --- Layer 2: application code (changes frequently) ---
 COPY --chmod=700 . /opt/maxkb-app
 
-# Compile sandbox.so (LD_PRELOAD-based syscall filter for tool execution)
 ENV MAXKB_SANDBOX_HOME=/opt/maxkb-app/sandbox
 RUN mkdir -p ${MAXKB_SANDBOX_HOME}/lib && \
     gcc -shared -fPIC -o ${MAXKB_SANDBOX_HOME}/lib/sandbox.so \
-        /opt/maxkb-app/installer/sandbox.c -ldl
-
-# Install Python deps WITHOUT local-model extra (split deployment uses local-model service separately)
-RUN pip install uv --break-system-packages && \
-    python -m uv pip install --system ".[multimodal,providers-cn,providers-extras,tools]" && \
+        /opt/maxkb-app/installer/sandbox.c -ldl && \
     find /opt/maxkb-app -depth \
          \( -name ".git*" -o -name ".docker*" -o -name ".idea*" \
             -o -name ".editorconfig*" -o -name ".prettierrc*" \) \

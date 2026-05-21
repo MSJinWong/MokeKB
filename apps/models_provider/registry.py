@@ -6,7 +6,7 @@ Provider 懒加载注册表。
 
 启用方式：
 - 不设置 MAXKB_ENABLED_PROVIDERS：使用 _DEFAULT_ENABLED 白名单（轻量精简部署默认）
-- MAXKB_ENABLED_PROVIDERS=all：全部 21 个 provider 注册
+- MAXKB_ENABLED_PROVIDERS=all：注册全部 provider
 - MAXKB_ENABLED_PROVIDERS=foo,bar：仅启用名单内的 provider
 """
 import importlib
@@ -45,8 +45,6 @@ _PROVIDER_PATHS: Dict[str, Tuple[str, str]] = {
         ('models_provider.impl.tencent_cloud_model_provider.tencent_cloud_model_provider', 'TencentCloudModelProvider'),
     'model_aws_bedrock_provider':
         ('models_provider.impl.aws_bedrock_model_provider.aws_bedrock_model_provider', 'BedrockModelProvider'),
-    'model_local_provider':
-        ('models_provider.impl.local_model_provider.local_model_provider', 'LocalModelProvider'),
     'model_xinference_provider':
         ('models_provider.impl.xinference_model_provider.xinference_model_provider', 'XinferenceModelProvider'),
     'model_vllm_provider':

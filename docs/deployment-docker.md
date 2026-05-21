@@ -84,7 +84,7 @@ docker run -d \
 
 > 数据目录默认 `maxkb-data` 命名卷。如要直接挂宿主机目录：`-v /host/path:/opt/maxkb`。
 >
-> 启用 API doc 时还需要 `-e MAXKB_DOC_PASSWORD=maxkb`（值不重要，但必须非空，且需匹配特定 MD5——目前是字面量 `'maxkb'`）。
+> 启用 API doc 时还需要 `-e MAXKB_DOC_PASSWORD=<any-non-empty-secret>`。docs 路由会同时检查 `MAXKB_ENABLE_API_DOCS=true` 与 `MAXKB_DOC_PASSWORD` 是否设置。
 
 ### 3. 验证启动
 
@@ -466,7 +466,7 @@ DROP INDEX CONCURRENTLY <index_name>;
 
 ### embedding 数据膨胀，DB 体积爆涨
 
-参考 `docs/superpowers/plans/2026-04-29-followup-roadmap.md` F4：把 File 外置到对象存储是首要选项。
+把 File 外置到对象存储 (S3/MinIO) 是首要选项。
 
 ---
 
@@ -487,6 +487,4 @@ DROP INDEX CONCURRENTLY <index_name>;
 ## 进一步阅读
 
 - 各环境变量详解：`docs/deployment-split.md`
-- 主优化方案 commit 索引：`docs/superpowers/plans/2026-04-29-deployment-and-capacity-optimization.md`
-- 后续 backlog：`docs/superpowers/plans/2026-04-29-followup-roadmap.md`
 - 本地开发：`docs/dev-wsl.md`

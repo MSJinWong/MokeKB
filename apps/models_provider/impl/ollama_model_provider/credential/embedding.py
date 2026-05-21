@@ -14,7 +14,6 @@ from common import forms
 from common.exception.app_exception import AppApiException
 from common.forms import BaseForm
 from models_provider.base_model_provider import BaseModelCredential, ValidCode
-from models_provider.impl.local_model_provider.model.embedding import LocalEmbedding
 
 
 class OllamaEmbeddingModelCredential(BaseForm, BaseModelCredential):
@@ -33,7 +32,7 @@ class OllamaEmbeddingModelCredential(BaseForm, BaseModelCredential):
         if len(exist) == 0:
             raise AppApiException(ValidCode.model_not_fount,
                                   _('The model does not exist, please download the model first'))
-        model: LocalEmbedding = provider.get_model(model_type, model_name, model_credential)
+        model = provider.get_model(model_type, model_name, model_credential)
         model.embed_query(_('Hello'))
         return True
 

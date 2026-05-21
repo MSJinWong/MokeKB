@@ -92,14 +92,9 @@ def dev():
         management.call_command('runserver', "0.0.0.0:8080")
     elif services.__contains__('celery'):
         management.call_command('celery', 'celery')
-    elif services.__contains__('local_model'):
-        from maxkb.const import CONFIG
-        bind = f'{CONFIG.get("LOCAL_MODEL_HOST")}:{CONFIG.get("LOCAL_MODEL_PORT")}'
-        management.call_command('runserver', bind)
 
 
 if __name__ == '__main__':
-    os.environ['HF_HOME'] = '/opt/maxkb-app/model/base'
     os.environ['TMPDIR'] = '/opt/maxkb-app/tmp'
     parser = argparse.ArgumentParser(
         description="""
@@ -118,7 +113,7 @@ if __name__ == '__main__':
     args, e = parser.parse_known_args()
     parser.add_argument(
         "services", type=str, default='all' if args.action == 'start' else 'web', nargs="*",
-        choices=("all", "web", "task") if args.action == 'start' else ("web", "celery", 'local_model'),
+        choices=("all", "web", "task") if args.action == 'start' else ("web", "celery"),
         help="The service to start",
     )
 
@@ -130,8 +125,6 @@ if __name__ == '__main__':
     services = args.services if isinstance(args.services, list) else args.services
     if services.__contains__('web'):
         os.environ.setdefault('SERVER_NAME', 'web')
-    elif services.__contains__('local_model'):
-        os.environ.setdefault('SERVER_NAME', 'local_model')
     django.setup()
     if action == "upgrade_db":
         perform_db_migrate()

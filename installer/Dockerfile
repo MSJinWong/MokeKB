@@ -16,7 +16,7 @@ WORKDIR /opt/maxkb-app
 RUN gcc -shared -fPIC -o ${MAXKB_SANDBOX_HOME}/lib/sandbox.so /opt/maxkb-app/installer/sandbox.c -ldl && \
     rm -rf /opt/maxkb-app/ui && \
     pip install uv --break-system-packages && \
-    python -m uv pip install ".[local-model,multimodal,providers-cn,providers-extras,tools]" && \
+    python -m uv pip install ".[multimodal,providers-cn,providers-extras,tools]" && \
     find /opt/maxkb-app  -depth \( -name ".git*" -o -name ".docker*" -o -name ".idea*" -o -name ".editorconfig*" -o -name ".prettierrc*" -o -name "README.md" -o -name "poetry.lock" -o -name "pyproject.toml"  \) -exec rm -rf {} + && \
     python /opt/maxkb-app/apps/manage.py compilemessages && \
     export PIP_TARGET=/opt/maxkb-app/sandbox/python-packages && \
@@ -40,11 +40,6 @@ ENV MAXKB_VERSION="${DOCKER_IMAGE_TAG} (build at ${BUILD_AT}, commit: ${GITHUB_C
     MAXKB_REDIS_PORT=6379 \
     MAXKB_REDIS_DB=0 \
     MAXKB_REDIS_PASSWORD=${REDIS_PASSWORD} \
-    MAXKB_EMBEDDING_MODEL_PATH=/opt/maxkb-app/model/embedding \
-    MAXKB_EMBEDDING_MODEL_NAME=/opt/maxkb-app/model/embedding/shibing624_text2vec-base-chinese \
-    MAXKB_LOCAL_MODEL_HOST=127.0.0.1 \
-    MAXKB_LOCAL_MODEL_PORT=11636 \
-    MAXKB_LOCAL_MODEL_PROTOCOL=http \
     PIP_TARGET=/opt/maxkb/python-packages
 
 WORKDIR /opt/maxkb-app
