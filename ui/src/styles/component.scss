@@ -343,7 +343,7 @@
   .el-tabs__item {
     background: rgba(var(--el-text-color-primary-rgb), 0.1);
     margin: 4px;
-    border-radius: 4px;
+    border-radius: var(--radius-sm);
     padding: 5px 10px 5px 8px !important;
     height: auto;
     &:nth-child(2) {
@@ -370,7 +370,7 @@
   color: var(--app-input-color-placeholder);
   border: 1px dashed var(--el-button-border-color);
   padding: 5px 6px !important;
-  font-size: 14px !important;
+  font-size: var(--font-size-md) !important;
   background: none;
   &:hover {
     background: var(--app-layout-bg-color);
@@ -392,7 +392,7 @@
 
 // card upload
 .upload__decoration {
-  font-size: 12px;
+  font-size: var(--font-size-sm);
   line-height: 20px;
   color: var(--el-text-color-secondary);
 }
