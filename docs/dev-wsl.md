@@ -2,6 +2,8 @@
 
 适用于 Windows 用户在 **WSL2 + Ubuntu 24.04** 上跑 MokeKB 的开发模式（不通过 Docker，直接跑后端 / Worker / 前端）。Linux 用户也可参考，跳过 WSL 部分。
 
+> 📌 **本文聚焦"从零装到能启动"**。装完之后的日常工作流（VSCode 编辑、GitHub Desktop 提交、代码同步）见 [`dev-workflow.md`](./dev-workflow.md)。
+
 ---
 
 ## 0. 总览
@@ -512,4 +514,5 @@ DROP INDEX IF EXISTS embedding_hnsw_idx_<uuid>;
 
 ## 10. 下一步
 
-- 跑通本文档后，对照 `docs/deployment-docker.md` 验证 docker 部署
+- 装完能跑后，日常开发流程（编辑、提交、推送）见 [`dev-workflow.md`](./dev-workflow.md)
+- 对照 [`deployment-docker.md`](./deployment-docker.md) 验证 docker 部署
