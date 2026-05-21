@@ -200,9 +200,10 @@ defineExpose({
 }
 .workflow-control {
   position: absolute;
-  bottom: 24px;
-  left: 24px;
-  z-index: 2;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
 }
 .lf-drag-able {
   cursor: pointer;
