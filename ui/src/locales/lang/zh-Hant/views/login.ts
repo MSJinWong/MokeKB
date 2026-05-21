@@ -37,6 +37,10 @@ export default {
       validatorEmail: '請輸入有效電子信箱格式！',
     },
   },
+  slogan: {
+    title: '讓每位員工觸達組織記憶',
+    subtitle: '企業知識與智能體平臺。統一管理資料、模型、工具與對話。',
+  },
   jump_tip: '即將跳轉至認證源頁面進行認證',
   jump: '跳轉',
   resetPassword: '修改密碼',

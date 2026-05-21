@@ -37,6 +37,10 @@ export default {
       validatorEmail: 'Please enter a valid email format!',
     },
   },
+  slogan: {
+    title: 'Connect every employee to organizational memory',
+    subtitle: 'Enterprise knowledge & agent platform. Unified management for documents, models, tools, and conversations.',
+  },
   jump_tip: 'You will be redirected to the authentication source page for authentication',
   jump: 'Redirect',
   resetPassword: 'Change Password',

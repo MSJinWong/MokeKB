@@ -37,6 +37,10 @@ export default {
       validatorEmail: '请输入有效邮箱格式！',
     },
   },
+  slogan: {
+    title: '让每位员工触达组织记忆',
+    subtitle: '企业知识与智能体平台。统一管理资料、模型、工具与对话。',
+  },
   jump_tip: '即将跳转至认证源页面进行认证',
   jump: '跳转',
   resetPassword: '修改密码',
