@@ -571,6 +571,29 @@ onBeforeUnmount(() => {
       padding: 0 16px;
     }
   }
+
+  /* ── Workflow skin: restyle LogicFlow node cards via --wf-* tokens ── */
+  .workflow-node-container {
+    .step-container {
+      background: var(--wf-node-bg) !important;
+      border: 1px solid var(--wf-node-border) !important;
+      border-radius: var(--wf-node-radius) !important;
+      color: var(--wf-node-text) !important;
+      box-shadow: var(--wf-node-shadow) !important;
+      transition:
+        box-shadow 0.15s,
+        border-color 0.15s;
+
+      &:hover {
+        box-shadow: var(--wf-node-hover-shadow) !important;
+      }
+
+      &.isSelected {
+        border-color: var(--brand-primary) !important;
+        box-shadow: 0 0 0 2px var(--brand-primary-soft) !important;
+      }
+    }
+  }
 }
 
 .workflow-debug-container {
