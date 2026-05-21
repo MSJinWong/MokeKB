@@ -21,8 +21,19 @@
       </article>
     </section>
 
-    <!-- 我的智能体在下一 task (T8) 填实 -->
-    <section class="workbench__recent" />
+    <section class="workbench__recent">
+      <header class="workbench__recent-head">
+        <h2>{{ $t('workbench.recent.title') }}</h2>
+        <router-link to="/application" class="see-more">
+          {{ $t('common.viewAll') }}
+          <LucideIcon name="chevron-right" :size="14" />
+        </router-link>
+      </header>
+      <div v-if="agents.length" class="workbench__recent-grid">
+        <RecentAgentCard v-for="a in agents" :key="a.id" :agent="a" />
+      </div>
+      <p v-else class="workbench__recent-empty">{{ $t('workbench.recent.empty') }}</p>
+    </section>
   </div>
 </template>
 
@@ -30,7 +41,8 @@
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { LucideIcon } from '@/components/lucide-icon'
-import { loadWorkbenchStats, type WorkbenchStats } from '@/api/workbench'
+import RecentAgentCard from './RecentAgentCard.vue'
+import { loadWorkbenchStats, loadRecentAgents, type WorkbenchStats, type RecentAgent } from '@/api/workbench'
 import useStore from '@/stores'
 
 const { t } = useI18n()
@@ -42,6 +54,8 @@ const stats = ref<WorkbenchStats>({
   libraryCount: 0,
   toolCount: 0,
 })
+
+const agents = ref<RecentAgent[]>([])
 
 const userName = computed(() => {
   const info = user.userInfo
@@ -72,8 +86,9 @@ const statCards = computed(() => [
 onMounted(async () => {
   try {
     stats.value = await loadWorkbenchStats()
+    agents.value = await loadRecentAgents()
   } catch (e) {
-    console.warn('[workbench] stats load failed:', e)
+    console.warn('[workbench] load failed:', e)
   }
 })
 </script>
@@ -140,5 +155,42 @@ onMounted(async () => {
   text-transform: uppercase;
   letter-spacing: 0.04em;
   margin-top: 4px;
+}
+.workbench__recent-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  h2 {
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+  }
+}
+.see-more {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  text-decoration: none;
+  &:hover {
+    color: var(--brand-primary);
+  }
+}
+.workbench__recent-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 12px;
+}
+.workbench__recent-empty {
+  color: var(--text-tertiary);
+  font-size: var(--font-size-base);
+  padding: 24px;
+  text-align: center;
+  background: var(--side-bg);
+  border: 1px dashed var(--border-base);
+  border-radius: var(--radius-md);
 }
 </style>

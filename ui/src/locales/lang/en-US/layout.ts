@@ -66,5 +66,10 @@ export default {
       libraries: 'Libraries',
       tools: 'Tools',
     },
+    recent: {
+      title: 'My Agents',
+      empty: 'No agents yet. Create one?',
+      conversation24h: 'Last 24h · {n} conversations',
+    },
   },
 }

@@ -66,5 +66,10 @@ export default {
       libraries: '資料庫',
       tools: '工具',
     },
+    recent: {
+      title: '我的智能體',
+      empty: '還沒有智能體，去創建一個？',
+      conversation24h: '最近 24h · {n} 次對話',
+    },
   },
 }

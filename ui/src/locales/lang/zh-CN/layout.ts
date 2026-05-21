@@ -66,5 +66,10 @@ export default {
       libraries: '资料库',
       tools: '工具',
     },
+    recent: {
+      title: '我的智能体',
+      empty: '还没有智能体，去创建一个？',
+      conversation24h: '最近 24h · {n} 次对话',
+    },
   },
 }
