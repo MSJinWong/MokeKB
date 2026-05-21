@@ -99,4 +99,8 @@
 
   /* ===== AI chat 背景（去渐变） ===== */
   --dialog-bg-gradient-color: #f8fafc;
+
+  /* ===== 额外兼容 alias（保留但映射到新 token，避免引用方失效） ===== */
+  --sidebar-width: var(--side-width);        /* 旧布局侧栏宽，map 到新 Side 宽 */
+  --app-header-bg-color: var(--side-bg);     /* 旧顶部 bar 背景，工作流编辑器/chat 等独立页仍引用 */
 }
