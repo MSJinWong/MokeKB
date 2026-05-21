@@ -1,9 +1,9 @@
 <template>
   <login-layout v-if="!loading" v-loading="loading">
     <LoginContainer
+      :title="$t('views.login.forgotPassword')"
       :subTitle="theme.themeInfo?.slogan ? theme.themeInfo?.slogan : $t('theme.defaultSlogan')"
     >
-      <h2 class="mb-24">{{ $t('views.login.forgotPassword') }}</h2>
       <p class="mb-24 forgot-tip">
         {{ $t('views.login.forgotPasswordContactAdmin') }}
       </p>
