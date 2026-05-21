@@ -41,19 +41,40 @@ wsl --install -d Ubuntu-24.04
 
 ## 2. 安装系统依赖
 
+> ⚠️ **Ubuntu 24.04 默认源没有 `python3.11`**（默认是 3.12）。必须先加 deadsnakes PPA：
+>
+> ```bash
+> sudo apt install -y software-properties-common
+> sudo add-apt-repository -y ppa:deadsnakes/ppa
+> sudo apt update
+> ```
+
 ```bash
 sudo apt update
 sudo apt install -y \
     build-essential gcc g++ make \
-    libffi-dev libexpat1-dev libpq-dev \
+    libffi-dev libexpat1-dev libpq-dev libpq5 \
     git curl wget vim \
     python3.11 python3.11-venv python3.11-dev \
     redis-server \
     ffmpeg \
-    gettext
+    gettext \
+    postgresql-client-16
 ```
 
-### 2.1 PostgreSQL 17 + pgvector
+> `postgresql-client-16` 提供 `psql` 命令，用于验证远程 / 本地 PG 连通性。能连到 PG 17 服务端，不要求版本完全一致。
+
+### 2.1 PostgreSQL 17 + pgvector（可选：使用远程 PG 时跳过本节）
+
+> **使用远程 / 云 PG**（如 RDS、阿里云 PG、自建集群）的同学跳过本节。仅需用 §2 已装的 `psql` 客户端验证：
+>
+> ```bash
+> # 替换成真实凭据
+> PGPASSWORD=<pwd> psql -h <host> -p <port> -U <user> -d <db> -c "SELECT version();"
+> PGPASSWORD=<pwd> psql -h <host> -p <port> -U <user> -d <db> -c "SELECT extname, extversion FROM pg_extension WHERE extname='vector';"
+> ```
+>
+> 期望：第一条返回 PG 版本号；第二条至少返回一行 `vector`（如果没有，需要 DBA 给库开启 `CREATE EXTENSION vector;`，pgvector ≥ 0.7 推荐）。
 
 Ubuntu 24.04 默认源只有 PG 16。装 17 用 PostgreSQL 官方源：
 
@@ -132,25 +153,51 @@ git checkout release-2.9-simplify
 python3.11 -m venv .venv
 source .venv/bin/activate
 
-# 装依赖（含所有 extras 用于完整开发体验）
-uv pip install -e ".[local-model,multimodal,providers-cn,providers-extras,tools]"
+# 装依赖（注意：release-2.9-simplify 已移除 local-model extra）
+uv pip install -e ".[multimodal,providers-cn,providers-extras,tools]"
 
-# 编译沙箱 .so（工具执行需要，不编译会报 "missing sandbox.so"）
+# 编译沙箱 .so（仅当 MAXKB_SANDBOX=1 时需要；dev 设 MAXKB_SANDBOX=0 可跳过）
 mkdir -p sandbox/lib
 gcc -shared -fPIC -o sandbox/lib/sandbox.so installer/sandbox.c -ldl
 ```
 
-> 如果你**不需要**本地模型（用 OpenAI 官方 API 完全够），可以省略 `local-model` extra：
+> **最小安装**（只跑核心 API，不接任何第三方厂商 SDK）：
 > ```bash
-> uv pip install -e ".[multimodal,providers-cn,providers-extras,tools]"
+> uv pip install -e .
 > ```
-> 这能省 ~3 GB（torch + sentence-transformers）。
+> 这能省 ~1 GB（dashscope / qianfan / langchain-aws 等）。
+
+### 3.1 系统目录权限（必做）
+
+后端在以下路径写入文件，路径在代码里**硬编码**：
+- `/opt/maxkb/logs` — Django 日志（见 `apps/maxkb/const.py:12` `LOG_DIR`）
+- `/opt/maxkb-app/tmp` — jieba 缓存等临时文件（见 `main.py:98` `TMPDIR`）
+
+预先建好并改 owner：
+
+```bash
+sudo mkdir -p /opt/maxkb/logs /opt/maxkb-app/tmp
+sudo chown -R $USER:$USER /opt/maxkb /opt/maxkb-app
+```
+
+漏做的后果：`python main.py dev web` 启动时报 `PermissionError: [Errno 13] Permission denied: '/opt/maxkb'`。
 
 ---
 
 ## 4. 配置文件
 
 MokeKB 通过 `MAXKB_*` 前缀的环境变量读配置，或读取 `/opt/maxkb/conf/config.yml`。开发时用环境变量最方便。
+
+> ⚠️ **`MAXKB_CONFIG_TYPE=ENV` 是必填项**。`apps/maxkb/conf.py:258-262` 默认走 yml 文件分支；只有当此变量**恰好**等于字符串 `ENV` 时才走环境变量分支。漏掉就会报：
+> ```
+> ImportError: Error: No config file found.
+> ```
+
+> 💡 **粘贴 heredoc 注意**：部分终端（Windows Terminal + WSL 在某些复制路径下）会给粘贴的多行内容**每行加 2 个前导空格**，导致 `EOF` 不被识别为结束符、且 `grep '^MAXKB_'` 匹配不到行。若粘贴后 `grep -c '^MAXKB_' .env.dev` 返回 0，一条命令修：
+> ```bash
+> sed -i -e 's/^ *//' -e '/^EOF$/d' .env.dev
+> ```
+> 或全程改用 `nano .env.dev` 编辑，避免这个问题。
 
 创建 `~/projects/MokeKB/.env.dev`：
 
@@ -212,11 +259,18 @@ set -a; source .env.dev; set +a
 cd ~/projects/MokeKB
 source .venv/bin/activate
 
-# 跑迁移（apps 在 sys.path 里靠 main.py，开发用 manage.py 也可以）
-python apps/manage.py migrate
+# 加载 .env.dev 到当前 shell（每个新终端都要做）
+set -a; source .env.dev; set +a
 
-# 验证 Phase 6 的列与索引都在
-psql "host=127.0.0.1 user=maxkb dbname=maxkb password=maxkb_dev" <<'EOF'
+# 验证关键变量到位（应看到 5 行；特别是 MAXKB_CONFIG_TYPE=ENV）
+env | grep -E '^MAXKB_(CONFIG_TYPE|DB_HOST|REDIS_HOST|SECRET_KEY|SANDBOX)='
+
+# 跑迁移：推荐 main.py upgrade_db（自带带退避的重试）
+python main.py upgrade_db
+# 也可用 python apps/manage.py migrate；功能等价，但没有重试逻辑
+
+# 验证 Phase 6 的列与索引都在（本地或远程 PG 都行，按你的 .env.dev 改）
+PGPASSWORD=$MAXKB_DB_PASSWORD psql -h $MAXKB_DB_HOST -p $MAXKB_DB_PORT -U $MAXKB_DB_USER -d $MAXKB_DB_NAME <<'EOF'
 \d embedding
 SELECT indexname FROM pg_indexes WHERE tablename='embedding' ORDER BY indexname;
 SELECT count(*) FROM embedding WHERE workspace_id IS NULL OR workspace_id='';
@@ -242,6 +296,17 @@ python main.py dev web
 ```
 
 `main.py dev` 会自动跑 `collect_static` + `migrate` + `runserver`。代码改动会热重载。
+
+启动成功后浏览器验证（WSL2 默认把端口转发到 Windows，直接 localhost 即可）：
+
+| URL | 说明 |
+|---|---|
+| http://localhost:8080/admin/api/profile | API 探针；未登录返回 401 或匿名 profile |
+| http://localhost:8080/admin/api-doc/ | 管理端 Swagger UI（需 `MAXKB_ENABLE_API_DOCS=true` + `MAXKB_DOC_PASSWORD` 非空，见 `apps/common/init/init_doc.py:46`） |
+| http://localhost:8080/chat/api-doc/ | 对话端 Swagger UI |
+| http://localhost:8080/admin/api-doc/schema/ | 原始 OpenAPI JSON |
+
+> `MAXKB_DOC_PASSWORD` 的作用是**让 doc 路由本身被注册**（非空即可），不是 Basic Auth 密码。
 
 ### 终端 B: Celery worker
 
@@ -348,6 +413,60 @@ celery -A ops inspect active_queues
 ---
 
 ## 9. 常见问题
+
+### `E: Unable to locate package python3.11`（Ubuntu 24.04）
+
+24.04 默认源没有 3.11，先加 deadsnakes PPA（已在 §2 写明）：
+
+```bash
+sudo apt install -y software-properties-common
+sudo add-apt-repository -y ppa:deadsnakes/ppa
+sudo apt update
+sudo apt install -y python3.11 python3.11-venv python3.11-dev
+```
+
+### `ModuleNotFoundError: No module named 'jinja2'`
+
+`apps/common/init/init_template.py` import 了 `jinja2`，但旧版本 `pyproject.toml` 漏声明。当前已在 `pyproject.toml` 加上 `jinja2==3.1.5`；如你的 venv 是在修复前建的，重装一次依赖即可：
+
+```bash
+uv pip install -e ".[multimodal,providers-cn,providers-extras,tools]"
+# 或临时打补丁：
+uv pip install jinja2
+```
+
+### `PermissionError: [Errno 13] Permission denied: '/opt/maxkb'`
+
+`apps/maxkb/const.py:12` 把 `LOG_DIR` 写死成 `/opt/maxkb/logs`。建好目录 + 改 owner（见 §3.1）：
+
+```bash
+sudo mkdir -p /opt/maxkb/logs /opt/maxkb-app/tmp
+sudo chown -R $USER:$USER /opt/maxkb /opt/maxkb-app
+```
+
+### `ImportError: Error: No config file found.`
+
+`MAXKB_CONFIG_TYPE=ENV` 没设。`apps/maxkb/conf.py:258-262` 默认走 yml 分支，必须显式设此变量为 `ENV` 才会读环境变量。
+
+### `grep -c '^MAXKB_' .env.dev` 返回 0（变量没生效）
+
+终端粘贴 heredoc 时给每行加了 2 个前导空格，导致 `EOF` 不识别为结束符且 `^MAXKB_` 匹配不到。一条命令修：
+
+```bash
+sed -i -e 's/^ *//' -e '/^EOF$/d' .env.dev
+```
+
+之后用 `nano .env.dev` 编辑可彻底避免。
+
+### Migration 警告：`Your models in app(s): 'system_manage', 'tools' have changes that are not yet reflected`
+
+`release-2.9-simplify` 分支上 model 改动尚未生成 migration。**不阻塞启动**，但运行时如撞到 `column does not exist`，再生成迁移：
+
+```bash
+python apps/manage.py makemigrations system_manage tools
+# 先看 diff 再 apply：
+python apps/manage.py migrate
+```
 
 ### `ImportError: libpq.so.5: cannot open shared object`
 
