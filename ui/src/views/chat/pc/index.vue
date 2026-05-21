@@ -111,12 +111,19 @@
         }"
       >
         <div style="flex: 1; width: calc(100% - var(--execution-detail-panel-width))">
-          <div class="p-16-24 flex-between">
-            <h4 class="ellipsis-1" style="width: 66%">
-              {{ currentChatName }}
-            </h4>
-
-            <span class="flex align-center" v-if="currentRecordList.length">
+          <Header
+            :name="applicationDetail?.name"
+            :avatar="applicationDetail?.icon"
+            @new-conversation="newChat"
+            @open-settings="() => {}"
+          />
+          <!-- Legacy chat title bar (share / export actions kept) -->
+          <div
+            class="flex-between"
+            style="padding: 8px 24px; justify-content: flex-end"
+            v-if="currentRecordList.length"
+          >
+            <span class="flex align-center">
               <AppIcon
                 v-if="paginationConfig.total"
                 iconName="app-chat-record"
@@ -257,6 +264,7 @@ import ExecutionDetailContent from '@/components/ai-chat/component/knowledge-sou
 import ParagraphSourceContent from '@/components/ai-chat/component/knowledge-source-component/ParagraphSourceContent.vue'
 import ParagraphDocumentContent from '@/components/ai-chat/component/knowledge-source-component/ParagraphDocumentContent.vue'
 import HistoryPanel from '@/views/chat/component/HistoryPanel.vue'
+import Header from './Header.vue'
 import { cloneDeep } from 'lodash'
 import { getFileUrl } from '@/utils/common'
 import PdfExport from '@/components/pdf-export/index.vue'
