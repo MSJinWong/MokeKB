@@ -2,6 +2,9 @@
 .DS_Store
 */.DS_Store
 
+# Superpowers brainstorm session files (mockups, server state)
+.superpowers/
+
 # VS Code
 .vscode
 *.project
