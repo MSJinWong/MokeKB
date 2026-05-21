@@ -35,9 +35,11 @@ defineProps<{
   box-sizing: border-box;
 
   .content {
-    background: #d6e2ff;
+    background: var(--brand-primary);
+    color: #fff;
     padding-left: 16px;
     padding-right: 16px;
+    max-width: 75%;
   }
 
   .download-file {

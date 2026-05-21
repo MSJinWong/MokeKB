@@ -351,14 +351,23 @@ onMounted(() => {})
 .question-content {
   display: flex;
   justify-content: flex-end;
+  align-items: flex-start;
   padding-left: var(--padding-left);
   width: 100%;
   box-sizing: border-box;
 
   .content {
-    background: #d6e2ff;
+    background: var(--brand-primary);
+    color: #fff;
     padding-left: 16px;
     padding-right: 16px;
+    max-width: 75%;
+    word-break: break-word;
+
+    // Ensure all inline text elements inherit white colour
+    :deep(*) {
+      color: inherit;
+    }
   }
 
   .download-file {

@@ -18,8 +18,11 @@
     padding-top: 0;
     box-sizing: border-box;
 
-    .avatar {
-      float: left;
+    // Legacy float-based avatar is no longer used for AI messages;
+    // the .ai-answer flex layout handles avatar positioning.
+    // Keep the rule scoped to question-content only to avoid conflicts.
+    .question-content .avatar {
+      float: none;
     }
 
     .content {
