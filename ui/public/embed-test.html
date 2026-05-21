@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <title>Embed Test Page</title>
+  <style>
+    body { font-family: sans-serif; padding: 24px; }
+    iframe { width: 420px; height: 640px; border: 1px solid #e5e7eb; border-radius: 6px; }
+    .log { background: #f8fafc; padding: 12px; font-family: monospace; font-size: 12px; max-height: 200px; overflow: auto; margin-top: 12px; }
+    .row { display: flex; gap: 24px; }
+    .col { flex: 1; }
+    input[type="text"] { width: 380px; padding: 6px; font-family: monospace; font-size: 12px; }
+    button { padding: 6px 12px; margin-left: 8px; }
+  </style>
+</head>
+<body>
+  <h1>对话嵌入兼容测试</h1>
+  <p>用于验证 P5 改造前后 postMessage 协议、URL、iframe 加载行为完全一致。修改 token / mode 后点 Load。</p>
+  <div>
+    <input id="src" type="text" value="/chat/test-access-token?mode=pc" />
+    <button onclick="document.getElementById('chat').src = document.getElementById('src').value">Load</button>
+  </div>
+  <div class="row">
+    <div class="col">
+      <h3>iframe</h3>
+      <iframe id="chat" src="/chat/test-access-token?mode=pc"></iframe>
+    </div>
+    <div class="col">
+      <h3>postMessage 监听日志</h3>
+      <div id="log" class="log"></div>
+      <button onclick="document.getElementById('log').innerHTML = ''">清空日志</button>
+    </div>
+  </div>
+  <script>
+    const log = document.getElementById('log')
+    window.addEventListener('message', (e) => {
+      const line = `${new Date().toISOString().slice(11, 19)}  ${JSON.stringify(e.data)}`
+      log.innerHTML += line + '<br>'
+      log.scrollTop = log.scrollHeight
+    })
+  </script>
+</body>
+</html>
