@@ -54,5 +54,17 @@ export default {
   },
   workbench: {
     placeholder: '工作台首页将在下一阶段实现。',
+    greeting: {
+      morning: '早上好',
+      afternoon: '下午好',
+      evening: '晚上好',
+      lateNight: '夜深了',
+    },
+    stats: {
+      agents: '智能体',
+      conversations: '本月对话',
+      libraries: '资料库',
+      tools: '工具',
+    },
   },
 }

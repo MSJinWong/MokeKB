@@ -54,5 +54,17 @@ export default {
   },
   workbench: {
     placeholder: 'Workbench home will be implemented in next phase.',
+    greeting: {
+      morning: 'Good morning',
+      afternoon: 'Good afternoon',
+      evening: 'Good evening',
+      lateNight: 'Late night',
+    },
+    stats: {
+      agents: 'Agents',
+      conversations: 'Conversations this month',
+      libraries: 'Libraries',
+      tools: 'Tools',
+    },
   },
 }
