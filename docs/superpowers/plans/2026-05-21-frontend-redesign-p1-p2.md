@@ -1573,10 +1573,41 @@ git -C .. commit -m "docs: mark P1+P2 plan complete"
 
 P1+P2 完成后，按需起 plan 完成剩余 phase：
 
-- `docs/superpowers/plans/<date>-frontend-redesign-p3-login.md`
-- `docs/superpowers/plans/<date>-frontend-redesign-p4-workbench-list.md`
-- `docs/superpowers/plans/<date>-frontend-redesign-p5-chat-mobile.md`
-- `docs/superpowers/plans/<date>-frontend-redesign-p6-workflow.md`
-- `docs/superpowers/plans/<date>-frontend-redesign-p7-polish.md`
+- `docs/superpowers/plans/2026-05-21-frontend-redesign-p3-p4.md`（P3 登录 + P4 工作台/列表）
+- `docs/superpowers/plans/2026-05-21-frontend-redesign-p5-chat.md`（P5 对话页 + 移动端）
+- `docs/superpowers/plans/2026-05-21-frontend-redesign-p6-p7.md`（P6 工作流 + P7 收尾）
 
 每个 plan 独立可并行（合 P1+P2 后）。
+
+---
+
+## 完成记录
+
+- **完成日期**：2026-05-22
+- **分支**：`feat/frontend-redesign`
+- **commit 链**：`1b365e107`（T1）… `ce4f6c993`（T17 最终清理）共 17 个 commit
+- **自动门验收**：
+  - `npm run type-check` 退出码 0
+  - `npm run build` 编译通过（仅有预存在的 chunk-size 警告，与本改造无关）
+  - `git grep -i 'maxkb' -- ui` 剩余仅 `variables.scss` 注释（设计意图说明，刻意保留）；`window.MaxKB` API 合约保留（spec 第 2 节明确要求）；`MaxKB-locale` localStorage key 保留（向后兼容）
+- **本次范围与 plan 偏差**：
+  - T5 清理 MaxKB 字符串：调研后发现项目内**无 hardcoded 用户可见 MaxKB 文案**（"MaxKB" 关键字几乎全为 `window.MaxKB.*` API 合约或 `MaxKB-locale` 存储 key，均不可改）。任务范围缩减为仅创建 `ui/src/utils/brand.ts` 占位常量模块，供后续 P3 登录页等使用。
+  - T6 HTML 标题：HTML 文件已用 `%VITE_APP_TITLE%` 模板，真正源在 `ui/env/.env` 与 `ui/env/.env.chat`，改 env 即可。
+  - T7 资产清理：`InsightHub.gif`、`tipIMG.jpg`、第三方平台 logo（钉钉/飞书/Slack/微信）保留 —— 前两者有真实引用、后者是接入合规标识。
+  - T12 commit 内 ride-along 了 `.env.dev` 删除与 `.gitignore` 安全规则添加（用户/linter 在此前会话外的 intentional 改动），不是本任务引入但混入了同一 commit；技术状态正常无回归。
+  - T14 SimpleLayout：经路由架构核查，SimpleLayout 是模块首页 wrapper（pages 内部已有自己的 folder-tree 子导航），不挂全局 Side，仅挂 Rail + Main，避免 3 列纳格。
+  - T17 最终扫描发现 5 处 `https://maxkb.cn/pricing.html` 外链 + 1 处 `icon_robot.svg` 标题残留，已 patch（一并清掉）。
+
+- **遗留事项（移交给 P3-P7）**：
+  - 登录页仍是 MaxKB 居中卡片样式 → P3 重做
+  - `/workbench` 是占位（仅标题+一行说明） → P4 填实
+  - 应用列表卡片样式仍是旧风 → P4 重做
+  - `/chat` 对话页与移动端 → P5
+  - 工作流编辑器节点皮肤 → P6
+  - 错误页、长尾视图视觉补漏 → P7
+
+- **手动验收（请用户在合并前完成）**：
+  - 启动 `npm run dev`
+  - 登录后依次访问 `/`（应跳转到 `/workbench`） → `/application` → `/knowledge` → `/tool` → `/model` → `/system`
+  - 每个路由确认：左侧 64px 暗色 Rail（5 个图标）出现 + Side（如有）紧贴 + 顶部水平 bar 完全消失
+  - 切换 zh-CN / en-US / zh-Hant 三种语言，确认菜单标签随之变化为新术语
