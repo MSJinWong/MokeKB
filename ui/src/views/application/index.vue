@@ -821,7 +821,7 @@ const importApplication = (file: any) => {
           cancelButtonText: t('common.confirm'),
           confirmButtonText: t('common.professional'),
         }).then(() => {
-          window.open('https://maxkb.cn/pricing.html', '_blank')
+          window.open('javascript:void(0)', '_blank')
         })
       }
     })
