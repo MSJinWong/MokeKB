@@ -751,8 +751,39 @@ git -C .. log --oneline release-2.9-simplify ^main | head -40
 
 ## 完成记录（all phases）
 
-- 完成日期：YYYY-MM-DD
-- 最终 commit：<sha>
-- 验收准则全部通过：✓
-- 后端代码 git diff（`apps/`）：空
-- 字符串清零（除 LICENSE）：✓
+- **完成日期**：2026-05-22
+- **分支**：`feat/frontend-redesign`
+- **commit 链（P6+P7 部分）**：
+  - `6a1eff1e9` 工作流公共样式 workflow.scss
+  - `272a57018` application-workflow 节点皮肤
+  - `2bf4c2e7b` knowledge-workflow 节点皮肤
+  - `a3d8980ec` tool-workflow 节点皮肤
+  - `d4f33da1c` 工具栏浮动吸顶
+  - `aa2726d7a` 错误页 404/500/no-permission 重做
+  - `ef7a716e1` 长尾视图补漏
+- **自动门**：`npm run type-check` 退出 0；`npm run build` 编译通过
+- **范围调整**：
+  - T2/T3/T4：发现 3 个工作流模块共享 `ui/src/workflow/common/NodeContainer.vue` 节点模板。采用 Option C —— 在每个 view 的 scoped `<style>` 中以 `:deep()` 覆盖 `.workflow-node-container .step-container` 实现节点白底方角 + 顶部色条；不动 LogicFlow 引擎与节点 view 组件本体，最小风险。
+  - T5：工作流画布网格底纹通过 P6.T1 注册的 `workflow.scss` 全局生效，无需额外补丁。
+  - T6：发现节点配置是**画布内联展开**（不是模态弹窗），改为右侧抽屉需要重写状态/事件流，超出 P6 范围。仅完成 toolbar 浮动吸顶（4 行 CSS 改 `ui/src/workflow/index.vue` 即同步影响 3 个工作流模块）。
+  - T7：错误页连同 `ui/src/views/chat/no-service/index.vue`（也用了 500.png）一起重做；删除 `404.png` 与 `500.png` 资产。
+  - T8：扫描 17 个未触视图，结果几乎全是干净的（仅发现 `TemplateStoreDialog.vue` 一处 `#3370ff1a` 已 patch，`StatisticsCharts.vue` 中分类色数据数组刻意保留）。
+- **最终验收准则**：
+  - **30 秒辨认测试**：保留给手动验收（参见下方）
+  - **后端零改动**：`apps/` 目录 git diff 为空 ✓
+  - **字符串清零**：`git grep -i maxkb -- ui` 残留仅为 `window.MaxKB`（API 合约）、`MaxKB-locale`（localStorage key）、`env.d.ts`（type 声明）、内部 CSS 标识符（`maxkb-md`、`--maxkb-radio-card-width`、`maxkb_tokens`）、`variables.scss` 注释中的设计说明。其它已清零 ✓
+  - **嵌入合约保持**：`/chat/:accessToken` URL 与 `window.MaxKB.*` 注入对象不变 ✓
+
+- **整体提交统计**：
+  - 起点：`48a202c36`（P1+P2 完成）
+  - 终点：`ef7a716e1`（P6+P7 完成）
+  - 中间共约 20 个 commit 覆盖 P3+P4 (9) + P5 (5) + P6+P7 (7)
+  - 全程后端 `apps/` 目录零修改
+
+- **手动验收（请用户在合并前完成）**：
+  - 启动 `cd ui && npm run dev`
+  - 30 秒辨认测试：让一个熟悉 MaxKB 的人首次访问，看 30 秒能否反应出"这是 MaxKB"
+  - 全路由抽检：`/` → `/workbench` → `/application` → `/knowledge` → `/tool` → `/model` → `/system` → `/login` → `/chat/<token>`
+  - 工作流编辑器：进入任一应用 → 高级编排，验证节点白底方角 + 顶部色条 + 工具栏顶部居中
+  - 错误页：访问不存在路径触发 404；访问 `/no-permission` 触发权限页
+  - 三语言：zh-CN / en-US / zh-Hant 切换，确认所有新文案显示

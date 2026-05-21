@@ -752,16 +752,28 @@ git -C .. commit -m "chore(ui): final P5 chat redesign walkthrough"
 
 - [ ] **Step 5: 在 plan 文档底部勾选完成**
 
-```markdown
+---
+
 ## 完成记录
 
-- 完成日期：YYYY-MM-DD
-- 最终 commit：<sha>
-- 嵌入合约验证：postMessage 事件名 / 字段对齐基线 ✓
-- 桌面 + 移动 (iPhone 13 / Pixel 7) dev 走查通过
-```
+- **完成日期**：2026-05-22
+- **分支**：`feat/frontend-redesign`
+- **commit 链**：`3979aad8b`（T1 嵌入测试页）… `75366f71e`（T6+T7 移动端）共 5 个 commit（T3+T4+T5 因并行执行 ride-along 合并）
+- **自动门**：`npm run type-check` 退出 0；`npm run build` 编译通过
+- **范围调整**：
+  - T2 chat pc Header：抽出新 `Header.vue` 组件，56px 高 + 28px 头像 + 名称 + 在线状态 + 操作按钮组。`open-settings` emit 暂占位 `() => {}`，等设置抽屉实现后再接。
+  - T3 消息气泡：AI 消息从 `el-card` 卡片 → 透明无底（28px 头像 + 文本）；用户消息从 `#d6e2ff` 浅蓝 → `var(--brand-primary)` 深石板 + 白字。
+  - T4 输入框：发送按钮文字 → Lucide arrow-up 图标方块；textarea 边框 / 圆角 / 焦点态全用新 Token。
+  - T5 历史抽屉：抽屉宽 280→320px；已经是 `direction="ltr"` 无需翻转方向；列表项样式 token 化。
+  - T6+T7 移动端：`position: fixed` → `position: sticky` 头/底，加 `height: 100dvh` 适配 iOS Safari URL bar，加 `env(safe-area-inset-bottom)` 安全区适配，textarea 加 `enterkeyhint="send"` 等移动属性。
 
-```bash
-git -C .. add docs/superpowers/plans/2026-05-21-frontend-redesign-p5-chat.md
-git -C .. commit -m "docs: mark P5 plan complete"
-```
+- **嵌入合约保障**：
+  - `/chat/:accessToken` 与 `/user-login/:accessToken` URL 不变
+  - `window.MaxKB.prefix` / `window.MaxKB.chatPrefix` API 不变
+  - 仅视觉层修改，事件/消息流/postMessage 协议未触碰
+
+- **手动验收（请用户在合并前完成）**：
+  - `cd ui && npm run dev`
+  - 用真实 token 访问 `/chat/<token>`：标题栏 56px + AI 平消息 + 用户深色 + 输入框带箭头 + 左侧历史抽屉
+  - 访问 `/chat/<token>?mode=mobile` 或在 Chrome DevTools 切到 iPhone 13：sticky 顶/底 + 满屏 + safe-area
+  - 打开 `http://localhost:5173/embed-test.html`，验证 iframe 嵌入与 postMessage 日志（基线在 T1 commit）

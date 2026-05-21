@@ -1047,15 +1047,23 @@ git -C .. commit -m "chore(ui): final P3+P4 cleanup and walkthrough"
 
 更新本 plan 文档：
 
-```markdown
+---
+
 ## 完成记录
 
-- 完成日期：YYYY-MM-DD
-- 最终 commit：<sha>
-- 验收：login + forgot_password + workbench + application 四路由 × 三语言 dev 走查通过
-```
+- **完成日期**：2026-05-22
+- **分支**：`feat/frontend-redesign`
+- **commit 链**：`90ca98c03`（T1 LoginLayout）… `58ef7a4f8`（T8 workbench 智能体网格）共 9 个 commit
+- **自动门**：`npm run type-check` 退出 0；`npm run build` 编译通过
+- **范围调整**：
+  - T5 scanCompinents：调研发现 4 个扫码组件（DingTalk/Lark/WeCom + QrCodeTab）已经是 280px 居中 / 100% 流式布局，与新 400px form-wrap 兼容。无修改 / 无 commit。
+  - T6 workbench API：采用占位实现（返回 0 / 空数组）。真实 API 接入是更深的工作（涉及 Pinia 上下文与工作空间 ID），交付时 UI 渲染为 0 占位，用户提供后续 API 细节后再接。
+  - T9 应用列表卡片：发现卡片由共享 `CardBox` 组件渲染（包裹 `<el-card>`），通过修改 `element-plus.scss` 全局 .el-card 覆盖一次性影响所有列表卡片 —— 实际 ROI 比仅改 application 视图大得多。
 
-```bash
-git -C .. add docs/superpowers/plans/2026-05-21-frontend-redesign-p3-p4.md
-git -C .. commit -m "docs: mark P3+P4 plan complete"
-```
+- **手动验收（请用户在合并前完成）**：
+  - `cd ui && npm run dev`
+  - 访问 `/login`：左暗品牌叙事栏（圆形装饰 + slogan）+ 右白表单
+  - 访问 `/forgot_password` 与 `/reset_password`：同款双栏布局
+  - 访问 `/workbench`：欢迎条 + 4 统计卡（数字 0）+ 我的智能体网格（空态）
+  - 访问 `/application`：紧凑卡片 + 悬停浮起 + 圆角 10px
+  - 切换 zh-CN / en-US / zh-Hant 三语，确认所有新文案显示正确
