@@ -47,9 +47,11 @@
 // card
 .el-card {
   --el-card-padding: calc(var(--app-base-px) * 2);
-  --el-card-border-radius: 6px;
-  box-shadow: 0px 2px 4px 0px rgba(var(--el-text-color-primary-rgb), 0.12) !important;
+  --el-card-border-radius: var(--radius-lg);
+  border: 1px solid var(--border-base);
+  box-shadow: none !important;
   overflow: visible;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
   &.is-never-shadow {
     border: 1px solid var(--el-card-border-color);
     box-shadow: none !important;
@@ -57,8 +59,11 @@
   .el-card__body {
     overflow: inherit;
   }
+  &:hover,
   &.is-hover-shadow:hover {
-    box-shadow: 0px 6px 24px 0px rgba(var(--el-text-color-primary-rgb), 0.08) !important;
+    border-color: var(--brand-primary-soft);
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06) !important;
+    transform: translateY(-2px);
   }
 }
 
