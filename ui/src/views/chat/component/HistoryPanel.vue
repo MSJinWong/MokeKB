@@ -288,13 +288,13 @@ function refreshFieldTitle(chatId: string, abstract: string) {
 .history-component {
   display: flex;
   flex-direction: column;
-  border-right: 1px solid var(--el-menu-border-color);
-  background: var(--el-color-primary-light-06) !important;
+  border-right: 1px solid var(--border-base);
+  background: var(--side-bg) !important;
   :deep(.el-menu) {
     background: none;
     border: none;
     &:not(.el-menu--collapse) {
-      width: 280px;
+      width: 320px;
     }
     &.el-menu--collapse {
       .el-sub-menu.is-active .el-sub-menu__title {
@@ -302,7 +302,7 @@ function refreshFieldTitle(chatId: string, abstract: string) {
       }
     }
     .el-sub-menu__title:hover {
-      background-color: var(--el-color-primary-light-9) !important;
+      background-color: var(--side-bg) !important;
     }
   }
 
@@ -310,12 +310,35 @@ function refreshFieldTitle(chatId: string, abstract: string) {
     height: calc(100vh - 210px);
   }
 
-  :deep(.common-list li.active) {
-    background-color: #ffffff;
-    font-weight: 500;
-    color: var(--el-text-color-primary);
-    &:hover {
-      background-color: #ffffff;
+  :deep(.common-list) {
+    li {
+      height: 36px;
+      line-height: 36px;
+      padding: 0 12px;
+      border-radius: var(--radius-sm);
+      font-size: var(--font-size-base);
+      color: var(--text-secondary);
+      margin-bottom: 2px;
+      min-height: unset;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+
+      &:hover {
+        background: var(--side-bg);
+        color: var(--text-primary);
+        border-radius: var(--radius-sm);
+      }
+
+      &.active {
+        background: var(--side-item-active-bg);
+        color: var(--text-primary);
+        font-weight: 500;
+        border-radius: var(--radius-sm);
+        &:hover {
+          background: var(--side-item-active-bg);
+        }
+      }
     }
   }
 
@@ -328,30 +351,31 @@ function refreshFieldTitle(chatId: string, abstract: string) {
 </style>
 <style lang="scss">
 .chat-pc-popper {
-  background: #eef1f4;
+  background: var(--side-bg);
   .el-menu {
-    background: var(--el-color-primary-light-06) !important;
+    background: var(--side-bg) !important;
   }
   .el-menu-item-group__title {
     padding: 8px 8px 8px 16px;
     font-weight: 500;
-    color: var(--app-text-color-secondary);
+    color: var(--text-secondary);
   }
   .el-menu-item {
-    border-radius: 6px;
-    height: 40px;
+    border-radius: var(--radius-sm);
+    height: 36px;
     margin: 0 8px;
-    padding-left: 8px;
-    padding-right: 8px;
+    padding-left: 12px;
+    padding-right: 12px;
+    font-size: var(--font-size-base);
+    color: var(--text-secondary);
     &:hover {
-      background-color: rgba(var(--el-text-color-primary-rgb), 0.1);
+      background-color: var(--side-bg);
+      color: var(--text-primary);
     }
     &.is-active {
-      background-color: #ffffff;
-      color: var(--el-text-color-primary);
-      // & > div {
-      //   font-weight: 500;
-      // }
+      background-color: var(--side-item-active-bg);
+      color: var(--text-primary);
+      font-weight: 500;
     }
   }
 }

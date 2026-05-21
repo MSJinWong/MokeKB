@@ -5,7 +5,7 @@
       :with-header="false"
       class="chat-history-drawer"
       direction="ltr"
-      :size="280"
+      :size="320"
       style="--el-drawer-padding-primary: 0"
     >
       <HistoryPanel

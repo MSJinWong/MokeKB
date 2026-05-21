@@ -643,7 +643,7 @@ function closeExecutionDetail() {
 }
 
 .chat-pc__right {
-  width: calc(100vw - 280px);
+  width: calc(100vw - 320px);
   --execution-detail-panel-width: 400px;
 
   .execution-detail-panel {

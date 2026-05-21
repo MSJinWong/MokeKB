@@ -307,19 +307,13 @@
                 props.applicationDetails.stt_model_enable
               "
             />
-            <el-button
-              text
-              class="sent-button"
+            <button
+              class="send-btn"
               :disabled="isDisabledChat || loading || uploadLoading"
               @click="sendChatHandle"
             >
-              <img
-                v-show="isDisabledChat || loading || uploadLoading"
-                src="@/assets/chat/icon_send.svg"
-                alt=""
-              />
-              <SendIcon v-show="!isDisabledChat && !loading && !uploadLoading" />
-            </el-button>
+              <LucideIcon name="arrow-up" :size="18" />
+            </button>
           </template>
         </div>
       </div>
@@ -409,6 +403,7 @@ import bus from '@/bus'
 import 'recorder-core/src/engine/mp3'
 import 'recorder-core/src/engine/mp3-engine'
 import chatAPI from '@/api/chat/chat'
+import { LucideIcon } from '@/components/lucide-icon'
 
 const router = useRouter()
 const route = useRoute()
@@ -1333,24 +1328,29 @@ async function saveUrl() {
   z-index: 10;
 
   :deep(.operate-textarea) {
-    box-shadow: 0px 6px 24px 0px rgba(var(--el-text-color-primary-rgb), 0.08);
-    background-color: #ffffff;
-    border-radius: 8px;
-    border: 1px solid #ffffff;
+    background: var(--main-bg);
+    border: 1px solid var(--border-base);
+    border-radius: var(--radius-md);
     box-sizing: border-box;
 
     &:has(.el-textarea__inner:focus) {
-      border: 1px solid var(--el-color-primary);
+      border-color: var(--brand-primary);
     }
 
     .el-textarea__inner {
-      border-radius: 8px !important;
+      border-radius: var(--radius-md) !important;
       box-shadow: none;
       resize: none;
-      padding: 13px 16px;
+      padding: 10px 14px;
       box-sizing: border-box;
-      min-height: 47px !important;
+      min-height: 40px !important;
+      max-height: 200px;
       height: 0;
+      font-size: var(--font-size-md);
+      line-height: 1.5;
+      color: var(--text-primary);
+      background: var(--main-bg);
+      outline: none;
     }
 
     .operate {
@@ -1358,14 +1358,6 @@ async function saveUrl() {
 
       .el-icon {
         font-size: 20px;
-      }
-
-      .sent-button {
-        max-height: none;
-
-        .el-icon {
-          font-size: 24px;
-        }
       }
 
       .el-loading-spinner {
@@ -1376,6 +1368,31 @@ async function saveUrl() {
           height: 31px;
         }
       }
+    }
+  }
+
+  .send-btn {
+    width: 40px;
+    height: 40px;
+    border: 0;
+    background: var(--brand-primary);
+    color: #fff;
+    border-radius: var(--radius-md);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    padding: 0;
+    transition: background 0.2s;
+
+    &:hover {
+      background: var(--brand-primary-hover);
+    }
+
+    &:disabled {
+      background: var(--text-tertiary);
+      cursor: not-allowed;
     }
   }
 
