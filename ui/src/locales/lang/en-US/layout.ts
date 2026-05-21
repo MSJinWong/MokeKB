@@ -41,4 +41,18 @@ export default {
   copyright: '© 2026 hoyanai.com All rights reserved.',
   userManualUrl: 'https://hoyanai.com/docs/',
   forumUrl: 'https://hoyanai.com/community',
+  rail: {
+    aria: 'Primary navigation',
+    workbench: 'Workbench',
+    agent: 'Agents',
+    knowledge: 'Knowledge',
+    capability: 'Capabilities',
+    platform: 'Platform',
+  },
+  side: {
+    aria: 'Submenu',
+  },
+  workbench: {
+    placeholder: 'Workbench home will be implemented in next phase.',
+  },
 }

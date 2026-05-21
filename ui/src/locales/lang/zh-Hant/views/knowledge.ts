@@ -1,5 +1,5 @@
 export default {
-  title: '知識庫',
+  title: '資料庫',
   relatedApplications: '關聯智能體',
   document_count: '文檔數',
   relatedApp_count: '關聯智能體',

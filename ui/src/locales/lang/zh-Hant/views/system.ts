@@ -1,5 +1,5 @@
 export default {
-  title: '系統設置',
+  title: '平臺設置',
   test: '測試連線',
   testSuccess: '測試連線成功',
   testFailed: '測試連線失敗',
@@ -151,7 +151,7 @@ export default {
     },
   },
   resource_management: {
-    label: '資源管理',
+    label: '資源授權',
     management: '管理',
   },
   default_login: '預設登入方式',

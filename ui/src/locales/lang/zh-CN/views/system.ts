@@ -2,7 +2,7 @@ import role from './role'
 
 export default {
   title: '系统管理',
-  subTitle: '系统设置',
+  subTitle: '平台设置',
   test: '测试连接',
   testSuccess: '测试连接成功',
   testFailed: '测试连接失败',
@@ -151,7 +151,7 @@ export default {
     },
   },
   resource_management: {
-    label: '资源管理',
+    label: '资源授权',
     management: '管理',
   },
   default_login: '默认登录方式',

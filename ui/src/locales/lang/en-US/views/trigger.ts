@@ -1,5 +1,5 @@
 export default {
-  title: 'Trigger',
+  title: 'Automation',
   tip: 'When triggered, the system will automatically call task execution based on the input parameters settings',
   task: 'Task',
   nextTime: 'Next Execution Time',

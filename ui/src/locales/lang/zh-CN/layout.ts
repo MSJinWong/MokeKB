@@ -41,4 +41,18 @@ export default {
   copyright: '© 2026 hoyanai.com All rights reserved.',
   userManualUrl: 'https://hoyanai.com/docs/',
   forumUrl: 'https://hoyanai.com/community',
+  rail: {
+    aria: '主导航',
+    workbench: '工作台',
+    agent: '智能体',
+    knowledge: '知识资产',
+    capability: '能力扩展',
+    platform: '平台管理',
+  },
+  side: {
+    aria: '子菜单',
+  },
+  workbench: {
+    placeholder: '工作台首页将在下一阶段实现。',
+  },
 }
