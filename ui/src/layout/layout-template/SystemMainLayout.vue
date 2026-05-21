@@ -1,37 +1,35 @@
 <template>
   <div class="app-layout">
-    <div class="app-header" :class="!isDefaultTheme ? 'custom-header' : ''">
-      <el-alert
-        v-if="user.isExpire()"
-        :title="$t('layout.isExpire')"
-        type="warning"
-        class="border-b"
-        show-icon
-        :closable="false"
-      />
-      <SystemHeader />
-    </div>
-    <div class="app-main" :class="user.isExpire() ? 'isExpire' : ''">
-      <layout-container>
-        <template #left>
-          <Sidebar />
-        </template>
+    <div class="app-layout__body">
+      <Rail />
+      <Side />
+      <main class="app-main">
         <AppMain />
-      </layout-container>
+      </main>
     </div>
   </div>
 </template>
+
 <script setup lang="ts">
-import { computed } from 'vue'
-import SystemHeader from '@/layout/layout-header/SystemHeader.vue'
-import Sidebar from '@/layout/components/sidebar/index.vue'
+import { Rail } from '@/layout/layout-rail'
+import { Side } from '@/layout/layout-side'
 import AppMain from '@/layout/app-main/index.vue'
-import useStore from '@/stores'
-const { theme, user } = useStore()
-const isDefaultTheme = computed(() => {
-  return theme.isDefaultTheme()
-})
 </script>
+
 <style lang="scss" scoped>
-@use './index.scss';
+.app-layout {
+  min-height: 100vh;
+  background: var(--app-layout-bg-color);
+}
+.app-layout__body {
+  display: flex;
+  min-height: 100vh;
+}
+.app-main {
+  flex: 1;
+  min-width: 0;
+  background: var(--main-bg);
+  padding: var(--app-view-padding);
+  overflow: auto;
+}
 </style>
