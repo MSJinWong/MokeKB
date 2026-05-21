@@ -1,0 +1,105 @@
+/**
+ * LogicFlow 工作流统一皮肤。
+ * 通过 CSS 变量 + 子选择器覆盖 LogicFlow 默认 DOM。
+ *
+ * 节点类型色（顶部 2px 色条）：
+ *   - 触发 / 开始：绿
+ *   - 数据 / 检索：蓝
+ *   - AI / LLM：紫
+ *   - 逻辑 / 分支：橙
+ *   - 输出 / 终止：红
+ */
+
+:root {
+  --wf-canvas-bg: var(--main-bg);
+  --wf-grid-color: #f1f5f9;
+  --wf-grid-size: 20px;
+
+  --wf-node-bg: var(--main-bg);
+  --wf-node-border: var(--border-base);
+  --wf-node-text: var(--text-primary);
+  --wf-node-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  --wf-node-hover-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+  --wf-node-radius: var(--radius-md);
+
+  --wf-line-color: var(--text-primary);
+  --wf-line-width: 1.5px;
+
+  --wf-type-trigger: #10b981;
+  --wf-type-data: #3b82f6;
+  --wf-type-ai: #8b5cf6;
+  --wf-type-logic: #f59e0b;
+  --wf-type-output: #ef4444;
+}
+
+.wf-node {
+  background: var(--wf-node-bg);
+  border: 1px solid var(--wf-node-border);
+  border-radius: var(--wf-node-radius);
+  color: var(--wf-node-text);
+  box-shadow: var(--wf-node-shadow);
+  min-width: 140px;
+  padding: 0;
+  overflow: hidden;
+  font-size: var(--font-size-base);
+  transition:
+    box-shadow 0.15s,
+    border-color 0.15s;
+
+  &:hover {
+    box-shadow: var(--wf-node-hover-shadow);
+  }
+  &.is-selected {
+    border-color: var(--brand-primary);
+    box-shadow: 0 0 0 2px var(--brand-primary-soft);
+  }
+
+  &__type-bar {
+    height: 2px;
+    width: 100%;
+  }
+  &__inner {
+    padding: 10px 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  &__icon {
+    width: 16px;
+    height: 16px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  &__title {
+    font-weight: 500;
+    color: var(--text-primary);
+  }
+
+  &[data-type='trigger'] .wf-node__type-bar { background: var(--wf-type-trigger); }
+  &[data-type='data']    .wf-node__type-bar { background: var(--wf-type-data); }
+  &[data-type='ai']      .wf-node__type-bar { background: var(--wf-type-ai); }
+  &[data-type='logic']   .wf-node__type-bar { background: var(--wf-type-logic); }
+  &[data-type='output']  .wf-node__type-bar { background: var(--wf-type-output); }
+}
+
+/* LogicFlow 画布与连线覆盖 */
+.lf-canvas-overlay,
+.lf-container {
+  background-color: var(--wf-canvas-bg);
+  background-image:
+    linear-gradient(var(--wf-grid-color) 1px, transparent 1px),
+    linear-gradient(90deg, var(--wf-grid-color) 1px, transparent 1px);
+  background-size: var(--wf-grid-size) var(--wf-grid-size);
+}
+
+.lf-canvas-overlay path,
+.lf-edge path {
+  stroke: var(--wf-line-color);
+  stroke-width: var(--wf-line-width);
+  fill: none;
+}
+.lf-edge.is-selected path {
+  stroke: var(--brand-primary);
+}
