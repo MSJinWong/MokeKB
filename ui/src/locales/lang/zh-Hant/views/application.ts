@@ -1,5 +1,7 @@
 export default {
   title: '智能體',
+  newInGroup: '在「{name}」下新建',
+  emptyList: '還沒有智能體，去創建一個？',
   createApplication: '建立簡易智能體',
   createWorkFlowApplication: '建立進階智能體',
   importApplication: '匯入智能體',

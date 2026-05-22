@@ -1,5 +1,7 @@
 export default {
   title: 'Agent',
+  newInGroup: 'New in "{name}"',
+  emptyList: 'No agents yet. Create one?',
   createApplication: 'Create Simple Agent',
   createWorkFlowApplication: 'Create Workflow Agent',
   importApplication: 'Import Agent',
