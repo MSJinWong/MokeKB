@@ -1,27 +1,33 @@
 <template>
-  <div class="resource-authorization p-16-24">
-    <div class="flex align-center mb-16">
-      <el-breadcrumb separator-icon="ArrowRight">
-        <el-breadcrumb-item>{{ t('views.system.resourceAuthorization.title') }}</el-breadcrumb-item>
-        <el-breadcrumb-item>
-          <h5 class="ml-4 color-text-primary">{{ activeData.label }}</h5>
-        </el-breadcrumb-item>
-      </el-breadcrumb>
-      <!-- 企业版: 工作空间下拉框-->
-      <el-divider
-        class="ml-24"
-        direction="vertical"
-        v-if="hasPermission(EditionConst.IS_EE, 'OR')"
-      />
-      <WorkspaceDropdown
-        v-if="hasPermission(EditionConst.IS_EE, 'OR')"
-        :data="workspaceList"
-        :currentWorkspace="currentWorkspace"
-        @changeWorkspace="changeWorkspace"
-      />
-    </div>
+  <div class="resource-authorization">
+    <PageHeader
+      :title="$t('views.system.resourceAuthorization.title')"
+      :subtitle="activeData.label"
+    >
+      <template #actions>
+        <WorkspaceDropdown
+          v-if="hasPermission(EditionConst.IS_EE, 'OR')"
+          :data="workspaceList"
+          :currentWorkspace="currentWorkspace"
+          @changeWorkspace="changeWorkspace"
+        />
+      </template>
+    </PageHeader>
 
-    <el-card style="--el-card-padding: 0; height: calc(100vh - 140px)">
+    <el-tabs
+      v-model="currentResource"
+      class="resource-authorization__tabs"
+      @tab-click="onTabClick"
+    >
+      <el-tab-pane
+        v-for="t in resourceTabs"
+        :key="t.key"
+        :label="t.label"
+        :name="t.key"
+      />
+    </el-tabs>
+
+    <div class="card-unified resource-authorization__card">
       <div class="flex">
         <div class="resource-authorization__left border-r">
           <div class="p-24 pb-0">
@@ -52,10 +58,9 @@
                           class="color-input-placeholder ellipsis-1"
                           :title="row.roles.join('，')"
                           v-if="hasPermission([EditionConst.IS_EE, EditionConst.IS_PE], 'OR')"
-                          >({{
-                            row.roles.map((item: any) => i18n_name(item))?.join('，')
-                          }})</el-text
-                        >
+                        >({{
+                          row.roles.map((item: any) => i18n_name(item))?.join('，')
+                        }})</el-text>
                       </div>
                     </div>
                   </template>
@@ -72,13 +77,14 @@
           @submitPermissions="submitPermissions"
         />
       </div>
-    </el-card>
+    </div>
   </div>
 </template>
 
 <script lang="ts" setup>
 import { onMounted, ref, reactive, watch, computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
+import { PageHeader } from '@/components/page-header'
 import PermissionTable from '@/views/system/resource-authorization/component/PermissionTable.vue'
 import { MsgSuccess, MsgConfirm } from '@/utils/message'
 import { SourceTypeEnum } from '@/enums/common'
@@ -93,6 +99,34 @@ import useStore from '@/stores'
 import { i18n_name } from '@/utils/common'
 
 const route = useRoute()
+const router = useRouter()
+
+interface ResourceTab { key: string; label: string }
+const resourceTabs = computed<ResourceTab[]>(() => [
+  { key: 'APPLICATION', label: t('views.application.title') },
+  { key: 'KNOWLEDGE', label: t('views.knowledge.title') },
+  { key: 'TOOL', label: t('views.tool.title') },
+  { key: 'MODEL', label: t('views.model.title') },
+])
+
+const currentResource = ref<string>((route.meta.resource as string) || 'APPLICATION')
+
+watch(() => route.meta.resource, (v) => {
+  if (typeof v === 'string') currentResource.value = v
+})
+
+const routeMap: Record<string, string> = {
+  APPLICATION: '/system/authorization/application',
+  KNOWLEDGE: '/system/authorization/knowledge',
+  TOOL: '/system/authorization/tool',
+  MODEL: '/system/authorization/model',
+}
+
+function onTabClick(tab: any) {
+  const path = routeMap[tab.props.name]
+  if (path && path !== route.path) router.push(path)
+}
+
 const { user } = useStore()
 const loading = ref(false)
 const rLoading = ref(false)
@@ -266,13 +300,20 @@ onMounted(() => {
 
 <style lang="scss" scoped>
 .resource-authorization {
-  .resource-authorization__left {
-    box-sizing: border-box;
-    width: var(--setting-left-width);
-    min-width: var(--setting-left-width);
-  }
-  .list-height-left {
-    height: calc(100vh - 240px);
-  }
+  padding: 0 24px 24px;
+}
+.resource-authorization__tabs {
+  margin-bottom: 12px;
+}
+.resource-authorization__card {
+  overflow: hidden;
+  height: calc(100vh - 200px);
+}
+.resource-authorization__left {
+  width: 280px;
+  flex-shrink: 0;
+}
+.list-height-left {
+  height: calc(100% - 100px);
 }
 </style>
