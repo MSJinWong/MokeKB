@@ -47,7 +47,8 @@ export default {
     agent: 'Agents',
     knowledge: 'Knowledge',
     capability: 'Capabilities',
-    platform: 'Platform',
+    platform: 'Models',
+    system: 'System',
   },
   side: {
     aria: 'Submenu',

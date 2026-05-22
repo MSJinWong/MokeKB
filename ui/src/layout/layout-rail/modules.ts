@@ -47,7 +47,14 @@ export const RAIL_MODULES: RailModule[] = [
     titleKey: 'layout.rail.platform',
     lucide: 'settings-2',
     path: '/model',
-    matchPaths: ['/model', '/system'],
+    matchPaths: ['/model'],
+  },
+  {
+    key: 'system',
+    titleKey: 'layout.rail.system',
+    lucide: 'shield-cog',
+    path: '/system/user',
+    matchPaths: ['/system'],
   },
 ]
 

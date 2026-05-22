@@ -47,7 +47,8 @@ export default {
     agent: '智能體',
     knowledge: '知識資產',
     capability: '能力擴展',
-    platform: '平臺管理',
+    platform: '模型',
+    system: '系統管理',
   },
   side: {
     aria: '子選單',
