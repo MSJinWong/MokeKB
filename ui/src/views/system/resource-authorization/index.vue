@@ -161,7 +161,7 @@ const activeData = computed(() => {
   const currentPathType = route.path.substring(lastIndex + 1).toUpperCase()
   return settingTags.filter((item) => {
     return item.type === currentPathType
-  })[0]
+  })[0] || settingTags[0]
 })
 
 watch(filterText, (val: any) => {
@@ -310,7 +310,8 @@ onMounted(() => {
   height: calc(100vh - 200px);
 }
 .resource-authorization__left {
-  width: 280px;
+  width: var(--setting-left-width);
+  min-width: var(--setting-left-width);
   flex-shrink: 0;
 }
 .list-height-left {
