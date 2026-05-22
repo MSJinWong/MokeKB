@@ -5,8 +5,7 @@ const systemRouter = {
   path: '/system',
   name: 'system',
   meta: { title: 'views.system.title' },
-  hidden: true,
-  component: () => import('@/layout/layout-template/SystemMainLayout.vue'),
+  component: () => import('@/layout/layout-template/MainLayout.vue'),
   children: [
     {
       path: '/system/user',
