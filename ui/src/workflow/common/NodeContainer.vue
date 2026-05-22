@@ -2,6 +2,7 @@
   <div @mousedown="mousedown" class="workflow-node-container p-16" style="overflow: visible">
     <div
       class="step-container white-bg border-r-8 p-16"
+      :data-node-type="nodeModel.type"
       :class="{ isSelected: props.nodeModel.isSelected, error: node_status !== 200 }"
       style="overflow: visible"
     >
