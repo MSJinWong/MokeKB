@@ -150,3 +150,12 @@
 .step-container[data-node-type="tool-workflow-lib"] { --node-type-color: #8b5cf6; }
 
 /* W1 · 节点 header icon 已移除(顶部色条已识别类型) */
+
+/* 工作流工具栏不要 hover 上移 — 避免点击时按钮位置变化 */
+.workflow-control .el-card {
+  &:hover,
+  &.is-hover-shadow:hover {
+    transform: none !important;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08) !important;
+  }
+}
