@@ -10,6 +10,12 @@ export default {
     tokens: 'Tokens 總數',
     satisfaction: '用戶滿意度',
   },
+  trend: {
+    title: '提問趨勢',
+    last7: '過去 7 天',
+    last30: '過去 30 天',
+    last90: '過去 90 天',
+  },
   appInfo: {
     publicAccessLink: '公開訪問連結',
     openText: '開',

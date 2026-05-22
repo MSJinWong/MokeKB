@@ -10,6 +10,12 @@ export default {
     tokens: 'Tokens',
     satisfaction: 'Satisfaction',
   },
+  trend: {
+    title: 'Question trend',
+    last7: 'Last 7 days',
+    last30: 'Last 30 days',
+    last90: 'Last 90 days',
+  },
   appInfo: {
     publicAccessLink: 'Public URL',
     openText: 'On',
