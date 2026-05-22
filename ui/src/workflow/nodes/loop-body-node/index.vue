@@ -101,9 +101,13 @@ const renderGraphData = (data?: any) => {
       container: container,
     })
     lf.value.setTheme({
+      polyline: {
+        stroke: '#0f172a',
+        strokeWidth: 1.5,
+      },
       bezier: {
-        stroke: '#afafaf',
-        strokeWidth: 1,
+        stroke: '#0f172a',
+        strokeWidth: 1.5,
       },
     })
 

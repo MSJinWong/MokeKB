@@ -129,7 +129,7 @@ class CustomEdge2 extends PolylineEdge {
       h(
         'style' as any,
         { type: 'text/css' },
-        '.lf-edge{stroke:#afafaf}.lf-edge:hover{stroke: #0f172a;}',
+        '.lf-edge:hover path{stroke: var(--brand-primary);}',
       ),
       h('path', {
         d: path,
