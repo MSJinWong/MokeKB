@@ -1,6 +1,7 @@
 <template>
-  <span class="agent-avatar" :style="avatarStyle" :title="name">
-    <span>{{ initial }}</span>
+  <span class="agent-avatar" :style="avatarStyle" :title="name"
+        role="img" :aria-label="name">
+    <span aria-hidden="true">{{ initial }}</span>
   </span>
 </template>
 
@@ -18,7 +19,8 @@ const props = withDefaults(
 const initial = computed(() => {
   const n = (props.name || '').trim()
   if (!n) return '?'
-  return n.charAt(0).toUpperCase()
+  const first = [...n][0] ?? '?'
+  return first.toLocaleUpperCase()
 })
 
 const avatarStyle = computed(() => ({
