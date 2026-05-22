@@ -113,7 +113,7 @@ function toUrl(url: string) {
   }
 }
 .pricing-button {
-  background: linear-gradient(90deg, #3370ff 0%, #7f3bf5 100%);
+  background: var(--brand-primary);
   color: #ffffff;
 }
 </style>

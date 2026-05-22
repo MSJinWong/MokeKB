@@ -131,7 +131,7 @@ const statisticsType = computed(() => [
     name: t('views.applicationOverview.monitor.charts.customerTotal'),
     icon: 'app-user',
     background: '#EBF1FF',
-    color: '#3370FF',
+    color: '#0f172a',
     sum: [
       getSum(getAttrsArray(props.data, 'customer_num') || 0),
       getSum(getAttrsArray(props.data, 'customer_added_count') || 0),

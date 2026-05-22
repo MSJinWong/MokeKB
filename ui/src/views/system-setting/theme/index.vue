@@ -8,24 +8,6 @@
     </el-breadcrumb>
     <el-scrollbar>
       <el-card style="--el-card-padding: 16px">
-        <h5 class="mb-16">{{ $t('theme.platformDisplayTheme') }}</h5>
-        <el-radio-group
-          v-model="themeRadio"
-          class="app-radio-button-group"
-          @change="changeThemeHandle"
-        >
-          <template v-for="(item, index) in themeList" :key="index">
-            <el-radio-button :label="item.label" :value="item.value" />
-          </template>
-          <el-radio-button :label="$t('common.custom')" value="custom" />
-        </el-radio-group>
-        <div v-if="themeRadio === 'custom'">
-          <h5 class="mt-16 mb-8">{{ $t('theme.customTheme') }}</h5>
-          <el-color-picker v-model="customColor" @change="customColorHandle" />
-        </div>
-      </el-card>
-
-      <el-card style="--el-card-padding: 16px" class="mt-16">
         <h5 class="mb-16">{{ $t('theme.platformLoginSettings') }}</h5>
         <el-card shadow="never" class="layout-bg">
           <div class="flex-between">
@@ -270,7 +252,7 @@ import { useRouter, onBeforeRouteLeave } from 'vue-router'
 import type { FormInstance, FormRules, UploadFiles } from 'element-plus'
 import { cloneDeep } from 'lodash'
 import LoginPreview from './LoginPreview.vue'
-import { themeList, defaultSetting, defaultPlatformSetting } from '@/utils/theme'
+import { defaultSetting, defaultPlatformSetting } from '@/utils/theme'
 import ThemeApi from '@/api/system-settings/theme'
 import { MsgSuccess, MsgError } from '@/utils/message'
 import useStore from '@/stores'
@@ -298,13 +280,10 @@ const themeForm = ref<any>({
   icon: '',
   loginLogo: '',
   loginImage: '',
-  title: 'InsightHub',
+  title: defaultSetting.title,
   slogan: t('theme.defaultSlogan'),
   ...defaultPlatformSetting,
 })
-const themeRadio = ref('')
-const customColor = ref('')
-
 const rules = reactive<FormRules>({
   title: [{ required: true, message: t('theme.websiteNamePlaceholder'), trigger: 'blur' }],
   slogan: [{ required: true, message: t('theme.websiteSloganPlaceholder'), trigger: 'blur' }],
@@ -318,18 +297,6 @@ const onChange = (file: any, fileList: UploadFiles, attr: string) => {
   } else {
     themeForm.value[attr] = file.raw
   }
-  theme.setTheme(themeForm.value)
-}
-
-function changeThemeHandle(val: string) {
-  if (val !== 'custom') {
-    themeForm.value.theme = val
-    theme.setTheme(themeForm.value)
-  }
-}
-
-function customColorHandle(val: string) {
-  themeForm.value.theme = val
   theme.setTheme(themeForm.value)
 }
 
@@ -377,10 +344,6 @@ onMounted(() => {
   //   router.push({path: `/application`})
   // }
   if (themeInfo.value) {
-    themeRadio.value = themeList.some((v) => v.value === themeInfo.value.theme)
-      ? themeInfo.value.theme
-      : 'custom'
-    customColor.value = themeInfo.value.theme
     themeForm.value = cloneDeep(themeInfo.value)
     cloneTheme.value = cloneDeep(themeInfo.value)
   }

@@ -54,6 +54,9 @@ export default {
   },
   workbench: {
     placeholder: '工作臺首頁將在下一階段實現。',
+    menu: {
+      overview: '概覽',
+    },
     greeting: {
       morning: '早上好',
       afternoon: '下午好',
@@ -69,7 +72,15 @@ export default {
     recent: {
       title: '我的智能體',
       empty: '還沒有智能體，去創建一個？',
+      cta: '創建智能體',
       conversation24h: '最近 24h · {n} 次對話',
+    },
+    quick: {
+      title: '快速入口',
+      newAgent: { title: '新建智能體', desc: '從模板或空白開始' },
+      uploadLibrary: { title: '上傳資料', desc: '匯入文件與問題集' },
+      connectModel: { title: '接入模型', desc: '配置 LLM / Embedding' },
+      platformSetting: { title: '平臺設定', desc: '外觀、權限、郵件' },
     },
   },
 }

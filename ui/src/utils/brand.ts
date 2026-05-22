@@ -9,7 +9,7 @@
  * - 不要修改 localStorage 的 'MaxKB-locale' key（向后兼容）
  * - 仅用于替换组件 / 模板中的 USER-VISIBLE 产品名文字
  */
-export const PRODUCT_NAME = '产品名'
-export const PRODUCT_NAME_EN = 'ProductName'
+export const PRODUCT_NAME = 'HoyanAI'
+export const PRODUCT_NAME_EN = 'HoyanAI'
 export const PRODUCT_SLOGAN = '企业知识与智能体平台'
 export const PRODUCT_SLOGAN_EN = 'Enterprise knowledge & agent platform'

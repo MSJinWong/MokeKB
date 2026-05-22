@@ -54,6 +54,9 @@ export default {
   },
   workbench: {
     placeholder: '工作台首页将在下一阶段实现。',
+    menu: {
+      overview: '概览',
+    },
     greeting: {
       morning: '早上好',
       afternoon: '下午好',
@@ -69,7 +72,15 @@ export default {
     recent: {
       title: '我的智能体',
       empty: '还没有智能体，去创建一个？',
+      cta: '创建智能体',
       conversation24h: '最近 24h · {n} 次对话',
+    },
+    quick: {
+      title: '快速入口',
+      newAgent: { title: '新建智能体', desc: '从模板或空白开始' },
+      uploadLibrary: { title: '上传资料', desc: '导入文档与问题集' },
+      connectModel: { title: '接入模型', desc: '配置 LLM / Embedding' },
+      platformSetting: { title: '平台设置', desc: '外观、权限、邮件' },
     },
   },
 }

@@ -1,25 +1,27 @@
 import { defineStore } from 'pinia'
 import { cloneDeep } from 'lodash'
-import { useElementPlusTheme } from 'use-element-plus-theme'
 import ThemeApi from '@/api/system-settings/theme'
-import type {Ref} from "vue";
+import type { Ref } from 'vue'
+
 export interface themeStateTypes {
   themeInfo: any
 }
-const defalueColor = '#3370FF'
 
+/**
+ * 品牌色固定由 CSS token 控制(`--brand-primary` / `--el-color-primary`)。
+ * 此 store 仅保留非颜色相关的平台外观信息(站名/口号/logo/外链)。
+ * 历史上有运行时 changeTheme() 行为,会把 EP 主色刷成 #3370FF (MaxKB 蓝),已移除。
+ */
 const useThemeStore = defineStore('theme', {
   state: (): themeStateTypes => ({
     themeInfo: null,
   }),
   actions: {
     isDefaultTheme() {
-      return !this.themeInfo?.theme || this.themeInfo?.theme === defalueColor
+      return true
     },
 
     setTheme(data?: any) {
-      const { changeTheme } = useElementPlusTheme(this.themeInfo?.theme || defalueColor)
-      changeTheme(data?.['theme'] || defalueColor)
       this.themeInfo = cloneDeep(data)
     },
 

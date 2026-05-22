@@ -54,6 +54,9 @@ export default {
   },
   workbench: {
     placeholder: 'Workbench home will be implemented in next phase.',
+    menu: {
+      overview: 'Overview',
+    },
     greeting: {
       morning: 'Good morning',
       afternoon: 'Good afternoon',
@@ -69,7 +72,15 @@ export default {
     recent: {
       title: 'My Agents',
       empty: 'No agents yet. Create one?',
+      cta: 'Create agent',
       conversation24h: 'Last 24h · {n} conversations',
+    },
+    quick: {
+      title: 'Quick actions',
+      newAgent: { title: 'New agent', desc: 'Start from template or blank' },
+      uploadLibrary: { title: 'Upload library', desc: 'Import docs & problem set' },
+      connectModel: { title: 'Connect model', desc: 'Configure LLM / Embedding' },
+      platformSetting: { title: 'Platform settings', desc: 'Appearance, access, email' },
     },
   },
 }

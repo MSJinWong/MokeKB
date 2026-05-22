@@ -4,7 +4,7 @@ const workbenchRouter = {
   path: '/workbench',
   name: 'workbench',
   meta: {
-    title: 'rail.workbench',
+    title: 'layout.rail.workbench',
     menu: true,
     permission: [
       RoleConst.USER.getWorkspaceRole,
@@ -14,15 +14,19 @@ const workbenchRouter = {
     group: 'workspace',
     order: 0,
   },
-  redirect: '/workbench',
-  component: () => import('@/layout/layout-template/SimpleLayout.vue'),
+  redirect: '/workbench/overview',
+  component: () => import('@/layout/layout-template/MainLayout.vue'),
   children: [
     {
-      path: '/workbench',
-      name: 'workbench-index',
-      meta: { title: 'rail.workbench', activeMenu: '/workbench' },
+      path: 'overview',
+      name: 'workbench-overview',
+      meta: {
+        title: 'layout.workbench.menu.overview',
+        active: '/workbench/overview',
+        parentPath: '/workbench',
+        parentName: 'workbench',
+      },
       component: () => import('@/views/workbench/index.vue'),
-      hidden: true,
     },
   ],
 }

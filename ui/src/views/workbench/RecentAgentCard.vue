@@ -5,20 +5,31 @@
   >
     <div class="agent-card__row">
       <div class="agent-card__icon" :style="iconStyle">
-        <LucideIcon name="bot" :size="14" />
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <mask id="agent-eyes" maskUnits="userSpaceOnUse" x="0" y="0" width="24" height="24">
+            <rect width="24" height="24" fill="#fff" />
+            <circle cx="9.25" cy="11" r="1.15" fill="#000" />
+            <circle cx="14.75" cy="11" r="1.15" fill="#000" />
+          </mask>
+          <g fill="currentColor" mask="url(#agent-eyes)">
+            <circle cx="12" cy="2.5" r="0.9" />
+            <rect x="11.5" y="3.2" width="1" height="1.8" rx="0.3" />
+            <rect x="4" y="5" width="16" height="12" rx="3" />
+            <path d="M2 22 Q12 15 22 22 H2 Z" />
+          </g>
+        </svg>
       </div>
       <div class="agent-card__name">{{ agent.name }}</div>
     </div>
     <p v-if="agent.description" class="agent-card__desc">{{ agent.description }}</p>
     <div class="agent-card__meta">
-      {{ $t('workbench.recent.conversation24h', { n: agent.conversation24h }) }}
+      {{ $t('layout.workbench.recent.conversation24h', { n: agent.conversation24h }) }}
     </div>
   </router-link>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { LucideIcon } from '@/components/lucide-icon'
 import type { RecentAgent } from '@/api/workbench'
 
 const props = defineProps<{ agent: RecentAgent }>()

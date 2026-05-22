@@ -1,43 +1,11 @@
 import { t } from '@/locales'
-
-export const themeList = [
-  {
-    label: t('theme.default'),
-    value: '#3370FF',
-    loginBackground: 'default',
-  },
-  {
-    label: t('theme.orange'),
-    value: '#FF8800',
-    loginBackground: 'orange',
-  },
-  {
-    label: t('theme.green'),
-    value: '#00B69D',
-    loginBackground: 'green',
-  },
-  {
-    label: t('theme.purple'),
-    value: '#7F3BF5',
-    loginBackground: 'purple',
-  },
-  {
-    label: t('theme.red'),
-    value: '#F01D94',
-    loginBackground: 'red',
-  },
-]
-
-export function getThemeImg(val: string) {
-  if (!val) return 'default'
-  return themeList.filter((v) => v.value === val)?.[0]?.loginBackground || 'default'
-}
+import { PRODUCT_NAME } from '@/utils/brand'
 
 export const defaultSetting = {
   icon: '',
   loginLogo: '',
   loginImage: '',
-  title: 'InsightHub',
+  title: PRODUCT_NAME,
   slogan: t('theme.defaultSlogan'),
 }
 

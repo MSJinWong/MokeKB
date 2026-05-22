@@ -15,7 +15,7 @@
   --rail-text: #94a3b8;
   --rail-text-active: #ffffff;
   --rail-hover-bg: #1e293b;
-  --rail-active-bar: var(--brand-primary);
+  --rail-active-bar: #ffffff; /* 占位:与 rail-bg 对比;品牌色到位后切回 var(--brand-primary) */
 
   /* ===== Layout · Side（浅灰） ===== */
   --side-width: 200px;
@@ -74,8 +74,9 @@
   --status-warning-text: #b45309;
   --status-danger-bg: #fef2f2;
   --status-danger-text: #b91c1c;
-  --status-info-bg: #eff6ff;
-  --status-info-text: #1d4ed8;
+  /* 中性 slate,避免与 MaxKB 蓝相似 */
+  --status-info-bg: #f1f5f9;
+  --status-info-text: #475569;
 
   --tag-default-bg: var(--status-info-bg);
   --tag-default-color: var(--status-info-text);

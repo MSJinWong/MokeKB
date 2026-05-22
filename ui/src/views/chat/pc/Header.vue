@@ -4,7 +4,19 @@
       <div class="agent">
         <div class="agent__avatar">
           <img v-if="isAppIcon(avatar)" :src="avatar" alt="" />
-          <LucideIcon v-else name="bot" :size="16" />
+          <svg v-else width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <mask id="agent-eyes-header" maskUnits="userSpaceOnUse" x="0" y="0" width="24" height="24">
+              <rect width="24" height="24" fill="#fff" />
+              <circle cx="9.25" cy="11" r="1.15" fill="#000" />
+              <circle cx="14.75" cy="11" r="1.15" fill="#000" />
+            </mask>
+            <g fill="currentColor" mask="url(#agent-eyes-header)">
+              <circle cx="12" cy="2.5" r="0.9" />
+              <rect x="11.5" y="3.2" width="1" height="1.8" rx="0.3" />
+              <rect x="4" y="5" width="16" height="12" rx="3" />
+              <path d="M2 22 Q12 15 22 22 H2 Z" />
+            </g>
+          </svg>
         </div>
         <div class="agent__meta">
           <div class="agent__name">{{ name }}</div>
@@ -88,7 +100,7 @@ defineEmits<{
   width: 28px;
   height: 28px;
   border-radius: var(--radius-sm, 6px);
-  background: var(--el-color-primary, #3370ff);
+  background: var(--el-color-primary, #0f172a);
   color: #fff;
   display: flex;
   align-items: center;

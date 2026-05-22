@@ -21,9 +21,31 @@
       </article>
     </section>
 
+    <section class="workbench__quick">
+      <header class="workbench__section-head">
+        <h2>{{ $t('layout.workbench.quick.title') }}</h2>
+      </header>
+      <div class="workbench__quick-grid">
+        <router-link
+          v-for="q in quickActions"
+          :key="q.key"
+          :to="q.to"
+          class="quick-card"
+        >
+          <div class="quick-card__icon">
+            <LucideIcon :name="q.icon" :size="18" />
+          </div>
+          <div class="quick-card__body">
+            <div class="quick-card__title">{{ q.title }}</div>
+            <div class="quick-card__desc">{{ q.desc }}</div>
+          </div>
+        </router-link>
+      </div>
+    </section>
+
     <section class="workbench__recent">
-      <header class="workbench__recent-head">
-        <h2>{{ $t('workbench.recent.title') }}</h2>
+      <header class="workbench__section-head">
+        <h2>{{ $t('layout.workbench.recent.title') }}</h2>
         <router-link to="/application" class="see-more">
           {{ $t('common.viewAll') }}
           <LucideIcon name="chevron-right" :size="14" />
@@ -32,7 +54,13 @@
       <div v-if="agents.length" class="workbench__recent-grid">
         <RecentAgentCard v-for="a in agents" :key="a.id" :agent="a" />
       </div>
-      <p v-else class="workbench__recent-empty">{{ $t('workbench.recent.empty') }}</p>
+      <div v-else class="workbench__recent-empty">
+        <p>{{ $t('layout.workbench.recent.empty') }}</p>
+        <router-link to="/application" class="empty-cta">
+          <LucideIcon name="plus" :size="14" />
+          {{ $t('layout.workbench.recent.cta') }}
+        </router-link>
+      </div>
     </section>
   </div>
 </template>
@@ -64,10 +92,10 @@ const userName = computed(() => {
 
 const greeting = computed(() => {
   const h = new Date().getHours()
-  if (h < 6) return t('workbench.greeting.lateNight')
-  if (h < 12) return t('workbench.greeting.morning')
-  if (h < 18) return t('workbench.greeting.afternoon')
-  return t('workbench.greeting.evening')
+  if (h < 6) return t('layout.workbench.greeting.lateNight')
+  if (h < 12) return t('layout.workbench.greeting.morning')
+  if (h < 18) return t('layout.workbench.greeting.afternoon')
+  return t('layout.workbench.greeting.evening')
 })
 
 const today = computed(() => {
@@ -76,11 +104,42 @@ const today = computed(() => {
   return `${d.toISOString().slice(0, 10)} · 周${weekday}`
 })
 
+const quickActions = computed(() => [
+  {
+    key: 'agent',
+    icon: 'bot',
+    to: '/application',
+    title: t('layout.workbench.quick.newAgent.title'),
+    desc: t('layout.workbench.quick.newAgent.desc'),
+  },
+  {
+    key: 'library',
+    icon: 'book-open-text',
+    to: '/knowledge',
+    title: t('layout.workbench.quick.uploadLibrary.title'),
+    desc: t('layout.workbench.quick.uploadLibrary.desc'),
+  },
+  {
+    key: 'model',
+    icon: 'cpu',
+    to: '/model',
+    title: t('layout.workbench.quick.connectModel.title'),
+    desc: t('layout.workbench.quick.connectModel.desc'),
+  },
+  {
+    key: 'platform',
+    icon: 'settings-2',
+    to: '/system/setting/theme',
+    title: t('layout.workbench.quick.platformSetting.title'),
+    desc: t('layout.workbench.quick.platformSetting.desc'),
+  },
+])
+
 const statCards = computed(() => [
-  { key: 'agents', icon: 'bot', value: stats.value.agentCount, label: t('workbench.stats.agents') },
-  { key: 'conversations', icon: 'message-circle', value: stats.value.conversationCount, label: t('workbench.stats.conversations') },
-  { key: 'libraries', icon: 'book-open-text', value: stats.value.libraryCount, label: t('workbench.stats.libraries') },
-  { key: 'tools', icon: 'puzzle', value: stats.value.toolCount, label: t('workbench.stats.tools') },
+  { key: 'agents', icon: 'bot', value: stats.value.agentCount, label: t('layout.workbench.stats.agents') },
+  { key: 'conversations', icon: 'message-circle', value: stats.value.conversationCount, label: t('layout.workbench.stats.conversations') },
+  { key: 'libraries', icon: 'book-open-text', value: stats.value.libraryCount, label: t('layout.workbench.stats.libraries') },
+  { key: 'tools', icon: 'puzzle', value: stats.value.toolCount, label: t('layout.workbench.stats.tools') },
 ])
 
 onMounted(async () => {
@@ -156,7 +215,7 @@ onMounted(async () => {
   letter-spacing: 0.04em;
   margin-top: 4px;
 }
-.workbench__recent-head {
+.workbench__section-head {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
@@ -167,6 +226,55 @@ onMounted(async () => {
     color: var(--text-primary);
     margin: 0;
   }
+}
+.workbench__quick-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  @media (max-width: 1024px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+.quick-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--main-bg);
+  border: 1px solid var(--border-base);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  text-decoration: none;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s,
+    transform 0.15s;
+  &:hover {
+    border-color: var(--brand-primary-soft);
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
+    transform: translateY(-2px);
+  }
+}
+.quick-card__icon {
+  width: 36px;
+  height: 36px;
+  background: var(--side-bg);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-primary);
+  flex-shrink: 0;
+}
+.quick-card__title {
+  font-size: var(--font-size-md);
+  font-weight: 500;
+  color: var(--text-primary);
+  line-height: 1.2;
+}
+.quick-card__desc {
+  font-size: var(--font-size-xs);
+  color: var(--text-tertiary);
+  margin-top: 4px;
 }
 .see-more {
   display: inline-flex;
@@ -185,12 +293,33 @@ onMounted(async () => {
   gap: 12px;
 }
 .workbench__recent-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
   color: var(--text-tertiary);
   font-size: var(--font-size-base);
-  padding: 24px;
+  padding: 32px 24px;
   text-align: center;
   background: var(--side-bg);
   border: 1px dashed var(--border-base);
   border-radius: var(--radius-md);
+  p {
+    margin: 0;
+  }
+}
+.empty-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 14px;
+  font-size: var(--font-size-sm);
+  color: #ffffff;
+  background: var(--brand-primary);
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+  &:hover {
+    background: var(--brand-primary-hover);
+  }
 }
 </style>

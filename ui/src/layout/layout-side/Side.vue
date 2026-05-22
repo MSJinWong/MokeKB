@@ -1,5 +1,5 @@
 <template>
-  <aside class="app-side" :aria-label="$t('side.aria')">
+  <aside class="app-side" :aria-label="$t('layout.side.aria')">
     <div class="app-side__title">{{ moduleTitle }}</div>
     <el-scrollbar>
       <el-menu

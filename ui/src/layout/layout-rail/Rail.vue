@@ -1,5 +1,5 @@
 <template>
-  <nav class="app-rail" :aria-label="$t('rail.aria')">
+  <nav class="app-rail" :aria-label="$t('layout.rail.aria')">
     <router-link to="/workbench" class="app-rail__brand" aria-label="home">
       <img src="@/assets/logo/logo-currentColor.svg" alt="" />
     </router-link>
