@@ -83,4 +83,9 @@ export default {
       platformSetting: { title: '平台设置', desc: '外观、权限、邮件' },
     },
   },
+  agent: {
+    menu: {
+      applicationList: '应用列表',
+    },
+  },
 }

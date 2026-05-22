@@ -83,4 +83,9 @@ export default {
       platformSetting: { title: 'Platform settings', desc: 'Appearance, access, email' },
     },
   },
+  agent: {
+    menu: {
+      applicationList: 'Applications',
+    },
+  },
 }

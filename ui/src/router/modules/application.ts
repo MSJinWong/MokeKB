@@ -1,9 +1,10 @@
 import { PermissionConst, RoleConst } from '@/utils/permission/data'
+
 const applicationRouter = {
   path: '/application',
   name: 'application',
   meta: {
-    title: 'views.application.title',
+    title: 'layout.rail.agent',
     menu: true,
     permission: [
       RoleConst.USER.getWorkspaceRole,
@@ -16,15 +17,21 @@ const applicationRouter = {
     group: 'workspace',
     order: 1,
   },
-  redirect: '/application',
-  component: () => import('@/layout/layout-template/SimpleLayout.vue'),
+  redirect: '/application/list',
+  component: () => import('@/layout/layout-template/MainLayout.vue'),
   children: [
     {
-      path: '/application',
-      name: 'application-index',
-      meta: { title: '智能体主页', activeMenu: '/application', sameRoute: 'application' },
+      path: '/application/list',
+      name: 'application-list',
+      meta: {
+        title: 'layout.agent.menu.applicationList',
+        active: '/application/list',
+        activeMenu: '/application/list',
+        parentPath: '/application',
+        parentName: 'application',
+        sameRoute: 'application',
+      },
       component: () => import('@/views/application/index.vue'),
-      hidden: true,
     },
   ],
 }
