@@ -117,6 +117,7 @@ export default {
   },
   email: {
     title: '邮箱设置',
+    subtitle: '配置系统邮件服务',
     smtpHost: 'SMTP Host',
     smtpHostPlaceholder: '请输入 SMTP Host',
     smtpPort: 'SMTP Port',

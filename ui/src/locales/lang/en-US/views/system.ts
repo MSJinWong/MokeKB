@@ -115,6 +115,7 @@ export default {
   },
   email: {
     title: 'Email Settings',
+    subtitle: 'Configure system mail service',
     smtpHost: 'SMTP Host',
     smtpHostPlaceholder: 'Please enter SMTP host',
     smtpPort: 'SMTP Port',
