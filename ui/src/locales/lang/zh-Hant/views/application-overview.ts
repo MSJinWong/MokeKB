@@ -16,6 +16,14 @@ export default {
     last30: '過去 30 天',
     last90: '過去 90 天',
   },
+  access: {
+    title: '訪問與接入',
+    publicLink: '公開訪問',
+    url: '鏈接',
+    apiDoc: 'API 文件',
+    apiKey: 'API Key',
+    manageKey: '管理 Key',
+  },
   appInfo: {
     publicAccessLink: '公開訪問連結',
     openText: '開',

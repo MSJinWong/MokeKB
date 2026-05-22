@@ -5,6 +5,8 @@ export default {
   copy: '複製',
   copySuccess: '複製成功',
   copyError: '複製失敗',
+  on: '開',
+  off: '關',
   save: '儲存',
   saveSuccess: '儲存成功',
   delete: '刪除',

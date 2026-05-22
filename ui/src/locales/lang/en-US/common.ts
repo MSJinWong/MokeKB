@@ -5,6 +5,8 @@ export default {
   copy: 'Copy',
   copySuccess: 'Successful',
   copyError: 'Copy Failed',
+  on: 'On',
+  off: 'Off',
   save: 'Save',
   saveSuccess: 'Successful',
   delete: 'Delete',

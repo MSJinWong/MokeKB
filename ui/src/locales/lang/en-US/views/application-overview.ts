@@ -16,6 +16,14 @@ export default {
     last30: 'Last 30 days',
     last90: 'Last 90 days',
   },
+  access: {
+    title: 'Access',
+    publicLink: 'Public link',
+    url: 'URL',
+    apiDoc: 'API docs',
+    apiKey: 'API Key',
+    manageKey: 'Manage',
+  },
   appInfo: {
     publicAccessLink: 'Public URL',
     openText: 'On',
