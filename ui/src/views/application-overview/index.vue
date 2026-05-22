@@ -1,181 +1,25 @@
 <template>
-  <div class="p-16">
-    <h2 class="mb-16 ml-8">{{ $t('views.applicationOverview.title') }}</h2>
-    <el-scrollbar>
-      <div class="main-calc-height p-8 pt-0">
-        <el-card style="--el-card-padding: 24px">
-          <h4 class="title-decoration-1 mb-16">
-            {{ $t('common.info') }}
-          </h4>
-          <el-card shadow="never" class="overview-card" v-loading="loading">
-            <div class="title flex align-center">
-              <div class="edit-avatar mr-12">
-                <el-avatar shape="square" :size="32" style="background: none">
-                  <img :src="resetUrl(detail?.icon, resetUrl('./favicon.ico'))" alt="" />
-                </el-avatar>
-              </div>
+  <div class="overview-page" v-loading="loading">
+    <HeroBar
+      :detail="detail"
+      @display-setting="openDisplaySettingDialog"
+      @embed="openEmbedDialog"
+      @access-limit="openLimitDialog"
+      @go-chat="goChat"
+    />
 
-              <h4>{{ detail?.name || '-' }}</h4>
-            </div>
+    <StatGrid :stats="stats" />
 
-            <el-row :gutter="12">
-              <el-col :span="12" class="mt-16">
-                <div class="flex">
-                  <el-text type="info"
-                    >{{ $t('views.applicationOverview.appInfo.publicAccessLink') }}
-                  </el-text>
-                  <el-switch
-                    v-model="accessToken.is_active"
-                    class="ml-8"
-                    size="small"
-                    inline-prompt
-                    :active-text="$t('views.applicationOverview.appInfo.openText')"
-                    :inactive-text="$t('views.applicationOverview.appInfo.closeText')"
-                    :before-change="() => changeState(accessToken.is_active)"
-                  />
-                </div>
-
-                <div class="mt-4 mb-16 url-height flex align-center" style="margin-bottom: 37px">
-                  <span class="vertical-middle lighter break-all ellipsis-1">
-                    {{ shareUrl }}
-                  </span>
-                  <el-tooltip effect="dark" :content="$t('common.copy')" placement="top">
-                    <el-button type="primary" text @click="copyClick(shareUrl)">
-                      <AppIcon iconName="app-copy"></AppIcon>
-                    </el-button>
-                  </el-tooltip>
-                  <el-tooltip effect="dark" :content="$t('common.refresh')" placement="top">
-                    <el-button
-                      @click="refreshAccessToken"
-                      type="primary"
-                      text
-                      style="margin-left: 1px"
-                    >
-                      <AppIcon iconName="app-refresh"></AppIcon>
-                    </el-button>
-                  </el-tooltip>
-                </div>
-                <div>
-                  <el-button
-                    v-if="accessToken?.is_active"
-                    :disabled="!accessToken?.is_active"
-                    tag="a"
-                    :href="shareUrl"
-                    target="_blank"
-                  >
-                    <AppIcon iconName="app-create-chat" class="mr-4"></AppIcon>
-                    {{ $t('views.application.operation.toChat') }}
-                  </el-button>
-                  <el-button v-else :disabled="!accessToken?.is_active">
-                    <AppIcon iconName="app-create-chat" class="mr-4"></AppIcon>
-                    {{ $t('views.application.operation.toChat') }}
-                  </el-button>
-                  <el-button
-                    :disabled="!accessToken?.is_active"
-                    @click="openDialog"
-                    v-if="permissionPrecise.overview_embed(id)"
-                  >
-                    <AppIcon iconName="app-export" class="mr-4"></AppIcon>
-                    {{ $t('views.applicationOverview.appInfo.embedInWebsite') }}
-                  </el-button>
-                  <!-- 访问限制 -->
-                  <el-button @click="openLimitDialog" v-if="permissionPrecise.overview_access(id)">
-                    <AppIcon iconName="app-lock" class="mr-4"></AppIcon>
-                    {{ $t('views.applicationOverview.appInfo.accessControl') }}
-                  </el-button>
-                  <!-- 显示设置 -->
-                  <el-button
-                    @click="openDisplaySettingDialog"
-                    v-if="permissionPrecise.overview_display(id)"
-                  >
-                    <AppIcon iconName="app-setting" class="mr-4"></AppIcon>
-                    {{ $t('views.applicationOverview.appInfo.displaySetting') }}
-                  </el-button>
-                </div>
-              </el-col>
-              <el-col :span="12" class="mt-16">
-                <div class="flex">
-                  <el-text type="info"
-                    >{{ $t('views.applicationOverview.appInfo.apiAccessCredentials') }}
-                  </el-text>
-                </div>
-                <div class="mt-4 mb-16 url-height">
-                  <div>
-                    <el-text>API {{ $t('common.fileUpload.document') }}：</el-text>
-                    <el-button
-                      type="primary"
-                      link
-                      @click="toUrl(apiUrl)"
-                      class="vertical-middle lighter break-all"
-                    >
-                      {{ apiUrl }}
-                    </el-button>
-                  </div>
-                  <div class="flex align-center">
-                    <span class="flex">
-                      <el-text style="width: 80px">Base URL：</el-text>
-                    </span>
-
-                    <span class="vertical-middle lighter break-all ellipsis-1">{{
-                      baseUrl + id
-                    }}</span>
-                    <el-tooltip effect="dark" :content="$t('common.copy')" placement="top">
-                      <el-button type="primary" text @click="copyClick(baseUrl + id)">
-                        <AppIcon iconName="app-copy"></AppIcon>
-                      </el-button>
-                    </el-tooltip>
-                  </div>
-                </div>
-                <div>
-                  <el-button
-                    @click="openAPIKeyDialog"
-                    v-if="permissionPrecise.overview_api_key(id)"
-                  >
-                    <el-icon class="mr-4">
-                      <Key />
-                    </el-icon>
-                    {{ $t('views.applicationOverview.appInfo.apiKey') }}
-                  </el-button>
-                </div>
-              </el-col>
-            </el-row>
-          </el-card>
-        </el-card>
-        <el-card style="--el-card-padding: 24px" class="mt-16">
-          <h4 class="title-decoration-1 mb-16">
-            {{ $t('views.applicationOverview.monitor.monitoringStatistics') }}
-          </h4>
-          <div class="mb-16">
-            <el-select v-model="history_day" class="mr-12 w-180" @change="changeDayHandle">
-              <el-option
-                v-for="item in dayOptions"
-                :key="item.value"
-                :label="item.label"
-                :value="item.value"
-              />
-            </el-select>
-            <el-date-picker
-              v-if="history_day === 'other'"
-              v-model="daterangeValue"
-              type="daterange"
-              :start-placeholder="$t('views.applicationOverview.monitor.startDatePlaceholder')"
-              :end-placeholder="$t('views.applicationOverview.monitor.endDatePlaceholder')"
-              format="YYYY-MM-DD"
-              value-format="YYYY-MM-DD"
-              @change="changeDayRangeHandle"
-            />
-          </div>
-          <div v-loading="statisticsLoading">
-            <StatisticsCharts
-              :data="statisticsData"
-              :token-usage="tokenUsage"
-              :top-questions="topQuestions"
-            />
-          </div>
-        </el-card>
-        <br />
-      </div>
-    </el-scrollbar>
+    <div class="overview-page__row">
+      <TrendChart :series="trendSeries" @change="onTrendChange" />
+      <AccessPanel
+        :access-token="accessToken"
+        :base-url="origin"
+        @toggle-active="onToggleActive"
+        @copy="onCopy"
+        @manage-keys="openAPIKeyDialog"
+      />
+    </div>
 
     <EmbedDialog
       ref="EmbedDialogRef"
@@ -183,32 +27,37 @@
       :api-input-params="mapToUrlParams(apiInputParams)"
     />
     <APIKeyDialog ref="APIKeyDialogRef" />
-
-    <!-- 社区版访问限制 -->
+    <!-- 社区版/企业版 访问限制 -->
     <component :is="currentLimitDialog" ref="LimitDialogRef" @refresh="refresh" />
-    <!-- 显示设置 -->
-    <component :is="currentDisplaySettingDialog" ref="DisplaySettingDialogRef" @refresh="refresh" />
+    <!-- 社区版/企业版 显示设置 -->
+    <component
+      :is="currentDisplaySettingDialog"
+      ref="DisplaySettingDialogRef"
+      @refresh="refresh"
+    />
   </div>
 </template>
+
 <script setup lang="ts">
 import { ref, computed, onMounted, shallowRef, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
+import HeroBar from './component/HeroBar.vue'
+import StatGrid from './component/StatGrid.vue'
+import TrendChart from './component/TrendChart.vue'
+import AccessPanel from './component/AccessPanel.vue'
 import EmbedDialog from './component/EmbedDialog.vue'
 import APIKeyDialog from './component/APIKeyDialog.vue'
 import LimitDialog from './component/LimitDialog.vue'
-import XPackLimitDrawer from './xpack-component/XPackLimitDrawer.vue'
 import DisplaySettingDialog from './component/DisplaySettingDialog.vue'
+import XPackLimitDrawer from './xpack-component/XPackLimitDrawer.vue'
 import XPackDisplaySettingDialog from './xpack-component/XPackDisplaySettingDialog.vue'
-import StatisticsCharts from './component/StatisticsCharts.vue'
 import { nowDate, beforeDay } from '@/utils/time'
-import { MsgSuccess, MsgConfirm } from '@/utils/message'
+import { MsgSuccess } from '@/utils/message'
 import { copyClick } from '@/utils/clipboard'
-import { resetUrl } from '@/utils/common'
 import { mapToUrlParams } from '@/utils/application'
 import { t } from '@/locales'
 import { EditionConst } from '@/utils/permission/data'
 import { hasPermission } from '@/utils/permission/index'
-import permissionMap from '@/permission'
 import { loadSharedApi } from '@/utils/dynamics-api/shared-api'
 
 const route = useRoute()
@@ -223,201 +72,82 @@ const apiType = computed(() => {
     return 'workspace'
   }
 })
-const permissionPrecise = computed(() => {
-  return permissionMap['application'][apiType.value]
-})
-
-const apiUrl = window.location.origin + `${window.MaxKB.chatPrefix}/api-doc/`
-
-const baseUrl = window.location.origin + `${window.MaxKB.chatPrefix}/api/`
-
-const APIKeyDialogRef = ref()
-const EmbedDialogRef = ref()
-
-const accessToken = ref<any>({})
-const detail = ref<any>(null)
 
 const loading = ref(false)
+const detail = ref<any>(null)
+const accessToken = ref<any>({})
+const apiInputParams = ref<any[]>([])
 
-const urlParams = computed(() =>
-  mapToUrlParams(apiInputParams.value) ? '?' + mapToUrlParams(apiInputParams.value) : '',
-)
-const shareUrl = computed(
-  () =>
-    `${window.location.origin}${window.MaxKB.chatPrefix}/` +
-    accessToken.value?.access_token +
-    urlParams.value,
-)
+const origin = window.location.origin + `${window.MaxKB.chatPrefix}`
 
-const dayOptions = [
-  {
-    value: 7,
-    label: t('views.applicationOverview.monitor.pastDayOptions.past7Days'),
-  },
-  {
-    value: 30,
-    label: t('views.applicationOverview.monitor.pastDayOptions.past30Days'),
-  },
-  {
-    value: 90,
-    label: t('views.applicationOverview.monitor.pastDayOptions.past90Days'),
-  },
-  {
-    value: 183,
-    label: t('views.applicationOverview.monitor.pastDayOptions.past183Days'),
-  },
-  {
-    value: 'other',
-    label: t('common.custom'),
-  },
-]
+// Stats + trend (derived from statistics API)
+const rawStats = ref<any[]>([])
+const stats = ref<any>(null)
+const trendSeries = ref<Array<{ date: string; value: number }>>([])
+const currentMetric = ref<string>('questions')
+const currentRange = ref<number | string>(7)
 
-const history_day = ref<number | string>(7)
-
-// 日期组件时间
-const daterangeValue = ref('')
-
-// 提交日期时间
-const daterange = ref({
-  start_time: '',
-  end_time: '',
-})
-
-const statisticsLoading = ref(false)
-const statisticsData = ref([])
-const tokenUsage = ref([])
-const topQuestions = ref([])
-
-const apiInputParams = ref([])
-
-function toUrl(url: string) {
-  window.open(url, '_blank')
+const METRIC_TO_FIELD: Record<string, string> = {
+  users: 'customer_num',
+  questions: 'chat_record_count',
+  tokens: 'tokens_num',
+  satisfaction: 'star_num',
 }
 
-// 显示设置
-const DisplaySettingDialogRef = ref()
-const currentDisplaySettingDialog = shallowRef<any>(null)
-
-function openDisplaySettingDialog() {
-  // 企业版和专业版
-  if (hasPermission([EditionConst.IS_EE, EditionConst.IS_PE], 'OR')) {
-    currentDisplaySettingDialog.value = XPackDisplaySettingDialog
-  } else {
-    // 社区版
-    currentDisplaySettingDialog.value = DisplaySettingDialog
-  }
-  nextTick(() => {
-    if (currentDisplaySettingDialog.value == XPackDisplaySettingDialog) {
-      loadSharedApi({ type: 'application', systemType: apiType.value })
-        .getApplicationSetting(id)
-        .then((ok: any) => {
-          DisplaySettingDialogRef.value?.open(ok.data, detail.value)
-        })
-    } else {
-      DisplaySettingDialogRef.value?.open(accessToken.value, detail.value)
-    }
-  })
+function sum(arr: number[]): number {
+  return arr.reduce((acc, v) => acc + (Number(v) || 0), 0)
 }
 
-// 访问限制
-const LimitDialogRef = ref()
-const currentLimitDialog = shallowRef<any>(null)
-
-function openLimitDialog() {
-  // 企业版和专业版
-  if (hasPermission([EditionConst.IS_EE, EditionConst.IS_PE], 'OR')) {
-    currentLimitDialog.value = XPackLimitDrawer
-  } else {
-    // 社区版
-    currentLimitDialog.value = LimitDialog
-  }
-  nextTick(() => {
-    LimitDialogRef.value.open(accessToken.value)
-  })
-}
-
-function changeDayHandle(val: number | string) {
-  if (val !== 'other') {
-    daterange.value.start_time = beforeDay(val)
-    daterange.value.end_time = nowDate
-    getAppStatistics()
+function buildStats(data: any[]) {
+  const userArr = data.map((d: any) => Number(d.customer_num) || 0)
+  const qaArr = data.map((d: any) => Number(d.chat_record_count) || 0)
+  const tokenArr = data.map((d: any) => Number(d.tokens_num) || 0)
+  const starArr = data.map((d: any) => Number(d.star_num) || 0)
+  const trampleArr = data.map((d: any) => Number(d.trample_num) || 0)
+  const starTotal = sum(starArr)
+  const trampleTotal = sum(trampleArr)
+  const denom = starTotal + trampleTotal
+  stats.value = {
+    user_count: sum(userArr),
+    qa_count: sum(qaArr),
+    token_count: sum(tokenArr),
+    satisfaction: denom > 0 ? starTotal / denom : null,
   }
 }
 
-function changeDayRangeHandle(val: string) {
-  daterange.value.start_time = val[0]
-  daterange.value.end_time = val[1]
-  getAppStatistics()
+function buildTrend(data: any[], metric: string) {
+  const field = METRIC_TO_FIELD[metric] || 'chat_record_count'
+  trendSeries.value = (data || []).map((d: any) => ({
+    date: (d.day || '').slice(5), // MM-DD for axis brevity
+    value: Number(d[field]) || 0,
+  }))
 }
 
-function getAppStatistics() {
-  loadSharedApi({ type: 'application', systemType: apiType.value })
-    .getStatistics(id, daterange.value, statisticsLoading)
-    .then((res: any) => {
-      statisticsData.value = res.data
-    })
-  loadSharedApi({ type: 'application', systemType: apiType.value })
-    .getTokenUsage(id, daterange.value, statisticsLoading)
-    .then((res: any) => {
-      // [{'token_usage': 200, 'username': '张三'}, ...]
-      tokenUsage.value = res.data
-    })
-  loadSharedApi({ type: 'application', systemType: apiType.value })
-    .topQuestions(id, daterange.value, statisticsLoading)
-    .then((res: any) => {
-      // [{'chat_record_count': 200, 'username': '张三'}, ...]
-      topQuestions.value = res.data
-    })
-}
-
-function refreshAccessToken() {
-  MsgConfirm(
-    t('views.applicationOverview.appInfo.refreshToken.msgConfirm1'),
-    t('views.applicationOverview.appInfo.refreshToken.msgConfirm2'),
-    {
-      confirmButtonText: t('common.confirm'),
-      cancelButtonText: t('common.cancel'),
-    },
-  )
-    .then(() => {
-      const obj = {
-        access_token_reset: true,
-      }
-      const str = t('views.applicationOverview.appInfo.refreshToken.refreshSuccess')
-      updateAccessToken(obj, str)
-    })
-    .catch(() => {})
-}
-
-async function changeState(bool: boolean) {
-  const obj = {
-    is_active: !bool,
+async function fetchStatistics(range: number | string, metric: string) {
+  const days = Number(range) || 7
+  const payload = {
+    start_time: beforeDay(days),
+    end_time: nowDate,
   }
-  const str = obj.is_active ? t('common.status.enableSuccess') : t('common.status.disableSuccess')
-  await updateAccessToken(obj, str)
-    .then(() => {
-      return true
-    })
-    .catch(() => {
-      return false
-    })
+  const res: any = await loadSharedApi({ type: 'application', systemType: apiType.value })
+    .getStatistics(id, payload)
+  rawStats.value = res.data || []
+  buildStats(rawStats.value)
+  buildTrend(rawStats.value, metric)
 }
 
-async function updateAccessToken(obj: any, str: string) {
-  loadSharedApi({ type: 'application', systemType: apiType.value })
-    .putAccessToken(id as string, obj, loading)
-    .then((res: any) => {
-      accessToken.value = res?.data
-      MsgSuccess(str)
-    })
+async function onTrendChange(payload: { range: string; metric: string }) {
+  currentRange.value = payload.range
+  currentMetric.value = payload.metric
+  try {
+    await fetchStatistics(payload.range, payload.metric)
+  } catch (e) {
+    console.warn('[overview] trend load failed:', e)
+  }
 }
 
-function openAPIKeyDialog() {
-  APIKeyDialogRef.value.open()
-}
-
-function openDialog() {
-  EmbedDialogRef.value.open(accessToken.value?.access_token)
+function refresh() {
+  getAccessToken()
 }
 
 function getAccessToken() {
@@ -437,44 +167,118 @@ function getDetail() {
         ?.filter((v: any) => v.id === 'base-node')
         .map((v: any) => {
           apiInputParams.value = v.properties.api_input_field_list
-            ? v.properties.api_input_field_list.map((v: any) => {
-                return {
-                  name: v.variable,
-                  value: v.default_value,
-                }
-              })
+            ? v.properties.api_input_field_list.map((v: any) => ({
+                name: v.variable,
+                value: v.default_value,
+              }))
             : v.properties.input_field_list
               ? v.properties.input_field_list
                   .filter((v: any) => v.assignment_method === 'api_input')
-                  .map((v: any) => {
-                    return {
-                      name: v.variable,
-                      value: v.default_value,
-                    }
-                  })
+                  .map((v: any) => ({ name: v.variable, value: v.default_value }))
               : []
         })
     })
 }
 
-function refresh() {
-  getAccessToken()
+async function updateAccessToken(obj: any, msg: string) {
+  return loadSharedApi({ type: 'application', systemType: apiType.value })
+    .putAccessToken(id as string, obj, loading)
+    .then((res: any) => {
+      accessToken.value = res?.data
+      MsgSuccess(msg)
+    })
+}
+
+function onToggleActive(val: boolean) {
+  const msg = val
+    ? t('common.status.enableSuccess')
+    : t('common.status.disableSuccess')
+  updateAccessToken({ is_active: val }, msg)
+}
+
+function onCopy(text: string) {
+  copyClick(text)
+}
+
+function goChat() {
+  if (!accessToken.value?.is_active || !accessToken.value?.access_token) return
+  const urlParams = mapToUrlParams(apiInputParams.value)
+    ? '?' + mapToUrlParams(apiInputParams.value)
+    : ''
+  const shareUrl = `${origin}/` + accessToken.value.access_token + urlParams
+  window.open(shareUrl, '_blank')
+}
+
+// Dialog refs
+const APIKeyDialogRef = ref<any>(null)
+const EmbedDialogRef = ref<any>(null)
+const DisplaySettingDialogRef = ref<any>(null)
+const LimitDialogRef = ref<any>(null)
+const currentDisplaySettingDialog = shallowRef<any>(null)
+const currentLimitDialog = shallowRef<any>(null)
+
+function openAPIKeyDialog() {
+  APIKeyDialogRef.value?.open()
+}
+
+function openEmbedDialog() {
+  if (!accessToken.value?.is_active) return
+  EmbedDialogRef.value?.open(accessToken.value?.access_token)
+}
+
+function openDisplaySettingDialog() {
+  if (hasPermission([EditionConst.IS_EE, EditionConst.IS_PE], 'OR')) {
+    currentDisplaySettingDialog.value = XPackDisplaySettingDialog
+  } else {
+    currentDisplaySettingDialog.value = DisplaySettingDialog
+  }
+  nextTick(() => {
+    if (currentDisplaySettingDialog.value === XPackDisplaySettingDialog) {
+      loadSharedApi({ type: 'application', systemType: apiType.value })
+        .getApplicationSetting(id)
+        .then((ok: any) => {
+          DisplaySettingDialogRef.value?.open(ok.data, detail.value)
+        })
+    } else {
+      DisplaySettingDialogRef.value?.open(accessToken.value, detail.value)
+    }
+  })
+}
+
+function openLimitDialog() {
+  if (hasPermission([EditionConst.IS_EE, EditionConst.IS_PE], 'OR')) {
+    currentLimitDialog.value = XPackLimitDrawer
+  } else {
+    currentLimitDialog.value = LimitDialog
+  }
+  nextTick(() => {
+    LimitDialogRef.value?.open(accessToken.value)
+  })
 }
 
 onMounted(() => {
   getDetail()
   getAccessToken()
-  changeDayHandle(history_day.value)
+  // TrendChart emits 'change' on mount with default range/metric, which triggers
+  // fetchStatistics via onTrendChange — no need to call it again here.
 })
 </script>
-<style lang="scss" scoped>
-.overview-card {
-  position: relative;
 
-  .active-button {
-    position: absolute;
-    right: 16px;
-    top: 21px;
+<style lang="scss" scoped>
+.overview-page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  height: 100%;
+  overflow: auto;
+}
+.overview-page__row {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 12px;
+  padding: 0 20px 20px;
+  @media (max-width: 1280px) {
+    grid-template-columns: 1fr;
   }
 }
 </style>
