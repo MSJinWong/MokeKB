@@ -131,6 +131,7 @@ export default {
     serverError: { title: '服务异常', hint: '请稍后重试。' },
     noPermission: { title: '无权访问', hint: '你的角色暂无该页面的权限。' },
     backHome: '返回首页',
+    back: '返回',
   },
   custom: '自定义',
   moveTo: '转移到',

@@ -131,6 +131,7 @@ export default {
     serverError: { title: 'Server error', hint: 'Please try again later.' },
     noPermission: { title: 'Access denied', hint: 'Your role does not have permission to view this page.' },
     backHome: 'Back to home',
+    back: 'Back',
   },
   custom: 'Custom',
   moveTo: 'Move To',

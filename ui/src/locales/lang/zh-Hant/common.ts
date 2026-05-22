@@ -130,6 +130,7 @@ export default {
     serverError: { title: '服務異常', hint: '請稍後重試。' },
     noPermission: { title: '無權訪問', hint: '你的角色暫無該頁面的權限。' },
     backHome: '返回首頁',
+    back: '返回',
   },
   custom: '自定義',
   moveTo: '移動到',

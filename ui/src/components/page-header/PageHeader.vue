@@ -61,14 +61,14 @@ defineEmits<{ (e: 'back'): void }>()
 }
 .page-header__text { min-width: 0; }
 .page-header__title {
-  font-size: 18px;
+  font-size: var(--font-size-xl);
   font-weight: 600;
   color: var(--text-primary);
   line-height: 1.4;
   margin: 0;
 }
 .page-header__subtitle {
-  font-size: 12px;
+  font-size: var(--font-size-sm);
   font-weight: 400;
   color: var(--text-secondary);
   margin-top: 2px;
