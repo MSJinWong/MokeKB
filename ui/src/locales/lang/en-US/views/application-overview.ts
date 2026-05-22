@@ -1,5 +1,9 @@
 export default {
   title: 'Overview',
+  displaySetting: 'Display',
+  embed: 'Embed',
+  accessLimit: 'Access',
+  goChat: 'Open chat',
   appInfo: {
     publicAccessLink: 'Public URL',
     openText: 'On',

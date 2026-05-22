@@ -1,5 +1,9 @@
 export default {
   title: '概覽',
+  displaySetting: '顯示設定',
+  embed: '嵌入第三方',
+  accessLimit: '訪問限制',
+  goChat: '去對話',
   appInfo: {
     publicAccessLink: '公開訪問連結',
     openText: '開',
