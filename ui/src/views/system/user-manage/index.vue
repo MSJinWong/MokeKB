@@ -1,32 +1,39 @@
 <template>
-  <div class="p-16-24">
-    <h2 class="mb-16">{{ $t('views.userManage.title') }}</h2>
-    <el-card class="main-calc-height">
-      <div class="flex-between mb-16">
-        <div>
-          <el-button
-            type="primary"
-            @click="createUser"
-            v-hasPermission="[RoleConst.ADMIN, PermissionConst.USER_CREATE]"
-            >{{ $t('views.userManage.createUser') }}
-          </el-button>
-          <el-button
-            v-if="user.isPE() || user.isEE()"
-            :disabled="multipleSelection.length === 0"
-            @click="setUserRoles"
-            v-hasPermission="[RoleConst.ADMIN, PermissionConst.USER_EDIT]"
-          >
-            {{ $t('views.userManage.settingRole') }}
-          </el-button>
-          <el-button
-            :disabled="multipleSelection.length === 0"
-            @click="handleBatchDelete"
-            v-hasPermission="[RoleConst.ADMIN, PermissionConst.USER_DELETE]"
-          >
-            {{ $t('common.delete') }}
-          </el-button>
-        </div>
-        <div class="flex-between complex-search">
+  <div class="user-manage">
+    <PageHeader
+      :title="$t('views.userManage.title')"
+      :subtitle="`${$t('views.userManage.title')} · ${paginationConfig.total}`"
+    >
+      <template #actions>
+        <el-button
+          v-if="user.isPE() || user.isEE()"
+          :disabled="multipleSelection.length === 0"
+          @click="setUserRoles"
+          v-hasPermission="[RoleConst.ADMIN, PermissionConst.USER_EDIT]"
+        >
+          {{ $t('views.userManage.settingRole') }}
+        </el-button>
+        <el-button
+          :disabled="multipleSelection.length === 0"
+          @click="handleBatchDelete"
+          v-hasPermission="[RoleConst.ADMIN, PermissionConst.USER_DELETE]"
+        >
+          {{ $t('common.delete') }}
+        </el-button>
+        <el-button
+          type="primary"
+          @click="createUser"
+          v-hasPermission="[RoleConst.ADMIN, PermissionConst.USER_CREATE]"
+        >
+          {{ $t('views.userManage.createUser') }}
+        </el-button>
+      </template>
+    </PageHeader>
+
+    <div class="card-unified user-manage__card">
+      <div class="toolbar">
+        <div class="toolbar__left"></div>
+        <div class="toolbar__right complex-search">
           <el-select
             class="complex-search__left"
             v-model="search_type"
@@ -96,8 +103,8 @@
           </el-select>
         </div>
       </div>
+
       <app-table
-        class="mt-16"
         :data="userTableData"
         :pagination-config="paginationConfig"
         @sizeChange="handleSizeChange"
@@ -110,39 +117,32 @@
         <el-table-column
           prop="nick_name"
           :label="$t('views.userManage.userForm.nick_name.label')"
-          min-width="180"
+          min-width="200"
           show-overflow-tooltip
-        />
+        >
+          <template #default="{ row }">
+            <div class="flex align-center">
+              <AgentAvatar :name="row.nick_name" :size="24" class="mr-8" />
+              <span>{{ row.nick_name }}</span>
+            </div>
+          </template>
+        </el-table-column>
         <el-table-column
           prop="username"
           min-width="180"
           show-overflow-tooltip
           :label="$t('views.login.loginForm.username.label')"
         />
-        <el-table-column width="100" prop="is_active" :label="$t('common.status.label')">
+        <el-table-column width="120" prop="is_active" :label="$t('common.status.label')">
           <template #default="{ row }">
-            <div v-if="row.is_active" class="flex align-center">
-              <el-icon class="color-success mr-8" style="font-size: 16px">
-                <SuccessFilled />
-              </el-icon>
-              <span class="color-text-primary">
-                {{ $t('common.status.enabled') }}
-              </span>
-            </div>
-            <div v-else class="flex align-center">
-              <AppIcon iconName="app-disabled" class="color-secondary mr-8"></AppIcon>
-              <span class="color-text-primary">
-                {{ $t('common.status.disabled') }}
-              </span>
-            </div>
+            <StatusDot :status="row.is_active ? 'enabled' : 'disabled'" />
           </template>
         </el-table-column>
-
         <el-table-column
           prop="email"
           :label="$t('views.login.loginForm.email.label')"
           show-overflow-tooltip
-          min-width="180"
+          min-width="200"
         >
           <template #default="{ row }">
             {{ row.email || '-' }}
@@ -160,7 +160,7 @@
         <el-table-column
           prop="role_name"
           :label="$t('views.role.member.role')"
-          width="210"
+          width="220"
           v-if="user.isEE() || user.isPE()"
         >
           <template #default="{ row }">
@@ -172,23 +172,19 @@
                 <el-table
                   :data="row.role_workspace"
                   :max-height="300"
-                  :tooltip-options="{
-                    popperClass: 'max-w-350',
-                  }"
+                  :tooltip-options="{ popperClass: 'max-w-350' }"
                 >
                   <el-table-column
                     prop="role"
                     :label="$t('views.role.member.role')"
                     width="200"
                     show-overflow-tooltip
-                  >
-                  </el-table-column>
+                  />
                   <el-table-column
                     prop="workspace"
                     :label="$t('views.workspace.title')"
                     show-overflow-tooltip
-                  >
-                  </el-table-column>
+                  />
                 </el-table>
               </template>
             </el-popover>
@@ -196,28 +192,14 @@
         </el-table-column>
         <el-table-column prop="source" width="120" :label="$t('views.userManage.source.label')">
           <template #default="{ row }">
-            {{
-              row.source === 'LOCAL'
-                ? $t('views.userManage.source.local')
-                : row.source === 'wecom'
-                  ? $t('views.userManage.source.wecom')
-                  : row.source === 'lark'
-                    ? $t('views.userManage.source.lark')
-                    : row.source === 'dingtalk'
-                      ? $t('views.userManage.source.dingtalk')
-                      : row.source === 'OAUTH2' || row.source === 'OAuth2'
-                        ? 'OAuth2'
-                        : row.source
-            }}
+            {{ formatSource(row.source) }}
           </template>
         </el-table-column>
-
         <el-table-column :label="$t('common.createTime')" width="180">
           <template #default="{ row }">
             {{ datetimeFormat(row.create_time) }}
           </template>
         </el-table-column>
-
         <el-table-column :label="$t('common.operation')" width="160" align="left" fixed="right">
           <template #default="{ row }">
             <span @click.stop>
@@ -229,23 +211,20 @@
                 v-if="hasPermission([RoleConst.ADMIN, PermissionConst.USER_EDIT], 'OR')"
               />
             </span>
-            <el-divider direction="vertical" />
             <el-tooltip
               effect="dark"
               :content="$t('common.edit')"
               placement="top"
               v-if="hasPermission([RoleConst.ADMIN, PermissionConst.USER_EDIT], 'OR')"
             >
-              <span class="mr-8">
-                <el-button
-                  type="primary"
-                  text
-                  @click.stop="editUser(row)"
-                  :title="$t('common.edit')"
-                >
-                  <AppIcon iconName="app-edit"></AppIcon>
-                </el-button>
-              </span>
+              <el-button
+                type="primary"
+                text
+                @click.stop="editUser(row)"
+                :title="$t('common.edit')"
+              >
+                <LucideIcon name="pencil" :size="16" />
+              </el-button>
             </el-tooltip>
             <el-tooltip
               effect="dark"
@@ -253,16 +232,14 @@
               placement="top"
               v-if="hasPermission([RoleConst.ADMIN, PermissionConst.USER_EDIT], 'OR')"
             >
-              <span class="mr-8">
-                <el-button
-                  type="primary"
-                  text
-                  @click.stop="editPwdUser(row)"
-                  :title="$t('views.userManage.setting.updatePwd')"
-                >
-                  <AppIcon iconName="app-key"></AppIcon>
-                </el-button>
-              </span>
+              <el-button
+                type="primary"
+                text
+                @click.stop="editPwdUser(row)"
+                :title="$t('views.userManage.setting.updatePwd')"
+              >
+                <LucideIcon name="key" :size="16" />
+              </el-button>
             </el-tooltip>
             <el-tooltip
               effect="dark"
@@ -277,13 +254,14 @@
                 @click.stop="deleteUserManage(row)"
                 :title="$t('common.delete')"
               >
-                <AppIcon iconName="app-delete"></AppIcon>
+                <LucideIcon name="trash-2" :size="16" />
               </el-button>
             </el-tooltip>
           </template>
         </el-table-column>
       </app-table>
-    </el-card>
+    </div>
+
     <UserDrawer :title="title" ref="UserDrawerRef" @refresh="refresh" />
     <UserPwdDialog ref="UserPwdDialogRef" @refresh="refresh" />
     <SetUserRoleDialog ref="setUserRoleRef" @refresh="refresh" />
@@ -303,6 +281,10 @@ import useStore from '@/stores'
 import { PermissionConst, RoleConst } from '@/utils/permission/data'
 import { hasPermission } from '@/utils/permission/index'
 import { i18n_name } from '@/utils/common'
+import { PageHeader } from '@/components/page-header'
+import { AgentAvatar } from '@/components/agent-avatar'
+import { StatusDot } from '@/components/status-dot'
+import { LucideIcon } from '@/components/lucide-icon'
 
 const { user, common } = useStore()
 const search_type = ref('username')
@@ -449,9 +431,28 @@ function setUserRoles() {
   setUserRoleRef.value?.open(multipleSelection.value.map((item) => item.id))
 }
 
+function formatSource(source: string): string {
+  switch (source) {
+    case 'LOCAL': return t('views.userManage.source.local')
+    case 'wecom': return t('views.userManage.source.wecom')
+    case 'lark': return t('views.userManage.source.lark')
+    case 'dingtalk': return t('views.userManage.source.dingtalk')
+    case 'OAUTH2':
+    case 'OAuth2': return 'OAuth2'
+    default: return source
+  }
+}
+
 onMounted(() => {
   getList()
 })
 </script>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.user-manage {
+  padding: 0 24px 24px;
+}
+.user-manage__card {
+  overflow: hidden;
+}
+</style>
