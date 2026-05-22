@@ -2,6 +2,12 @@ export default {
   title: '智能體',
   newInGroup: '在「{name}」下新建',
   emptyList: '還沒有智能體，去創建一個？',
+  searchPlaceholder: '搜索智能體',
+  groupBy: {
+    folder: '按標籤分組',
+    status: '按狀態分組',
+    none: '不分組',
+  },
   createApplication: '建立簡易智能體',
   createWorkFlowApplication: '建立進階智能體',
   importApplication: '匯入智能體',

@@ -2,6 +2,12 @@ export default {
   title: 'Agent',
   newInGroup: 'New in "{name}"',
   emptyList: 'No agents yet. Create one?',
+  searchPlaceholder: 'Search agents',
+  groupBy: {
+    folder: 'Group by label',
+    status: 'Group by status',
+    none: 'No grouping',
+  },
   createApplication: 'Create Simple Agent',
   createWorkFlowApplication: 'Create Workflow Agent',
   importApplication: 'Import Agent',
