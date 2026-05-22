@@ -103,3 +103,57 @@
 .lf-edge.is-selected path {
   stroke: var(--brand-primary);
 }
+
+/* ===== W1 · 工作流画布与节点重设 ===== */
+.lf-canvas-overlay,
+.lf-canvas {
+  background-color: #ffffff;
+  background-image:
+    linear-gradient(#f1f5f9 1px, transparent 1px),
+    linear-gradient(90deg, #f1f5f9 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+/* 节点容器顶部 2px 类型色条 */
+.step-container {
+  --node-type-color: #94a3b8;
+  position: relative;
+}
+.step-container::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 2px;
+  background: var(--node-type-color);
+  border-top-left-radius: 6px;
+  border-top-right-radius: 6px;
+}
+/* 类型映射(spec §6.4) */
+.step-container[data-node-type="start"] { --node-type-color: #10b981; }
+.step-container[data-node-type="reply"] { --node-type-color: #ef4444; }
+.step-container[data-node-type="application"] { --node-type-color: #8b5cf6; }
+.step-container[data-node-type="ai-chat"] { --node-type-color: #8b5cf6; }
+.step-container[data-node-type="search-knowledge"] { --node-type-color: #3b82f6; }
+.step-container[data-node-type="condition"] { --node-type-color: #f59e0b; }
+.step-container[data-node-type="question"] { --node-type-color: #3b82f6; }
+.step-container[data-node-type="form"] { --node-type-color: #f59e0b; }
+.step-container[data-node-type="document-extract"] { --node-type-color: #3b82f6; }
+.step-container[data-node-type="rerank"] { --node-type-color: #3b82f6; }
+.step-container[data-node-type="speech-to-text"] { --node-type-color: #3b82f6; }
+.step-container[data-node-type="text-to-speech"] { --node-type-color: #3b82f6; }
+.step-container[data-node-type="image-understand"] { --node-type-color: #3b82f6; }
+.step-container[data-node-type="image-generate"] { --node-type-color: #3b82f6; }
+.step-container[data-node-type="variable-assign"] { --node-type-color: #f59e0b; }
+.step-container[data-node-type="variable-aggregation"] { --node-type-color: #f59e0b; }
+.step-container[data-node-type="variable-splitting"] { --node-type-color: #f59e0b; }
+.step-container[data-node-type="loop"] { --node-type-color: #f59e0b; }
+.step-container[data-node-type="loop-break"] { --node-type-color: #f59e0b; }
+.step-container[data-node-type="loop-continue"] { --node-type-color: #f59e0b; }
+.step-container[data-node-type="parameter-extraction"] { --node-type-color: #3b82f6; }
+.step-container[data-node-type="reranker"] { --node-type-color: #3b82f6; }
+.step-container[data-node-type="tool"] { --node-type-color: #8b5cf6; }
+.step-container[data-node-type="tool-base"] { --node-type-color: #8b5cf6; }
+.step-container[data-node-type="tool-lib"] { --node-type-color: #8b5cf6; }
+.step-container[data-node-type="tool-workflow-lib"] { --node-type-color: #8b5cf6; }
