@@ -9,7 +9,7 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-type StatusKey = 'published' | 'draft' | 'archived'
+type StatusKey = 'published' | 'draft' | 'archived' | 'enabled' | 'disabled'
 
 const props = defineProps<{
   status: StatusKey
@@ -23,6 +23,8 @@ const statusText = computed(() => {
     case 'published': return t('common.status.published')
     case 'draft': return t('common.status.draft')
     case 'archived': return t('common.status.archived')
+    case 'enabled': return t('common.status.enabled')
+    case 'disabled': return t('common.status.disabled')
     default: return ''
   }
 })
@@ -45,4 +47,6 @@ const statusText = computed(() => {
 .status-dot--draft .status-dot__bullet { color: #94a3b8; }
 .status-dot--archived .status-dot__bullet { color: #cbd5e1; }
 .status-dot--archived .status-dot__label { color: var(--text-tertiary); }
+.status-dot--enabled .status-dot__bullet { color: #10b981; }
+.status-dot--disabled .status-dot__bullet { color: #94a3b8; }
 </style>
