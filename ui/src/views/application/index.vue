@@ -17,10 +17,29 @@
         <el-option value="status" :label="$t('views.application.groupBy.status')" />
         <el-option value="none" :label="$t('views.application.groupBy.none')" />
       </el-select>
-      <el-button type="primary" @click="onCreate()">
-        <LucideIcon name="plus" :size="14" />
-        <span class="ml-4">{{ $t('common.create') }}</span>
-      </el-button>
+      <el-dropdown trigger="click" @command="onCreateCommand">
+        <el-button type="primary">
+          <LucideIcon name="plus" :size="14" />
+          <span class="ml-4">{{ $t('common.create') }}</span>
+          <el-icon class="ml-4"><ArrowDown /></el-icon>
+        </el-button>
+        <template #dropdown>
+          <el-dropdown-menu>
+            <el-dropdown-item command="simple">
+              <LucideIcon name="bot" :size="14" />
+              <span class="ml-8">{{ $t('views.application.simple') }}</span>
+            </el-dropdown-item>
+            <el-dropdown-item command="advanced">
+              <LucideIcon name="git-branch" :size="14" />
+              <span class="ml-8">{{ $t('views.application.advanced') }}</span>
+            </el-dropdown-item>
+            <el-dropdown-item command="template" divided>
+              <LucideIcon name="library" :size="14" />
+              <span class="ml-8">{{ $t('workflow.setting.templateCenter') }}</span>
+            </el-dropdown-item>
+          </el-dropdown-menu>
+        </template>
+      </el-dropdown>
     </header>
 
     <ApplicationGroupedList
@@ -29,17 +48,26 @@
       :group-by="groupBy"
       :build-to="buildToForItem"
       @create="onCreate"
+      @move="onMove"
     />
 
     <CreateApplicationDialog ref="CreateApplicationDialogRef" @refresh="loadAll" />
+    <TemplateStoreDialog ref="TemplateStoreDialogRef" @refresh="loadAll" />
+    <MoveToDialog
+      ref="MoveToDialogRef"
+      :source="SourceTypeEnum.APPLICATION"
+      @refresh="loadAll"
+    />
   </div>
 </template>
 
 <script lang="ts" setup>
 import { ref, computed, onMounted } from 'vue'
-import { Search } from '@element-plus/icons-vue'
+import { Search, ArrowDown } from '@element-plus/icons-vue'
 import ApplicationGroupedList from './component/ApplicationGroupedList.vue'
 import CreateApplicationDialog from './component/CreateApplicationDialog.vue'
+import TemplateStoreDialog from './template-store/TemplateStoreDialog.vue'
+import MoveToDialog from '@/components/folder-tree/MoveToDialog.vue'
 import { LucideIcon } from '@/components/lucide-icon'
 import ApplicationApi from '@/api/application/application'
 import { SourceTypeEnum } from '@/enums/common'
@@ -57,6 +85,8 @@ const folders = ref<any[]>([])
 const loading = ref(false)
 
 const CreateApplicationDialogRef = ref()
+const TemplateStoreDialogRef = ref()
+const MoveToDialogRef = ref()
 
 const filteredApplications = computed(() => {
   const kw = searchKeyword.value.trim().toLowerCase()
@@ -226,6 +256,22 @@ async function loadAll() {
 function onCreate(folderId?: string) {
   const targetFolder = folderId && folderId !== '__unsorted__' ? folderId : 'default'
   CreateApplicationDialogRef.value?.open(targetFolder, 'SIMPLE')
+}
+
+function onCreateCommand(cmd: 'simple' | 'advanced' | 'template') {
+  const targetFolder = folder.currentFolder?.id || 'default'
+  if (cmd === 'template') {
+    TemplateStoreDialogRef.value?.open(targetFolder)
+    return
+  }
+  CreateApplicationDialogRef.value?.open(
+    targetFolder,
+    cmd === 'advanced' ? 'WORK_FLOW' : 'SIMPLE',
+  )
+}
+
+function onMove(app: any) {
+  MoveToDialogRef.value?.open({ id: app.id, folder_id: app.folder_id })
 }
 
 onMounted(loadAll)

@@ -1,23 +1,40 @@
 <template>
-  <router-link
-    :to="to"
-    class="app-card card-unified card-unified--hover"
-  >
-    <header class="app-card__head">
-      <AgentAvatar :name="app.name" :size="32" />
-      <div class="app-card__title">
-        <h4 class="app-card__name">{{ app.name }}</h4>
-        <span class="app-card__type">{{ typeLabel }}</span>
-      </div>
-    </header>
-    <p class="app-card__desc" v-if="app.desc || app.description">
-      {{ app.desc || app.description }}
-    </p>
-    <footer class="app-card__foot">
-      <StatusDot :status="statusKey" />
-      <span class="app-card__date">{{ formattedDate }}</span>
-    </footer>
-  </router-link>
+  <div class="app-card-wrap">
+    <router-link :to="to" class="app-card card-unified card-unified--hover">
+      <header class="app-card__head">
+        <AgentAvatar :name="app.name" :size="32" />
+        <div class="app-card__title">
+          <h4 class="app-card__name">{{ app.name }}</h4>
+          <span class="app-card__type">{{ typeLabel }}</span>
+        </div>
+      </header>
+      <p class="app-card__desc" v-if="app.desc || app.description">
+        {{ app.desc || app.description }}
+      </p>
+      <footer class="app-card__foot">
+        <StatusDot :status="statusKey" />
+        <span class="app-card__date">{{ formattedDate }}</span>
+      </footer>
+    </router-link>
+    <el-dropdown
+      class="app-card__menu"
+      trigger="click"
+      @command="onMenuCommand"
+      @click.stop.prevent
+    >
+      <el-button text class="app-card__menu-btn" @click.stop.prevent>
+        <LucideIcon name="more-horizontal" :size="14" />
+      </el-button>
+      <template #dropdown>
+        <el-dropdown-menu>
+          <el-dropdown-item command="move">
+            <LucideIcon name="folder-tree" :size="14" />
+            <span class="ml-8">{{ $t('common.moveTo') }}</span>
+          </el-dropdown-item>
+        </el-dropdown-menu>
+      </template>
+    </el-dropdown>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -26,6 +43,7 @@ import { useI18n } from 'vue-i18n'
 import type { RouteLocationRaw } from 'vue-router'
 import AgentAvatar from '@/components/agent-avatar/AgentAvatar.vue'
 import StatusDot from '@/components/status-dot/StatusDot.vue'
+import { LucideIcon } from '@/components/lucide-icon'
 
 interface ApplicationItem {
   id: string
@@ -36,12 +54,18 @@ interface ApplicationItem {
   is_publish?: boolean
   update_time?: string
   workspace_id?: string
+  folder_id?: string | null
 }
 
 const props = defineProps<{
   app: ApplicationItem
   to: RouteLocationRaw
 }>()
+
+const emit = defineEmits<{
+  (e: 'move', app: ApplicationItem): void
+}>()
+
 const { t } = useI18n()
 
 const typeLabel = computed(() => {
@@ -59,9 +83,16 @@ const formattedDate = computed(() => {
   if (!d) return ''
   return d.slice(0, 10)
 })
+
+function onMenuCommand(cmd: string) {
+  if (cmd === 'move') emit('move', props.app)
+}
 </script>
 
 <style lang="scss" scoped>
+.app-card-wrap {
+  position: relative;
+}
 .app-card {
   display: flex;
   flex-direction: column;
@@ -113,5 +144,24 @@ const formattedDate = computed(() => {
   justify-content: space-between;
   font-size: var(--font-size-xs);
   color: var(--text-tertiary);
+}
+.app-card__menu {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 1;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.app-card-wrap:hover .app-card__menu,
+.app-card__menu:focus-within {
+  opacity: 1;
+}
+.app-card__menu-btn {
+  padding: 2px 4px !important;
+  color: var(--text-tertiary);
+  &:hover {
+    color: var(--text-primary);
+  }
 }
 </style>
