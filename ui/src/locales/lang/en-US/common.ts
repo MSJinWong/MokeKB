@@ -75,6 +75,8 @@ export default {
     disableSuccess: 'Successful',
     published: 'Published',
     unpublished: 'Unpublished',
+    draft: 'Draft',
+    archived: 'Archived',
     success: 'Successful',
     fail: 'Failed',
     all: 'All',

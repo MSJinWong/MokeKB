@@ -76,6 +76,8 @@ export default {
     disableSuccess: '禁用成功',
     published: '已发布',
     unpublished: '未发布',
+    draft: '草稿',
+    archived: '已归档',
     success: '成功',
     fail: '失败',
     all: '全部',
