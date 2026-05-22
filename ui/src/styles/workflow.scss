@@ -104,16 +104,7 @@
   stroke: var(--brand-primary);
 }
 
-/* ===== W1 · 工作流画布与节点重设 ===== */
-.lf-canvas-overlay,
-.lf-canvas {
-  background-color: #ffffff;
-  background-image:
-    linear-gradient(#f1f5f9 1px, transparent 1px),
-    linear-gradient(90deg, #f1f5f9 1px, transparent 1px);
-  background-size: 20px 20px;
-}
-
+/* ===== W1 · 节点类型色条(配合 T16 注入 data-node-type) ===== */
 /* 节点容器顶部 2px 类型色条 */
 .step-container {
   --node-type-color: #94a3b8;
