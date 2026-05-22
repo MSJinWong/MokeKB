@@ -15,7 +15,7 @@
           :key="item.id"
           :app="item"
           :to="buildTo(item)"
-          @move="(app) => $emit('move', app)"
+          @action="(kind, app) => $emit('action', kind, app)"
         />
         <button
           type="button"
@@ -64,9 +64,11 @@ const props = defineProps<{
   buildTo: (item: ApplicationItem) => RouteLocationRaw
 }>()
 
+type CardAction = 'setting' | 'auth' | 'trigger' | 'move' | 'copy' | 'export' | 'delete'
+
 defineEmits<{
   (e: 'create', folderId: string): void
-  (e: 'move', app: ApplicationItem): void
+  (e: 'action', kind: CardAction, app: ApplicationItem): void
 }>()
 
 const palette = ['#10b981', '#3b82f6', '#8b5cf6', '#f59e0b', '#ef4444']

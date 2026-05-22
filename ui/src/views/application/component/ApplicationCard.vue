@@ -27,9 +27,33 @@
       </el-button>
       <template #dropdown>
         <el-dropdown-menu>
+          <el-dropdown-item command="setting">
+            <LucideIcon name="settings-2" :size="14" />
+            <span class="ml-8">{{ $t('common.setting') }}</span>
+          </el-dropdown-item>
+          <el-dropdown-item command="auth">
+            <LucideIcon name="users" :size="14" />
+            <span class="ml-8">{{ $t('views.system.resourceAuthorization.title') }}</span>
+          </el-dropdown-item>
+          <el-dropdown-item command="trigger">
+            <LucideIcon name="bell" :size="14" />
+            <span class="ml-8">{{ $t('views.trigger.title') }}</span>
+          </el-dropdown-item>
           <el-dropdown-item command="move">
             <LucideIcon name="folder-tree" :size="14" />
             <span class="ml-8">{{ $t('common.moveTo') }}</span>
+          </el-dropdown-item>
+          <el-dropdown-item command="copy">
+            <LucideIcon name="copy" :size="14" />
+            <span class="ml-8">{{ $t('common.copy') }}</span>
+          </el-dropdown-item>
+          <el-dropdown-item command="export" divided>
+            <LucideIcon name="download" :size="14" />
+            <span class="ml-8">{{ $t('common.export') }}</span>
+          </el-dropdown-item>
+          <el-dropdown-item command="delete">
+            <LucideIcon name="trash-2" :size="14" />
+            <span class="ml-8 app-card__danger">{{ $t('common.delete') }}</span>
           </el-dropdown-item>
         </el-dropdown-menu>
       </template>
@@ -62,8 +86,10 @@ const props = defineProps<{
   to: RouteLocationRaw
 }>()
 
+type CardAction = 'setting' | 'auth' | 'trigger' | 'move' | 'copy' | 'export' | 'delete'
+
 const emit = defineEmits<{
-  (e: 'move', app: ApplicationItem): void
+  (e: 'action', kind: CardAction, app: ApplicationItem): void
 }>()
 
 const { t } = useI18n()
@@ -84,8 +110,11 @@ const formattedDate = computed(() => {
   return d.slice(0, 10)
 })
 
+const ACTIONS: CardAction[] = ['setting', 'auth', 'trigger', 'move', 'copy', 'export', 'delete']
 function onMenuCommand(cmd: string) {
-  if (cmd === 'move') emit('move', props.app)
+  if ((ACTIONS as string[]).includes(cmd)) {
+    emit('action', cmd as CardAction, props.app)
+  }
 }
 </script>
 
@@ -163,5 +192,8 @@ function onMenuCommand(cmd: string) {
   &:hover {
     color: var(--text-primary);
   }
+}
+.app-card__danger {
+  color: var(--el-color-danger);
 }
 </style>

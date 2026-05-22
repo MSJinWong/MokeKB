@@ -48,7 +48,7 @@
       :group-by="groupBy"
       :build-to="buildToForItem"
       @create="onCreate"
-      @move="onMove"
+      @action="onAction"
     />
 
     <CreateApplicationDialog ref="CreateApplicationDialogRef" @refresh="loadAll" />
@@ -58,23 +58,41 @@
       :source="SourceTypeEnum.APPLICATION"
       @refresh="loadAll"
     />
+    <CopyApplicationDialog ref="CopyApplicationDialogRef" @refresh="loadAll" />
+    <ResourceAuthorizationDrawer
+      ref="ResourceAuthorizationDrawerRef"
+      :type="SourceTypeEnum.APPLICATION"
+    />
+    <ResourceTriggerDrawer
+      ref="ResourceTriggerDrawerRef"
+      :source="SourceTypeEnum.APPLICATION"
+    />
   </div>
 </template>
 
 <script lang="ts" setup>
 import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { Search, ArrowDown } from '@element-plus/icons-vue'
 import ApplicationGroupedList from './component/ApplicationGroupedList.vue'
 import CreateApplicationDialog from './component/CreateApplicationDialog.vue'
+import CopyApplicationDialog from './component/CopyApplicationDialog.vue'
 import TemplateStoreDialog from './template-store/TemplateStoreDialog.vue'
 import MoveToDialog from '@/components/folder-tree/MoveToDialog.vue'
+import ResourceAuthorizationDrawer from '@/components/resource-authorization-drawer/index.vue'
+import ResourceTriggerDrawer from '@/views/trigger/ResourceTriggerDrawer.vue'
 import { LucideIcon } from '@/components/lucide-icon'
 import ApplicationApi from '@/api/application/application'
 import { SourceTypeEnum } from '@/enums/common'
 import { hasPermission } from '@/utils/permission'
 import { ComplexPermission } from '@/utils/permission/type'
 import { EditionConst, PermissionConst, RoleConst } from '@/utils/permission/data'
+import { MsgSuccess, MsgConfirm, MsgError } from '@/utils/message'
+import { isWorkFlow } from '@/utils/application'
+import { t } from '@/locales'
 import useStore from '@/stores'
+
+const router = useRouter()
 
 const { folder } = useStore()
 
@@ -87,6 +105,9 @@ const loading = ref(false)
 const CreateApplicationDialogRef = ref()
 const TemplateStoreDialogRef = ref()
 const MoveToDialogRef = ref()
+const CopyApplicationDialogRef = ref()
+const ResourceAuthorizationDrawerRef = ref()
+const ResourceTriggerDrawerRef = ref<InstanceType<typeof ResourceTriggerDrawer>>()
 
 const filteredApplications = computed(() => {
   const kw = searchKeyword.value.trim().toLowerCase()
@@ -272,6 +293,86 @@ function onCreateCommand(cmd: 'simple' | 'advanced' | 'template') {
 
 function onMove(app: any) {
   MoveToDialogRef.value?.open({ id: app.id, folder_id: app.folder_id })
+}
+
+function settingApplication(app: any) {
+  if (isWorkFlow(app.type)) {
+    router.push({ path: `/application/workspace/${app.id}/workflow` })
+  } else {
+    router.push({ path: `/application/workspace/${app.id}/${app.type}/setting` })
+  }
+}
+
+function copyApplication(app: any) {
+  ApplicationApi.getApplicationDetail(app.id, loading).then((res: any) => {
+    if (res?.data) {
+      CopyApplicationDialogRef.value?.open(
+        { ...res.data, model_id: res.data.model },
+        app.folder_id || 'default',
+      )
+    }
+  })
+}
+
+function exportApplication(app: any) {
+  ApplicationApi.exportApplication(app.id, app.name, loading).catch((e: any) => {
+    if (e?.response && e.response.status !== 403) {
+      e.response.data.text().then((res: string) => {
+        try {
+          MsgError(`${t('views.application.tip.ExportError')}:${JSON.parse(res).message}`)
+        } catch {
+          MsgError(t('views.application.tip.ExportError'))
+        }
+      })
+    }
+  })
+}
+
+function deleteApplication(app: any) {
+  MsgConfirm(
+    `${t('views.application.delete.confirmTitle')}${app.name} ?`,
+    app.resource_count > 0
+      ? t('views.application.delete.resourceCountMessage', { count: app.resource_count })
+      : '',
+    {
+      confirmButtonText: t('common.confirm'),
+      cancelButtonText: t('common.cancel'),
+      confirmButtonClass: 'danger',
+    },
+  )
+    .then(() => {
+      ApplicationApi.delApplication(app.id, loading).then(() => {
+        MsgSuccess(t('common.deleteSuccess'))
+        loadAll()
+      })
+    })
+    .catch(() => {})
+}
+
+function onAction(kind: string, app: any) {
+  switch (kind) {
+    case 'setting':
+      settingApplication(app)
+      break
+    case 'auth':
+      ResourceAuthorizationDrawerRef.value?.open(app.id)
+      break
+    case 'trigger':
+      ResourceTriggerDrawerRef.value?.open(app)
+      break
+    case 'move':
+      onMove(app)
+      break
+    case 'copy':
+      copyApplication(app)
+      break
+    case 'export':
+      exportApplication(app)
+      break
+    case 'delete':
+      deleteApplication(app)
+      break
+  }
 }
 
 onMounted(loadAll)
