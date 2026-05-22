@@ -1,6 +1,6 @@
 <template>
   <router-link
-    :to="`/application/${app.workspace_id || 'default'}/${appType}/${app.id}/overview`"
+    :to="to"
     class="app-card card-unified card-unified--hover"
   >
     <header class="app-card__head">
@@ -23,6 +23,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import type { RouteLocationRaw } from 'vue-router'
 import AgentAvatar from '@/components/agent-avatar/AgentAvatar.vue'
 import StatusDot from '@/components/status-dot/StatusDot.vue'
 
@@ -37,13 +38,15 @@ interface ApplicationItem {
   workspace_id?: string
 }
 
-const props = defineProps<{ app: ApplicationItem }>()
+const props = defineProps<{
+  app: ApplicationItem
+  to: RouteLocationRaw
+}>()
 const { t } = useI18n()
 
-const appType = computed(() => (props.app.type || 'SIMPLE').toUpperCase())
-
 const typeLabel = computed(() => {
-  if (appType.value === 'WORK_FLOW') return t('views.application.advanced')
+  const appType = (props.app.type || 'SIMPLE').toUpperCase()
+  if (appType === 'WORK_FLOW') return t('views.application.advanced')
   return t('views.application.simple')
 })
 
