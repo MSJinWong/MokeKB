@@ -16,13 +16,6 @@
             @dragend.prevent
             style="width: 69%"
           >
-            <component
-              :is="iconComponent(`${nodeModel.type}-icon`)"
-              class="mr-8"
-              :size="24"
-              :item="nodeModel?.properties.node_data"
-              style="--el-avatar-border-radius: 6px"
-            />
             <h4
               class="ellipsis-1 break-all"
               v-html="highlightedStepName(nodeModel.properties.stepName)"
@@ -208,7 +201,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import { set } from 'lodash'
-import { iconComponent } from '../icons/utils'
 import { copyClick } from '@/utils/clipboard'
 import { WorkflowType, WorkflowKind } from '@/enums/application'
 import { MsgError, MsgConfirm } from '@/utils/message'

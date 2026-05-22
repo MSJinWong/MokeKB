@@ -149,11 +149,4 @@
 .step-container[data-node-type="tool-lib"] { --node-type-color: #8b5cf6; }
 .step-container[data-node-type="tool-workflow-lib"] { --node-type-color: #8b5cf6; }
 
-/* W1 · 缩小节点 header icon (匹配实际渲染的 el-avatar) */
-.step-container > div > div .el-avatar,
-.step-container .flex-between .el-avatar {
-  width: 18px !important;
-  height: 18px !important;
-  --el-avatar-size: 18px !important;
-  border-radius: 3px;
-}
+/* W1 · 节点 header icon 已移除(顶部色条已识别类型) */
