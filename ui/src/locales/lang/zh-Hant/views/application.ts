@@ -7,6 +7,7 @@ export default {
   AdvancedAgent: '進階編智能體',
   simpleAgent: '簡易智能體',
   simple: '簡易',
+  advanced: '高級',
   senior: '進階',
   simplePlaceholder: '通過表單設置方式，快速搭建基礎功能的智能體',
   advancedPlaceholder: '使用低代碼拖拉拽方式，靈活編排複雜邏輯、功能豐富的智能體',

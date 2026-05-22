@@ -5,6 +5,7 @@ export default {
   importApplication: '导入智能体',
   copyApplication: '复制智能体',
   simple: '简易',
+  advanced: '高级',
   senior: '高级',
   simpleAgent: '简易智能体',
   AdvancedAgent: '高级智能体',
