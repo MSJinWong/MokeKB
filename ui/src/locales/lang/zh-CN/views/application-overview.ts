@@ -4,6 +4,12 @@ export default {
   embed: '嵌入第三方',
   accessLimit: '访问限制',
   goChat: '去对话',
+  stats: {
+    users: '用户总数',
+    questions: '提问次数',
+    tokens: 'Tokens 总数',
+    satisfaction: '用户满意度',
+  },
   appInfo: {
     publicAccessLink: '公开访问链接',
     openText: '开',

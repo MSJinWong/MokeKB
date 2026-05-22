@@ -4,6 +4,12 @@ export default {
   embed: 'Embed',
   accessLimit: 'Access',
   goChat: 'Open chat',
+  stats: {
+    users: 'Users',
+    questions: 'Questions',
+    tokens: 'Tokens',
+    satisfaction: 'Satisfaction',
+  },
   appInfo: {
     publicAccessLink: 'Public URL',
     openText: 'On',
