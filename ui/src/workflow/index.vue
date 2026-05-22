@@ -82,10 +82,15 @@ const renderGraphData = (data?: any) => {
       polyline: {
         stroke: '#0f172a',
         strokeWidth: 1.5,
+        radius: 8,  // rounded corners on right-angle bends
       },
       bezier: {
         stroke: '#0f172a',
         strokeWidth: 1.5,
+      },
+      arrow: {
+        offset: 8,
+        verticalLength: 4,
       },
     })
     lf.value.on('graph:rendered', () => {

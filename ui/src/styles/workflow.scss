@@ -98,14 +98,15 @@
 .lf-edge path {
   stroke: var(--wf-line-color);
   stroke-width: var(--wf-line-width);
+  stroke-linejoin: round;
+  stroke-linecap: round;
   fill: none;
 }
 .lf-edge.is-selected path {
   stroke: var(--brand-primary);
 }
 
-/* ===== W1 · 节点类型色条(配合 T16 注入 data-node-type) ===== */
-/* 节点容器顶部 2px 类型色条 */
+/* W1 · 节点类型色条(2px 顶部色条 + 4px 加粗以提升识别度) */
 .step-container {
   --node-type-color: #94a3b8;
   position: relative;
@@ -116,38 +117,62 @@
   left: 0;
   right: 0;
   top: 0;
-  height: 2px;
+  height: 4px;  /* increased from 2px for visibility against white border */
   background: var(--node-type-color);
   border-top-left-radius: 6px;
   border-top-right-radius: 6px;
 }
-/* 类型映射(spec §6.4) */
-.step-container[data-node-type="start"] { --node-type-color: #10b981; }
-.step-container[data-node-type="reply"] { --node-type-color: #ef4444; }
-.step-container[data-node-type="application"] { --node-type-color: #8b5cf6; }
-.step-container[data-node-type="ai-chat"] { --node-type-color: #8b5cf6; }
-.step-container[data-node-type="search-knowledge"] { --node-type-color: #3b82f6; }
-.step-container[data-node-type="condition"] { --node-type-color: #f59e0b; }
-.step-container[data-node-type="question"] { --node-type-color: #3b82f6; }
-.step-container[data-node-type="form"] { --node-type-color: #f59e0b; }
-.step-container[data-node-type="document-extract"] { --node-type-color: #3b82f6; }
-.step-container[data-node-type="rerank"] { --node-type-color: #3b82f6; }
-.step-container[data-node-type="speech-to-text"] { --node-type-color: #3b82f6; }
-.step-container[data-node-type="text-to-speech"] { --node-type-color: #3b82f6; }
-.step-container[data-node-type="image-understand"] { --node-type-color: #3b82f6; }
-.step-container[data-node-type="image-generate"] { --node-type-color: #3b82f6; }
-.step-container[data-node-type="variable-assign"] { --node-type-color: #f59e0b; }
-.step-container[data-node-type="variable-aggregation"] { --node-type-color: #f59e0b; }
-.step-container[data-node-type="variable-splitting"] { --node-type-color: #f59e0b; }
-.step-container[data-node-type="loop"] { --node-type-color: #f59e0b; }
-.step-container[data-node-type="loop-break"] { --node-type-color: #f59e0b; }
-.step-container[data-node-type="loop-continue"] { --node-type-color: #f59e0b; }
-.step-container[data-node-type="parameter-extraction"] { --node-type-color: #3b82f6; }
-.step-container[data-node-type="reranker"] { --node-type-color: #3b82f6; }
-.step-container[data-node-type="tool"] { --node-type-color: #8b5cf6; }
-.step-container[data-node-type="tool-base"] { --node-type-color: #8b5cf6; }
-.step-container[data-node-type="tool-lib"] { --node-type-color: #8b5cf6; }
-.step-container[data-node-type="tool-workflow-lib"] { --node-type-color: #8b5cf6; }
+
+/* 触发/开始 — 绿 */
+.step-container[data-node-type="start-node"],
+.step-container[data-node-type="tool-start-node"],
+.step-container[data-node-type="loop-start-node"] { --node-type-color: #10b981; }
+
+/* 数据/检索 — 蓝 */
+.step-container[data-node-type="search-knowledge-node"],
+.step-container[data-node-type="search-document-node"],
+.step-container[data-node-type="document-extract-node"],
+.step-container[data-node-type="document-split-node"],
+.step-container[data-node-type="knowledge-base-node"],
+.step-container[data-node-type="knowledge-write-node"],
+.step-container[data-node-type="rerank-node"],
+.step-container[data-node-type="reranker-node"],
+.step-container[data-node-type="parameter-extraction-node"],
+.step-container[data-node-type="data-source-local-node"],
+.step-container[data-node-type="data-source-web-node"],
+.step-container[data-node-type="question-node"],
+.step-container[data-node-type="intent-node"],
+.step-container[data-node-type="speech-to-text-node"],
+.step-container[data-node-type="text-to-speech-node"],
+.step-container[data-node-type="image-understand-node"],
+.step-container[data-node-type="image-generate-node"],
+.step-container[data-node-type="text-to-video-node"],
+.step-container[data-node-type="image-to-video-node"],
+.step-container[data-node-type="video-understand-node"] { --node-type-color: #3b82f6; }
+
+/* AI/LLM — 紫 */
+.step-container[data-node-type="ai-chat-node"],
+.step-container[data-node-type="application-node"],
+.step-container[data-node-type="base-node"],
+.step-container[data-node-type="tool-node"],
+.step-container[data-node-type="tool-base-node"],
+.step-container[data-node-type="tool-lib-node"],
+.step-container[data-node-type="tool-workflow-lib-node"],
+.step-container[data-node-type="mcp-node"] { --node-type-color: #8b5cf6; }
+
+/* 逻辑/分支 — 橙 */
+.step-container[data-node-type="condition-node"],
+.step-container[data-node-type="form-node"],
+.step-container[data-node-type="loop-node"],
+.step-container[data-node-type="loop-body-node"],
+.step-container[data-node-type="loop-break-node"],
+.step-container[data-node-type="loop-continue-node"],
+.step-container[data-node-type="variable-assign-node"],
+.step-container[data-node-type="variable-aggregation-node"],
+.step-container[data-node-type="variable-splitting-node"] { --node-type-color: #f59e0b; }
+
+/* 输出/终止 — 红 */
+.step-container[data-node-type="reply-node"] { --node-type-color: #ef4444; }
 
 /* W1 · 节点 header icon 已移除(顶部色条已识别类型) */
 
