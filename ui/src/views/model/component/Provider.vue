@@ -126,7 +126,6 @@ watch(
   (list) => {
     const local_provider = [
       'model_ollama_provider',
-      'model_local_provider',
       'model_xinference_provider',
       'model_vllm_provider',
       'model_docker_ai_provider'
