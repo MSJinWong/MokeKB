@@ -715,6 +715,8 @@ onUnmounted(() => {
 })
 </script>
 <style lang="scss" scoped>
+@use '@/styles/nav-item' as nav;
+
 .folder-tree {
   .shared-button {
     padding: 10px 8px;
@@ -777,25 +779,7 @@ onUnmounted(() => {
   }
 }
 :deep(.el-tree-node__content) {
-  height: var(--nav-item-height);
-  line-height: var(--nav-item-height);
-  padding: 0 var(--nav-item-padding-x);
-  font-size: var(--nav-item-font-size);
-  font-weight: var(--nav-item-font-weight);
-  color: var(--nav-item-color);
-  border-radius: var(--nav-item-radius);
-  margin-bottom: var(--nav-item-gap);
-  display: flex;
-  align-items: center;
-  gap: var(--nav-item-icon-gap);
-  cursor: pointer;
-  transition: background-color 0.15s, color 0.15s;
-  box-sizing: border-box;
-
-  &:hover {
-    background: var(--nav-item-hover-bg);
-    color: var(--nav-item-hover-color);
-  }
+  @include nav.nav-item-base;
 }
 :deep(.el-tree-node.is-current > .el-tree-node__content) {
   background: var(--nav-item-active-bg);
