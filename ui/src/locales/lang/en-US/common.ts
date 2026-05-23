@@ -85,6 +85,10 @@ export default {
     STARTED: 'Padding',
     REVOKED: 'Cancelled',
     REVOKE: 'Cancelling',
+    active: 'Active',
+    paused: 'Paused',
+    indexing: 'Indexing',
+    error: 'Error',
   },
   param: {
     outputParam: 'Output Parameters',

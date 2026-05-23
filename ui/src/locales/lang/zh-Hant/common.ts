@@ -85,6 +85,10 @@ export default {
     STARTED: '執行中',
     REVOKED: '已取消',
     REVOKE: '取消中',
+    active: '已啟用',
+    paused: '已暫停',
+    indexing: '索引中',
+    error: '錯誤',
   },
   param: {
     outputParam: '輸出參數',
