@@ -121,7 +121,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { LucideIcon } from '@/components/lucide-icon'
-import { useRoute } from 'vue-router'
 import type { Provider, BaseModel, Model } from '@/api/type/model'
 import type { Dict, KeyValue } from '@/api/type/common'
 import ProviderApi from '@/api/model/provider'
@@ -132,17 +131,7 @@ import { MsgSuccess } from '@/utils/message'
 import { t } from '@/locales'
 import { loadSharedApi } from '@/utils/dynamics-api/shared-api'
 
-const route = useRoute()
-
-const apiType = computed(() => {
-  if (route.path.includes('shared')) {
-    return 'systemShare'
-  } else if (route.path.includes('resource-management')) {
-    return 'systemManage'
-  } else {
-    return 'workspace'
-  }
-})
+const apiType = 'workspace'
 
 const providerValue = ref<Provider>()
 const dynamicsFormRef = ref<InstanceType<typeof DynamicsForm>>()
@@ -222,7 +211,7 @@ const list_base_model = (model_type: any, change?: boolean) => {
 }
 const open = (provider: Provider, model: Model) => {
   modelValue.value = model
-  loadSharedApi({ type: 'model', systemType: apiType.value })
+  loadSharedApi({ type: 'model', systemType: apiType })
     .getModelById(model.id, formLoading)
     .then((ok: any) => {
       modelValue.value = ok.data
@@ -255,7 +244,7 @@ const close = () => {
 const submit = () => {
   dynamicsFormRef.value?.validate().then(() => {
     if (modelValue.value) {
-      loadSharedApi({ type: 'model', systemType: apiType.value })
+      loadSharedApi({ type: 'model', systemType: apiType })
         .updateModel(
           modelValue.value.id,
           {

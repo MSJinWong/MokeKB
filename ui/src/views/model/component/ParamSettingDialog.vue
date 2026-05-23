@@ -79,9 +79,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 import { LucideIcon } from '@/components/lucide-icon'
-import { useRoute } from 'vue-router'
 import type { Model } from '@/api/type/model'
 import AddParamDrawer from './AddParamDrawer.vue'
 import { MsgError, MsgSuccess } from '@/utils/message'
@@ -89,17 +88,7 @@ import { input_type_list } from '@/components/dynamics-form/constructor/data'
 import { t } from '@/locales'
 import { loadSharedApi } from '@/utils/dynamics-api/shared-api'
 
-const route = useRoute()
-
-const apiType = computed(() => {
-  if (route.path.includes('shared')) {
-    return 'systemShare'
-  } else if (route.path.includes('resource-management')) {
-    return 'systemManage'
-  } else {
-    return 'workspace'
-  }
-})
+const apiType = 'workspace'
 const loading = ref<boolean>(false)
 const dialogVisible = ref<boolean>(false)
 const modelParamsForm = ref<any[]>([])
@@ -110,7 +99,7 @@ const open = (model: Model) => {
   currentModel.value = model
   dialogVisible.value = true
   loading.value = true
-  loadSharedApi({ type: 'model', systemType: apiType.value })
+  loadSharedApi({ type: 'model', systemType: apiType })
     .getModelParamsForm(model.id, loading)
     .then((ok: any) => {
       loading.value = false
@@ -165,7 +154,7 @@ function submit() {
   if (!currentModel.value) {
     return
   }
-  loadSharedApi({ type: 'model', systemType: apiType.value })
+  loadSharedApi({ type: 'model', systemType: apiType })
     .updateModelParamsForm(currentModel.value.id, modelParamsForm.value, loading)
     .then((ok: any) => {
       MsgSuccess(t('views.model.tip.saveSuccessMessage'))
