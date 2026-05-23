@@ -1,5 +1,5 @@
 <template>
-  <aside class="app-side" :aria-label="$t('layout.side.aria')">
+  <aside class="app-side" v-if="visible" :aria-label="$t('layout.side.aria')">
     <div class="app-side__title">{{ moduleTitle }}</div>
     <el-scrollbar>
       <el-menu
@@ -36,6 +36,8 @@ const subMenuList = computed(() => {
   const list = getChildRouteListByPathAndName(meta.parentPath as string, meta.parentName as string)
   return list.filter((r: any) => !r.meta?.hideMenu)
 })
+
+const visible = computed(() => subMenuList.value.length >= 2)
 
 const activeMenu = computed(() => {
   const { path, meta } = route
