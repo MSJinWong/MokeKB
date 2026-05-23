@@ -9,7 +9,7 @@
       />
       <el-dropdown trigger="click" :teleported="false" @command="switchSortMethod">
         <el-button class="ml-8" style="width: 32px">
-          <AppIcon :iconName="sortIconName"></AppIcon>
+          <LucideIcon :name="sortIconName" :size="16" />
         </el-button>
         <template #dropdown>
           <el-dropdown-menu style="width: 220px">
@@ -41,11 +41,11 @@
           class="shared-button flex cursor border-r-6"
           :class="currentNodeKey === 'share' && 'active'"
         >
-          <AppIcon
-            iconName="app-shared-active"
-            style="font-size: 18px"
+          <LucideIcon
+            name="share-2"
+            :size="16"
             class="color-primary"
-          ></AppIcon>
+          />
           <span class="ml-8">{{ shareTitle }}</span>
         </div>
       </div>
@@ -81,7 +81,7 @@
             @mouseenter.stop="handleMouseEnter(data)"
             class="flex align-center w-full custom-tree-node"
           >
-            <AppIcon iconName="app-folder" style="font-size: 20px"></AppIcon>
+            <LucideIcon name="folder" :size="16" />
             <span class="tree-label ml-8" :title="node.label">{{ i18n_name(node.label) }}</span>
 
             <div
@@ -94,7 +94,7 @@
             >
               <el-dropdown trigger="click" :teleported="false">
                 <el-button text class="w-full" v-if="MoreFilledPermission(node, data)">
-                  <AppIcon iconName="app-more"></AppIcon>
+                  <LucideIcon name="more-horizontal" :size="16" />
                 </el-button>
                 <template #dropdown>
                   <el-dropdown-menu>
@@ -102,31 +102,28 @@
                       @click.stop="openCreateFolder(data)"
                       v-if="permissionPrecise.folderCreate(data.id)"
                     >
-                      <AppIcon iconName="app-add-folder" class="color-secondary"></AppIcon>
+                      <LucideIcon name="folder-plus" :size="16" class="color-secondary" />
                       {{ $t('components.folder.addChildFolder') }}
                     </el-dropdown-item>
                     <el-dropdown-item
                       @click.stop="openEditFolder(data)"
                       v-if="permissionPrecise.folderEdit(data.id)"
                     >
-                      <AppIcon iconName="app-edit" class="color-secondary"></AppIcon>
+                      <LucideIcon name="pencil" :size="16" class="color-secondary" />
                       {{ $t('common.edit') }}
                     </el-dropdown-item>
                     <el-dropdown-item
                       @click.stop="openMoveToDialog(data)"
                       v-if="node.level !== 1 && permissionPrecise.folderEdit(data.id)"
                     >
-                      <AppIcon iconName="app-migrate" class="color-secondary"></AppIcon>
+                      <LucideIcon name="move" :size="16" class="color-secondary" />
                       {{ $t('common.moveTo') }}
                     </el-dropdown-item>
                     <el-dropdown-item
                       @click.stop="openAuthorization(data)"
                       v-if="permissionPrecise.folderAuth(data.id)"
                     >
-                      <AppIcon
-                        iconName="app-resource-authorization"
-                        class="color-secondary"
-                      ></AppIcon>
+                      <LucideIcon name="shield-check" :size="16" class="color-secondary" />
                       {{ $t('views.system.resourceAuthorization.title') }}
                     </el-dropdown-item>
                     <el-dropdown-item
@@ -135,7 +132,7 @@
                       :disabled="!data.parent_id"
                       v-if="permissionPrecise.folderDelete(data.id)"
                     >
-                      <AppIcon iconName="app-delete" class="color-secondary"></AppIcon>
+                      <LucideIcon name="trash-2" :size="16" class="color-secondary" />
                       {{ $t('common.delete') }}
                     </el-dropdown-item>
                   </el-dropdown-menu>
@@ -162,6 +159,7 @@
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { onBeforeRouteLeave } from 'vue-router'
 import type { TreeInstance } from 'element-plus'
+import { LucideIcon } from '@/components/lucide-icon'
 import CreateFolderDialog from '@/components/folder-tree/CreateFolderDialog.vue'
 import ResourceAuthorizationDrawer from '@/components/resource-authorization-drawer/index.vue'
 import { t } from '@/locales'
@@ -304,12 +302,12 @@ function addOrderToTree(nodes: any, parentId: string): Node[] {
 const sortIconName = computed(() => {
   const sort = currentSort.value
   if (sort.endsWith('asc')) {
-    return 'app-folder-asc'
+    return 'arrow-up-narrow-wide'
   }
   if (sort.endsWith('desc')) {
-    return 'app-folder-desc'
+    return 'arrow-down-wide-narrow'
   }
-  return 'app-folder-custom'
+  return 'arrow-up-down'
 })
 
 const currentSort = ref<SortType>(SORT_TYPES.CREATE_TIME_DESC)
@@ -777,5 +775,31 @@ onUnmounted(() => {
       overflow: inherit !important;
     }
   }
+}
+:deep(.el-tree-node__content) {
+  height: var(--nav-item-height);
+  line-height: var(--nav-item-height);
+  padding: 0 var(--nav-item-padding-x);
+  font-size: var(--nav-item-font-size);
+  font-weight: var(--nav-item-font-weight);
+  color: var(--nav-item-color);
+  border-radius: var(--nav-item-radius);
+  margin-bottom: var(--nav-item-gap);
+  display: flex;
+  align-items: center;
+  gap: var(--nav-item-icon-gap);
+  cursor: pointer;
+  transition: background-color 0.15s, color 0.15s;
+  box-sizing: border-box;
+
+  &:hover {
+    background: var(--nav-item-hover-bg);
+    color: var(--nav-item-hover-color);
+  }
+}
+:deep(.el-tree-node.is-current > .el-tree-node__content) {
+  background: var(--nav-item-active-bg);
+  color: var(--nav-item-active-color);
+  font-weight: var(--nav-item-active-font-weight);
 }
 </style>
