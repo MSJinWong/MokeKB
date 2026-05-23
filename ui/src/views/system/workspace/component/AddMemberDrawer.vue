@@ -27,7 +27,7 @@
 import { onBeforeMount, ref } from 'vue'
 import UserApi from '@/api/user/user'
 import WorkspaceApi from '@/api/workspace/workspace'
-import MemberFormContent from '@/views/system/role/component/MemberFormContent.vue'
+import MemberFormContent from '@/components/member-form-content'
 import { t } from '@/locales'
 import { MsgSuccess } from '@/utils/message'
 import type { CreateWorkspaceMemberParamsItem, WorkspaceItem } from '@/api/type/workspace'

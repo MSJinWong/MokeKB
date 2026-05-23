@@ -52,7 +52,7 @@ import { t } from '@/locales'
 
 const memberFormContentLoading = ref(false)
 import userManageApi from '@/api/system/user-manage'
-import MemberFormContent from '@/views/system/role/component/MemberFormContent.vue'
+import MemberFormContent from '@/components/member-form-content'
 import type { FormItemModel } from '@/api/type/role.ts'
 import WorkspaceApi from '@/api/workspace/workspace.ts'
 import useStore from '@/stores'
