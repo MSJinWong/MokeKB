@@ -62,16 +62,9 @@ const renderGraphData = (data?: any) => {
       adjustEdge: false,
       adjustEdgeStartAndEnd: false,
       background: {
-        backgroundColor: '#f5f6f7',
+        backgroundColor: '#ffffff',
       },
-      grid: {
-        size: 10,
-        type: 'dot',
-        config: {
-          color: '#DEE0E3',
-          thickness: 1,
-        },
-      },
+      grid: false,
       keyboard: {
         enabled: true,
       },
