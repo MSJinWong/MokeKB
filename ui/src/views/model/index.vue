@@ -75,9 +75,9 @@
             <el-col
               :xs="24"
               :sm="12"
-              :md="isSystemShare ? 24 : 12"
-              :lg="isSystemShare ? 12 : 8"
-              :xl="isSystemShare ? 12 : 8"
+              :md="12"
+              :lg="8"
+              :xl="8"
               class="mb-16"
               v-for="(model, i) in row"
               :key="i"
@@ -88,8 +88,6 @@
                 :model="model"
                 :provider_list="provider_list"
                 :isShared="isShared"
-                :isSystemShare="isSystemShare"
-                :apiType="apiType"
               >
               </ModelCard>
             </el-col>
@@ -125,25 +123,11 @@ import CreateModelDialog from '@/views/model/component/CreateModelDialog.vue'
 import SelectProviderDialog from '@/views/model/component/SelectProviderDialog.vue'
 import { loadSharedApi } from '@/utils/dynamics-api/shared-api'
 import useStore from '@/stores'
-import { useRoute } from 'vue-router'
 import permissionMap from '@/permission'
 
-const route = useRoute()
 const { model, user } = useStore()
-const apiType = computed(() => {
-  if (route.path.includes('shared')) {
-    return 'systemShare'
-  } else if (route.path.includes('resource-management')) {
-    return 'systemManage'
-  } else {
-    return 'workspace'
-  }
-})
 const permissionPrecise = computed(() => {
-  return permissionMap['model'][apiType.value]
-})
-const isSystemShare = computed(() => {
-  return apiType.value === 'systemShare'
+  return permissionMap['model']['workspace']
 })
 const commonList1 = ref()
 const commonList2 = ref()
@@ -201,12 +185,12 @@ const openCreateModel = (provider?: Provider, model_type?: string) => {
 
 const list_model = () => {
   const params = active_provider.value?.provider && active_provider.value?.provider !=='share' ? { provider: active_provider.value.provider } : {}
-  loadSharedApi({ type: 'model', isShared: isShared.value, systemType: apiType.value })
+  loadSharedApi({ type: 'model', isShared: isShared.value, systemType: 'workspace' })
     .getModelList({ ...model_search_form.value, ...params }, list_model_loading)
     .then((ok: any) => {
       model_list.value = ok.data
     })
-  loadSharedApi({ type: 'workspace', isShared: isShared.value, systemType: apiType.value })
+  loadSharedApi({ type: 'workspace', isShared: isShared.value, systemType: 'workspace' })
     .getAllMemberList(user.getWorkspaceId(), loading)
     .then((res: any) => {
       user_options.value = res.data
