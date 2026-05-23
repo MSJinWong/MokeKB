@@ -68,34 +68,16 @@ defineExpose({
 })
 </script>
 <style lang="scss" scoped>
-/* 通用 ui li样式 */
+@use '@/styles/nav-item' as nav;
+
 .common-list {
+  ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
   li {
-    padding: 8px;
-    font-weight: 400;
-    font-size: 14px;
-    margin-bottom: 4px;
-    min-height: 24px;
-    line-height: 24px;
-    &.active {
-      background: var(--el-color-primary-light-9);
-      border-radius: var(--app-border-radius-small);
-      color: var(--el-color-primary);
-      font-weight: 500;
-      &:hover {
-        background: var(--el-color-primary-light-9);
-      }
-    }
-    &:hover {
-      border-radius: var(--app-border-radius-small);
-      background: rgba(var(--el-text-color-primary-rgb), 0.1);
-    }
-    &.is-active {
-      &:hover {
-        color: var(--el-color-primary);
-        background: var(--el-color-primary-light-9);
-      }
-    }
+    @include nav.nav-item-base;
   }
 }
 </style>
