@@ -16,17 +16,14 @@
     </template>
     <KnowledgeListContainer @refreshFolder="refreshFolder">
       <template #header>
-        <h2 v-if="folder.currentFolder?.id === 'share'">
-          {{ $t('views.shared.shared_knowledge') }}
-        </h2>
-        <FolderBreadcrumb :folderList="folderList" @click="folderClickHandle" v-else />
+        <FolderBreadcrumb :folderList="folderList" @click="folderClickHandle" />
       </template>
     </KnowledgeListContainer>
   </LayoutContainer>
 </template>
 
 <script lang="ts" setup>
-import { onMounted, ref, reactive, shallowRef, nextTick, computed } from 'vue'
+import { onMounted, ref, computed } from 'vue'
 import KnowledgeListContainer from '@/views/knowledge/component/KnowledgeListContainer.vue'
 import { SourceTypeEnum } from '@/enums/common'
 import permissionMap from '@/permission'

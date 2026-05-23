@@ -17,10 +17,7 @@
     <ToolListContainer @refreshFolder="refreshFolder">
       <template #header>
         <el-space wrap>
-          <h2 v-if="folder.currentFolder?.id === 'share'">
-            {{ $t('views.shared.shared_tool') }}
-          </h2>
-          <FolderBreadcrumb :folderList="folderList" @click="folderClickHandle" v-else />
+          <FolderBreadcrumb :folderList="folderList" @click="folderClickHandle" />
           <el-divider direction="vertical" />
           <el-select
             v-model="toolType"
@@ -43,7 +40,7 @@
 </template>
 
 <script lang="ts" setup>
-import { onMounted, ref, reactive, computed } from 'vue'
+import { onMounted, ref, computed } from 'vue'
 import ToolListContainer from '@/views/tool/component/ToolListContainer.vue'
 import { SourceTypeEnum } from '@/enums/common'
 import permissionMap from '@/permission'
