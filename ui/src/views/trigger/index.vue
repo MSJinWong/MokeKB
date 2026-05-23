@@ -1,116 +1,125 @@
 <template>
-  <div class="trigger-manage p-16-24">
-    <h2 class="ml-24 mb-16">{{ $t('views.trigger.title') }}</h2>
-    <el-card style="--el-card-padding: 0">
-      <div class="main-calc-height">
-        <div class="p-24">
-          <div class="flex-between">
-            <div>
-              <el-button
-                v-if="triggerPermissionMap.create()"
-                type="primary"
-                @click="openCreateTriggerDrawer"
-                >{{ $t('common.create') }}
-              </el-button>
-              <el-button
-                v-if="triggerPermissionMap.edit()"
-                @click="batchChangeState(true)"
-                :disabled="multipleSelection.length === 0"
-                >{{ $t('common.status.enable') }}
-              </el-button>
-              <el-button
-                v-if="triggerPermissionMap.edit()"
-                @click="batchChangeState(false)"
-                :disabled="multipleSelection.length === 0"
-                >{{ $t('common.status.disable') }}
-              </el-button>
-              <el-button
-                v-if="triggerPermissionMap.delete()"
-                @click="batchDelete"
-                :disabled="multipleSelection.length === 0"
-                >{{ $t('common.delete') }}
-              </el-button>
-            </div>
-            <div class="flex-between complex-search">
-              <el-select
-                class="complex-search__left"
-                v-model="search_type"
-                style="width: 90px"
-                @change="search_type_change"
-              >
-                <el-option :label="$t('common.name')" value="name" />
-                <el-option :label="$t('common.type')" value="type" />
-                <el-option :label="$t('views.trigger.task')" value="task" />
-                <el-option :label="$t('common.status.label')" value="is_active" />
-                <el-option :label="$t('common.creator')" value="create_user" />
-              </el-select>
-              <el-input
-                v-if="search_type === 'name'"
-                v-model="search_form.name"
-                @change="searchHandle"
-                :placeholder="$t('common.searchBar.placeholder')"
-                style="width: 220px"
-                clearable
-              />
-              <el-select
-                v-else-if="search_type === 'type'"
-                v-model="search_form.type"
-                @change="searchHandle"
-                filterable
-                clearable
-                style="width: 220px"
-              >
-                <el-option :label="$t('views.trigger.type.scheduled')" value="SCHEDULED" />
-                <el-option :label="$t('views.trigger.type.event')" value="EVENT" />
-              </el-select>
-              <el-select
-                v-else-if="search_type === 'is_active'"
-                v-model="search_form.is_active"
-                @change="searchHandle"
-                filterable
-                clearable
-                style="width: 220px"
-              >
-                <el-option :label="$t('common.status.enabled')" value="true" />
-                <el-option :label="$t('common.status.disabled')" value="false" />
-              </el-select>
-              <el-select
-                v-else-if="search_type === 'create_user'"
-                v-model="search_form.create_user"
-                @change="searchHandle"
-                filterable
-                clearable
-                style="width: 220px"
-              >
-                <el-option
-                  v-for="u in user_options"
-                  :key="u.id"
-                  :value="u.id"
-                  :label="u.nick_name"
-                />
-              </el-select>
-              <el-input
-                v-if="search_type === 'task'"
-                v-model="search_form.task"
-                @change="searchHandle"
-                :placeholder="$t('common.search')"
-                style="width: 220px"
-                clearable
-              />
-            </div>
-          </div>
-          <app-table
-            ref="multipleTableRef"
-            class="mt-16"
-            :data="triggerData"
-            :pagination-config="paginationConfig"
-            @sizeChange="handleSizeChange"
-            @changePage="getList"
-            @selection-change="handleSelectionChange"
-            v-loading="loading"
-            :row-key="(row: any) => row.id"
-            :maxTableHeight="300"
+  <div class="trigger-manage">
+    <PageHeader
+      :title="$t('views.trigger.title')"
+      :subtitle="$t('views.trigger.total', { n: paginationConfig.total })"
+    >
+      <template #actions>
+        <el-button
+          v-if="triggerPermissionMap.create()"
+          type="primary"
+          @click="openCreateTriggerDrawer"
+        >
+          {{ $t('common.create') }}
+        </el-button>
+        <el-button
+          v-if="triggerPermissionMap.edit()"
+          @click="batchChangeState(true)"
+          :disabled="multipleSelection.length === 0"
+        >
+          {{ $t('common.status.enable') }}
+        </el-button>
+        <el-button
+          v-if="triggerPermissionMap.edit()"
+          @click="batchChangeState(false)"
+          :disabled="multipleSelection.length === 0"
+        >
+          {{ $t('common.status.disable') }}
+        </el-button>
+        <el-button
+          v-if="triggerPermissionMap.delete()"
+          @click="batchDelete"
+          :disabled="multipleSelection.length === 0"
+        >
+          {{ $t('common.delete') }}
+        </el-button>
+      </template>
+    </PageHeader>
+
+    <div class="card-unified trigger-manage__card">
+      <div class="toolbar">
+        <div class="toolbar__left"></div>
+        <div class="toolbar__right complex-search">
+          <el-select
+            class="complex-search__left"
+            v-model="search_type"
+            style="width: 90px"
+            @change="search_type_change"
           >
+            <el-option :label="$t('common.name')" value="name" />
+            <el-option :label="$t('common.type')" value="type" />
+            <el-option :label="$t('views.trigger.task')" value="task" />
+            <el-option :label="$t('common.status.label')" value="is_active" />
+            <el-option :label="$t('common.creator')" value="create_user" />
+          </el-select>
+          <el-input
+            v-if="search_type === 'name'"
+            v-model="search_form.name"
+            @change="searchHandle"
+            :placeholder="$t('common.searchBar.placeholder')"
+            style="width: 220px"
+            clearable
+          />
+          <el-select
+            v-else-if="search_type === 'type'"
+            v-model="search_form.type"
+            @change="searchHandle"
+            filterable
+            clearable
+            style="width: 220px"
+          >
+            <el-option :label="$t('views.trigger.type.scheduled')" value="SCHEDULED" />
+            <el-option :label="$t('views.trigger.type.event')" value="EVENT" />
+          </el-select>
+          <el-select
+            v-else-if="search_type === 'is_active'"
+            v-model="search_form.is_active"
+            @change="searchHandle"
+            filterable
+            clearable
+            style="width: 220px"
+          >
+            <el-option :label="$t('common.status.enabled')" value="true" />
+            <el-option :label="$t('common.status.disabled')" value="false" />
+          </el-select>
+          <el-select
+            v-else-if="search_type === 'create_user'"
+            v-model="search_form.create_user"
+            @change="searchHandle"
+            filterable
+            clearable
+            style="width: 220px"
+          >
+            <el-option
+              v-for="u in user_options"
+              :key="u.id"
+              :value="u.id"
+              :label="u.nick_name"
+            />
+          </el-select>
+          <el-input
+            v-if="search_type === 'task'"
+            v-model="search_form.task"
+            @change="searchHandle"
+            :placeholder="$t('common.search')"
+            style="width: 220px"
+            clearable
+          />
+        </div>
+      </div>
+
+      <app-table
+        ref="multipleTableRef"
+        class="mt-16"
+        :data="triggerData"
+        :pagination-config="paginationConfig"
+        @sizeChange="handleSizeChange"
+        @changePage="getList"
+        @selection-change="handleSelectionChange"
+        v-loading="loading"
+        :row-key="(row: any) => row.id"
+        :maxTableHeight="300"
+      >
             <el-table-column type="selection" width="55" :reserve-selection="true" />
             <el-table-column
               prop="name"
@@ -134,20 +143,7 @@
             </el-table-column>
             <el-table-column prop="is_active" :label="$t('common.status.label')" width="120">
               <template #default="{ row }">
-                <div v-if="row.is_active" class="flex align-center">
-                  <el-icon class="color-success mr-8" style="font-size: 16px">
-                    <SuccessFilled />
-                  </el-icon>
-                  <span class="color-text-primary">
-                    {{ $t('common.status.enabled') }}
-                  </span>
-                </div>
-                <div v-else class="flex align-center">
-                  <AppIcon iconName="app-disabled" class="color-secondary mr-8"></AppIcon>
-                  <span class="color-text-primary">
-                    {{ $t('common.status.disabled') }}
-                  </span>
-                </div>
+                <StatusDot :status="row.is_active ? 'active' : 'paused'" />
               </template>
             </el-table-column>
 
@@ -282,7 +278,7 @@
                 <el-tooltip effect="dark" :content="$t('common.edit')" placement="top">
                   <span class="mr-4">
                     <el-button type="primary" text @click="openEditTriggerDrawer(row)">
-                      <AppIcon iconName="app-edit"></AppIcon>
+                      <LucideIcon name="pencil" :size="16" />
                     </el-button>
                   </span>
                 </el-tooltip>
@@ -294,7 +290,7 @@
                 >
                   <span class="mr-4">
                     <el-button type="primary" text @click="openExecutionRecordDrawer(row)">
-                      <AppIcon iconName="app-schedule-report"></AppIcon>
+                      <LucideIcon name="history" :size="16" />
                     </el-button>
                   </span>
                 </el-tooltip>
@@ -307,16 +303,14 @@
                 >
                   <span class="mr-4">
                     <el-button type="primary" text @click="deleteTrigger(row)">
-                      <AppIcon iconName="app-delete"></AppIcon>
+                      <LucideIcon name="trash-2" :size="16" />
                     </el-button>
                   </span>
                 </el-tooltip>
               </template>
             </el-table-column>
-          </app-table>
-        </div>
-      </div>
-    </el-card>
+      </app-table>
+    </div>
     <TriggerDrawer @refresh="getList()" ref="triggerDrawerRef"></TriggerDrawer>
     <TriggerTaskRecordDrawer ref="triggerTaskRecordDrawerRef"></TriggerTaskRecordDrawer>
   </div>
@@ -340,6 +334,9 @@ import type { TriggerData } from '@/api/type/trigger'
 import TriggerDrawer from '@/views/trigger/TriggerDrawer.vue'
 import { hasPermission } from '@/utils/permission'
 import { PermissionConst, RoleConst } from '@/utils/permission/data'
+import { PageHeader } from '@/components/page-header'
+import { LucideIcon } from '@/components/lucide-icon'
+import { StatusDot } from '@/components/status-dot'
 
 const { user } = useStore()
 
@@ -538,4 +535,11 @@ onMounted(() => {
   })
 })
 </script>
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.trigger-manage {
+  padding: 0 24px 24px;
+}
+.trigger-manage__card {
+  overflow: hidden;
+}
+</style>

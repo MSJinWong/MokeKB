@@ -1,5 +1,6 @@
 export default {
   title: '自動化觸發',
+  total: '共 {n} 個觸發器',
   tip: '觸發時系統將會根據入參設置自動調用任務執行',
   task: '任務',
   nextTime: '下次執行時間',
