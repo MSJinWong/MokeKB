@@ -7,7 +7,6 @@ import {useLocalStorage} from '@vueuse/core'
 
 import {localeConfigKey, getBrowserLang} from '@/locales/index'
 import useThemeStore from './theme'
-import {defaultPlatformSetting} from '@/utils/theme'
 import useLoginStore from './login'
 
 export interface userStateTypes {
@@ -144,14 +143,7 @@ const useUserStore = defineStore('user', {
             this.version = ok.data.version
             this.rsaKey = ok.data.rsa
             const theme = useThemeStore()
-            if (this.isEE() || this.isPE()) {
-              await theme.theme()
-            } else {
-              theme.setTheme()
-              theme.themeInfo = {
-                ...defaultPlatformSetting,
-              }
-            }
+            theme.setTheme()
             resolve(ok)
           })
           .catch((error) => {

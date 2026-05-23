@@ -199,3 +199,5 @@ config.yml
 /kohler_data
 /tools/node_modules
 /tools
+.env.dev
+.env.dev

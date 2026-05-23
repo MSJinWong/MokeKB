@@ -96,7 +96,7 @@
 <script lang="ts" setup>
 import { ref, computed } from 'vue'
 import type { CheckboxValueType } from 'element-plus'
-import authorizationApi from '@/api/system-shared/authorization'
+import authorizationApi from '@/api/authorization'
 import { loadPermissionApi } from '@/utils/dynamics-api/permission-api.ts'
 
 const checkAll = ref(false)

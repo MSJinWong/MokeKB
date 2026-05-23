@@ -1,21 +1,15 @@
 import {PermissionConst, EditionConst, RoleConst} from '@/utils/permission/data'
 import {hasPermission} from '@/utils/permission/index'
-import roleSystemApi from '@/api/system/role'
 import roleWorkspaceApi from '@/api/workspace/role'
 import systemWorkspaceApi from '@/api/system/workspace'
 import workspaceApi from '@/api/workspace/workspace'
-import systemChatUserApi from '@/api/system/chat-user'
 import workspaceChatUserApi from '@/api/workspace/chat-user'
-import systemUserGroupApi from '@/api/system/user-group'
 import workspaceUserGroupApi from '@/api/workspace/user-group'
 import useStore from "@/stores";
 
 // 系统管理员 API
 const systemApiMap = {
-  role: roleSystemApi,
   workspace: systemWorkspaceApi,
-  chatUser: systemChatUserApi,
-  userGroup: systemUserGroupApi,
 } as any
 
 // 企业版工作空间管理员 API
@@ -27,14 +21,11 @@ const workspaceApiMap = {
 } as any
 
 /** 动态导入 API 模块的函数
- *  loadPermissionApi('role')
+ *  loadPermissionApi('workspace')
  */
 const {user} = useStore()
 const systemPermissionMap = {
   workspace: [PermissionConst.WORKSPACE_READ, RoleConst.ADMIN],
-  role: [PermissionConst.ROLE_READ, RoleConst.ADMIN],
-  chatUser: [PermissionConst.CHAT_USER_READ, RoleConst.ADMIN],
-  userGroup: [PermissionConst.USER_GROUP_READ, RoleConst.ADMIN],
 }
 const workspacePermissionMap = {
   workspace: [PermissionConst.WORKSPACE_WORKSPACE_READ, RoleConst.WORKSPACE_MANAGE.getWorkspaceRole],

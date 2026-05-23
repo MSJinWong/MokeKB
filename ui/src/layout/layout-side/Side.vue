@@ -33,7 +33,8 @@ const { t } = useI18n()
 
 const subMenuList = computed(() => {
   const { meta } = route
-  return getChildRouteListByPathAndName(meta.parentPath as string, meta.parentName as string)
+  const list = getChildRouteListByPathAndName(meta.parentPath as string, meta.parentName as string)
+  return list.filter((r: any) => !r.meta?.hideMenu)
 })
 
 const activeMenu = computed(() => {
