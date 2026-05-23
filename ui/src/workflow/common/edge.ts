@@ -123,8 +123,6 @@ class CustomEdge2 extends PolylineEdge {
       }
     }, 0)
 
-    delete style.stroke
-
     return h('g', {}, [
       h(
         'style' as any,
@@ -181,8 +179,9 @@ class CustomEdgeModel2 extends PolylineEdgeModel {
   getEdgeStyle() {
     const style = super.getEdgeStyle()
     // svg属性
-    style.strokeWidth = 2
-    style.stroke = '#BBBFC4'
+    style.strokeWidth = 1.5
+    style.stroke = '#0f172a'
+    style.strokeDasharray = 'none'
     style.offset = 0
     return style
   }
