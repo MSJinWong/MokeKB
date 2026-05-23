@@ -1,4 +1,4 @@
-import { PolylineEdge, PolylineEdgeModel, h } from '@logicflow/core'
+import { BezierEdge, BezierEdgeModel, h } from '@logicflow/core'
 import { createApp, h as vh } from 'vue'
 import { isActive, connect, disconnect } from './teleport'
 import CustomLine from './CustomLine.vue'
@@ -13,7 +13,7 @@ function isMouseInElement(element: any, e: any) {
 }
 const DEFAULT_WIDTH = 32
 const DEFAULT_HEIGHT = 32
-class CustomEdge2 extends PolylineEdge {
+class CustomEdge2 extends BezierEdge {
   isMounted
   customLineApp?: any
   root?: any
@@ -168,7 +168,7 @@ class CustomEdge2 extends PolylineEdge {
   }
 }
 
-class CustomEdgeModel2 extends PolylineEdgeModel {
+class CustomEdgeModel2 extends BezierEdgeModel {
   getArrowStyle() {
     const arrowStyle = super.getArrowStyle()
     arrowStyle.offset = 1
