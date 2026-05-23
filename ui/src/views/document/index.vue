@@ -1,165 +1,176 @@
 <template>
-  <div class="document p-16-24">
-    <h2 class="mb-16">{{ $t('common.fileUpload.document') }}</h2>
-    <el-card style="--el-card-padding: 0">
-      <div class="main-calc-height">
-        <div class="p-24">
-          <div class="flex-between">
-            <div>
-              <template v-if="!isShared">
-                <el-button
-                  v-if="knowledgeDetail?.type === 0 && permissionPrecise.doc_create(id)"
-                  type="primary"
-                  @click="
-                    router.push({
-                      path: `/knowledge/document/upload/${folderId}/${type}`,
-                      query: { id: id },
-                    })
-                  "
-                  >{{ $t('views.document.uploadDocument') }}
-                </el-button>
-                <el-button
-                  v-if="knowledgeDetail?.type === 1 && permissionPrecise.doc_create(id)"
-                  type="primary"
-                  @click="importDoc"
-                  >{{ $t('views.document.importDocument') }}
-                </el-button>
-                <el-button
-                  v-if="knowledgeDetail?.type === 2 && permissionPrecise.doc_create(id)"
-                  type="primary"
-                  @click="
-                    router.push({
-                      path: `/knowledge/import/lark/${folderId}`,
-                      query: {
-                        id: id,
-                        folder_token: knowledgeDetail?.meta.folder_token,
-                      },
-                    })
-                  "
-                  >{{ $t('views.document.importDocument') }}
-                </el-button>
-                <el-button
-                  v-if="knowledgeDetail?.type === 4 && permissionPrecise.doc_create(id)"
-                  type="primary"
-                  @click="toImportWorkflow"
-                  >{{ $t('views.document.importDocument') }}
-                </el-button>
-                <el-button
-                  @click="batchRefresh"
+  <div class="document">
+    <PageHeader
+      :title="$t('common.fileUpload.document')"
+      :subtitle="`${knowledgeDetail?.name || ''} · ${$t('views.document.total', { n: paginationConfig.total })}`"
+      :showBack="true"
+      @back="$router.back()"
+    >
+      <template #actions>
+        <template v-if="!isShared">
+          <el-button
+            v-if="knowledgeDetail?.type === 0 && permissionPrecise.doc_create(id)"
+            type="primary"
+            @click="
+              router.push({
+                path: `/knowledge/document/upload/${folderId}/${type}`,
+                query: { id: id },
+              })
+            "
+          >
+            {{ $t('views.document.uploadDocument') }}
+          </el-button>
+          <el-button
+            v-if="knowledgeDetail?.type === 1 && permissionPrecise.doc_create(id)"
+            type="primary"
+            @click="importDoc"
+          >
+            {{ $t('views.document.importDocument') }}
+          </el-button>
+          <el-button
+            v-if="knowledgeDetail?.type === 2 && permissionPrecise.doc_create(id)"
+            type="primary"
+            @click="
+              router.push({
+                path: `/knowledge/import/lark/${folderId}`,
+                query: { id: id, folder_token: knowledgeDetail?.meta.folder_token },
+              })
+            "
+          >
+            {{ $t('views.document.importDocument') }}
+          </el-button>
+          <el-button
+            v-if="knowledgeDetail?.type === 4 && permissionPrecise.doc_create(id)"
+            type="primary"
+            @click="toImportWorkflow"
+          >
+            {{ $t('views.document.importDocument') }}
+          </el-button>
+          <el-button
+            @click="batchRefresh"
+            :disabled="multipleSelection.length === 0"
+            v-if="permissionPrecise.doc_vector(id)"
+          >
+            {{ $t('views.knowledge.setting.vectorization') }}
+          </el-button>
+          <el-button
+            @click="openGenerateDialog()"
+            :disabled="multipleSelection.length === 0"
+            v-if="permissionPrecise.doc_generate(id)"
+          >
+            {{ $t('views.document.generateQuestion.title') }}
+          </el-button>
+          <el-button
+            @click="openBatchEditDocument"
+            :disabled="multipleSelection.length === 0"
+            v-if="permissionPrecise.doc_edit(id)"
+          >
+            {{ $t('common.setting') }}
+          </el-button>
+
+          <el-dropdown v-if="MoreFilledPermission0(id)">
+            <el-button>
+              <LucideIcon name="more-horizontal" :size="16" />
+            </el-button>
+            <template #dropdown>
+              <el-dropdown-menu>
+                <el-dropdown-item
+                  @click="openknowledgeDialog()"
                   :disabled="multipleSelection.length === 0"
-                  v-if="permissionPrecise.doc_vector(id)"
-                  >{{ $t('views.knowledge.setting.vectorization') }}
-                </el-button>
-                <el-button
-                  @click="openGenerateDialog()"
-                  :disabled="multipleSelection.length === 0"
-                  v-if="permissionPrecise.doc_generate(id)"
-                  >{{ $t('views.document.generateQuestion.title') }}
-                </el-button>
-                <el-button
-                  @click="openBatchEditDocument"
-                  :disabled="multipleSelection.length === 0"
-                  v-if="permissionPrecise.doc_edit(id)"
+                  v-if="permissionPrecise.doc_migrate(id)"
                 >
-                  {{ $t('common.setting') }}
-                </el-button>
-
-                <el-dropdown v-if="MoreFilledPermission0(id)">
-                  <el-button class="ml-12 mr-12">
-                    <AppIcon iconName="app-more"></AppIcon>
-                  </el-button>
-                  <template #dropdown>
-                    <el-dropdown-menu>
-                      <el-dropdown-item
-                        @click="openknowledgeDialog()"
-                        :disabled="multipleSelection.length === 0"
-                        v-if="permissionPrecise.doc_migrate(id)"
-                      >
-                        {{ $t('views.document.setting.migration') }}
-                      </el-dropdown-item>
-                      <el-dropdown-item
-                        @click="openAddTagDialog()"
-                        :disabled="multipleSelection.length === 0"
-                        v-if="permissionPrecise.doc_tag(id)"
-                        >{{ $t('views.document.tag.addTag') }}
-                      </el-dropdown-item>
-                      <el-dropdown-item
-                        divided
-                        @click="syncMulDocument"
-                        :disabled="multipleSelection.length === 0"
-                        v-if="knowledgeDetail?.type === 1 && permissionPrecise.doc_sync(id)"
-                        >{{ $t('views.document.syncDocument') }}
-                      </el-dropdown-item>
-                      <el-dropdown-item
-                        divided
-                        @click="syncLarkMulDocument"
-                        :disabled="multipleSelection.length === 0"
-                        v-if="knowledgeDetail?.type === 2 && permissionPrecise.doc_sync(id)"
-                        >{{ $t('views.document.syncDocument') }}
-                      </el-dropdown-item>
-                      <el-dropdown-item
-                        @click="exportMulDocument"
-                        :disabled="multipleSelection.length === 0"
-                        v-if="permissionPrecise.doc_export(id)"
-                      >
-                        {{ $t('views.document.setting.export') }} Excel
-                      </el-dropdown-item>
-                      <el-dropdown-item
-                        @click="exportMulDocumentZip"
-                        :disabled="multipleSelection.length === 0"
-                        v-if="permissionPrecise.doc_export(id)"
-                      >
-                        {{ $t('views.document.setting.export') }} Zip
-                      </el-dropdown-item>
-
-                      <el-dropdown-item
-                        divided
-                        @click="deleteMulDocument"
-                        :disabled="multipleSelection.length === 0"
-                        v-if="permissionPrecise.doc_delete(id)"
-                        >{{ $t('common.delete') }}
-                      </el-dropdown-item>
-                    </el-dropdown-menu>
-                  </template>
-                </el-dropdown>
-              </template>
-            </div>
-            <div class="flex">
-              <div class="flex-between complex-search">
-                <el-select
-                  class="complex-search__left"
-                  v-model="search_type"
-                  style="width: 120px"
-                  @change="search_type_change"
+                  {{ $t('views.document.setting.migration') }}
+                </el-dropdown-item>
+                <el-dropdown-item
+                  @click="openAddTagDialog()"
+                  :disabled="multipleSelection.length === 0"
+                  v-if="permissionPrecise.doc_tag(id)"
                 >
-                  <el-option :label="$t('common.name')" value="name" />
-                </el-select>
-                <el-input
-                  v-if="search_type === 'name'"
-                  v-model="search_form.name"
-                  @change="refresh"
-                  :placeholder="$t('common.searchBar.placeholder')"
-                  style="width: 220px"
-                  clearable
-                />
-              </div>
+                  {{ $t('views.document.tag.addTag') }}
+                </el-dropdown-item>
+                <el-dropdown-item
+                  divided
+                  @click="syncMulDocument"
+                  :disabled="multipleSelection.length === 0"
+                  v-if="knowledgeDetail?.type === 1 && permissionPrecise.doc_sync(id)"
+                >
+                  {{ $t('views.document.syncDocument') }}
+                </el-dropdown-item>
+                <el-dropdown-item
+                  divided
+                  @click="syncLarkMulDocument"
+                  :disabled="multipleSelection.length === 0"
+                  v-if="knowledgeDetail?.type === 2 && permissionPrecise.doc_sync(id)"
+                >
+                  {{ $t('views.document.syncDocument') }}
+                </el-dropdown-item>
+                <el-dropdown-item
+                  @click="exportMulDocument"
+                  :disabled="multipleSelection.length === 0"
+                  v-if="permissionPrecise.doc_export(id)"
+                >
+                  {{ $t('views.document.setting.export') }} Excel
+                </el-dropdown-item>
+                <el-dropdown-item
+                  @click="exportMulDocumentZip"
+                  :disabled="multipleSelection.length === 0"
+                  v-if="permissionPrecise.doc_export(id)"
+                >
+                  {{ $t('views.document.setting.export') }} Zip
+                </el-dropdown-item>
+                <el-dropdown-item
+                  divided
+                  @click="deleteMulDocument"
+                  :disabled="multipleSelection.length === 0"
+                  v-if="permissionPrecise.doc_delete(id)"
+                >
+                  {{ $t('common.delete') }}
+                </el-dropdown-item>
+              </el-dropdown-menu>
+            </template>
+          </el-dropdown>
+        </template>
+      </template>
+    </PageHeader>
 
-              <el-tooltip
-                effect="dark"
-                :content="$t('common.ExecutionRecord.title')"
-                placement="top"
-                v-if="knowledgeDetail?.type === 4 && permissionPrecise.doc_create(id)"
-              >
-                <el-button @click="openListAction" class="ml-12">
-                  <AppIcon iconName="app-execution-record" class="color-secondary"></AppIcon>
-                </el-button>
-              </el-tooltip>
-              <el-button @click="openTagDrawer" class="ml-12" v-if="permissionPrecise.tag_read(id)">
-                {{ $t('views.document.tag.label') }}
-              </el-button>
-            </div>
-          </div>
-          <app-table
+    <div class="card-unified document__card">
+      <div class="toolbar">
+        <div class="toolbar__left">
+          <el-tooltip
+            effect="dark"
+            :content="$t('common.ExecutionRecord.title')"
+            placement="top"
+            v-if="knowledgeDetail?.type === 4 && permissionPrecise.doc_create(id)"
+          >
+            <el-button @click="openListAction">
+              <LucideIcon name="history" :size="16" />
+            </el-button>
+          </el-tooltip>
+          <el-button @click="openTagDrawer" v-if="permissionPrecise.tag_read(id)">
+            {{ $t('views.document.tag.label') }}
+          </el-button>
+        </div>
+        <div class="toolbar__right complex-search">
+          <el-select
+            class="complex-search__left"
+            v-model="search_type"
+            style="width: 120px"
+            @change="search_type_change"
+          >
+            <el-option :label="$t('common.name')" value="name" />
+          </el-select>
+          <el-input
+            v-if="search_type === 'name'"
+            v-model="search_form.name"
+            @change="refresh"
+            :placeholder="$t('common.searchBar.placeholder')"
+            style="width: 220px"
+            clearable
+          />
+        </div>
+      </div>
+
+      <app-table
             ref="multipleTableRef"
             class="mt-16 document-table"
             :data="documentData"
@@ -342,7 +353,7 @@
                   </span>
                 </div>
                 <div v-else class="flex align-center">
-                  <AppIcon iconName="app-disabled" class="color-secondary mr-8"></AppIcon>
+                  <LucideIcon name="circle-slash" :size="16" class="color-secondary mr-8" />
                   <span class="color-text-primary">
                     {{ $t('common.status.disabled') }}
                   </span>
@@ -403,7 +414,7 @@
                   <template #reference>
                     <el-tag v-if="row.tag_count" type="info" effect="plain" class="never mr-4">
                       <div class="flex align-center color-text-primary">
-                        <AppIcon iconName="app-tag"></AppIcon>
+                        <LucideIcon name="tag" :size="16" /><!-- TODO: pick proper lucide name -->
                         <span class="ml-4">{{ row.tag_count }}</span>
                       </div>
                     </el-tag>
@@ -415,7 +426,7 @@
                   :disabled="!permissionPrecise.doc_tag(id)"
                   @click.stop="openAddTagDialog(row.id)"
                 >
-                  <AppIcon iconName="app-add-outlined" class="mr-4"></AppIcon>
+                  <LucideIcon name="plus" :size="16" class="mr-4" />
                   {{ $t('views.document.tag.key') }}
                 </el-button>
               </template>
@@ -529,7 +540,7 @@
                   >
                     <span class="mr-4" v-if="permissionPrecise.doc_vector(id)">
                       <el-button type="primary" text @click.stop="refreshDocument(row)">
-                        <AppIcon iconName="app-document-refresh" style="font-size: 16px"></AppIcon>
+                        <LucideIcon name="refresh-cw" :size="16" /><!-- TODO: pick proper lucide name -->
                       </el-button>
                     </span>
                   </el-tooltip>
@@ -541,14 +552,14 @@
                   >
                     <span class="mr-4">
                       <el-button type="primary" text @click.stop="settingDoc(row)">
-                        <AppIcon iconName="app-setting"></AppIcon>
+                        <LucideIcon name="settings" :size="16" />
                       </el-button>
                     </span>
                   </el-tooltip>
                   <span @click.stop>
                     <el-dropdown trigger="click" v-if="MoreFilledPermission1(id)">
                       <el-button text type="primary">
-                        <AppIcon iconName="app-more"></AppIcon>
+                        <LucideIcon name="more-horizontal" :size="16" />
                       </el-button>
                       <template #dropdown>
                         <el-dropdown-menu>
@@ -567,17 +578,14 @@
                             @click="openGenerateDialog(row)"
                             v-else-if="permissionPrecise.doc_generate(id)"
                           >
-                            <AppIcon
-                              iconName="app-generate-question"
-                              class="color-secondary"
-                            ></AppIcon>
+                            <LucideIcon name="sparkles" :size="16" class="color-secondary" />
                             {{ $t('views.document.generateQuestion.title') }}
                           </el-dropdown-item>
                           <el-dropdown-item
                             @click="openTagSettingDrawer(row)"
                             v-if="permissionPrecise.doc_tag(id)"
                           >
-                            <AppIcon iconName="app-tag" class="color-secondary"></AppIcon>
+                            <LucideIcon name="tag" :size="16" class="color-secondary" /><!-- TODO: pick proper lucide name -->
 
                             {{ $t('views.document.tag.setting') }}
                           </el-dropdown-item>
@@ -585,28 +593,28 @@
                             @click="openknowledgeDialog(row)"
                             v-if="permissionPrecise.doc_migrate(id)"
                           >
-                            <AppIcon iconName="app-migrate" class="color-secondary"></AppIcon>
+                            <LucideIcon name="move" :size="16" class="color-secondary" />
                             {{ $t('views.document.setting.migration') }}
                           </el-dropdown-item>
                           <el-dropdown-item
                             @click="exportDocument(row)"
                             v-if="permissionPrecise.doc_export(id)"
                           >
-                            <AppIcon iconName="app-export" class="color-secondary"></AppIcon>
+                            <LucideIcon name="download" :size="16" class="color-secondary" />
                             {{ $t('views.document.setting.export') }} Excel
                           </el-dropdown-item>
                           <el-dropdown-item
                             @click="exportDocumentZip(row)"
                             v-if="permissionPrecise.doc_export(id)"
                           >
-                            <AppIcon iconName="app-export" class="color-secondary"></AppIcon>
+                            <LucideIcon name="download" :size="16" class="color-secondary" />
                             {{ $t('views.document.setting.export') }} Zip
                           </el-dropdown-item>
                           <el-dropdown-item
                             @click.stop="downloadDocument(row)"
                             v-if="permissionPrecise.doc_download(id)"
                           >
-                            <AppIcon iconName="app-download" class="color-secondary" />
+                            <LucideIcon name="download" :size="16" class="color-secondary" />
                             {{ $t('views.document.setting.download') }}
                           </el-dropdown-item>
                           <el-upload
@@ -619,7 +627,7 @@
                             :on-change="(file: any, fileList: any) => replaceDocument(file, row)"
                           >
                             <el-dropdown-item>
-                              <AppIcon iconName="app-upload" class="color-secondary" />
+                              <LucideIcon name="upload" :size="16" class="color-secondary" /><!-- TODO: pick proper lucide name -->
                               {{ $t('views.document.setting.replace') }}
                             </el-dropdown-item>
                           </el-upload>
@@ -627,7 +635,7 @@
                             @click.stop="deleteDocument(row)"
                             v-if="permissionPrecise.doc_delete(id)"
                           >
-                            <AppIcon iconName="app-delete" class="color-secondary"></AppIcon>
+                            <LucideIcon name="trash-2" :size="16" class="color-secondary" />
                             {{ $t('common.delete') }}</el-dropdown-item
                           >
                         </el-dropdown-menu>
@@ -664,7 +672,7 @@
                   >
                     <span class="mr-4">
                       <el-button type="primary" text @click.stop="refreshDocument(row)">
-                        <AppIcon iconName="app-document-refresh" style="font-size: 16px"></AppIcon>
+                        <LucideIcon name="refresh-cw" :size="16" /><!-- TODO: pick proper lucide name -->
                       </el-button>
                     </span>
                   </el-tooltip>
@@ -676,14 +684,14 @@
                   >
                     <span class="mr-4">
                       <el-button type="primary" text @click.stop="settingDoc(row)">
-                        <AppIcon iconName="app-setting"></AppIcon>
+                        <LucideIcon name="settings" :size="16" />
                       </el-button>
                     </span>
                   </el-tooltip>
                   <span @click.stop>
                     <el-dropdown trigger="click" v-if="MoreFilledPermission2(id)">
                       <el-button text type="primary">
-                        <AppIcon iconName="app-more"></AppIcon>
+                        <LucideIcon name="more-horizontal" :size="16" />
                       </el-button>
                       <template #dropdown>
                         <el-dropdown-menu>
@@ -691,14 +699,14 @@
                             @click="syncDocument(row)"
                             v-if="permissionPrecise.sync(id)"
                           >
-                            <AppIcon iconName="app-sync" class="color-secondary"></AppIcon>
+                            <LucideIcon name="refresh-cw" :size="16" class="color-secondary" />
                             {{ $t('views.knowledge.setting.sync') }}</el-dropdown-item
                           >
                           <el-dropdown-item
                             @click="openTagSettingDrawer(row)"
                             v-if="permissionPrecise.doc_tag(id)"
                           >
-                            <AppIcon iconName="app-tag" class="color-secondary"></AppIcon>
+                            <LucideIcon name="tag" :size="16" class="color-secondary" /><!-- TODO: pick proper lucide name -->
 
                             {{ $t('views.document.tag.setting') }}
                           </el-dropdown-item>
@@ -718,38 +726,35 @@
                             @click="openGenerateDialog(row)"
                             v-else-if="permissionPrecise.doc_generate(id)"
                           >
-                            <AppIcon
-                              iconName="app-generate-question"
-                              class="color-secondary"
-                            ></AppIcon>
+                            <LucideIcon name="sparkles" :size="16" class="color-secondary" />
                             {{ $t('views.document.generateQuestion.title') }}
                           </el-dropdown-item>
                           <el-dropdown-item
                             @click="openknowledgeDialog(row)"
                             v-if="permissionPrecise.doc_migrate(id)"
                           >
-                            <AppIcon iconName="app-migrate" class="color-secondary"></AppIcon>
+                            <LucideIcon name="move" :size="16" class="color-secondary" />
                             {{ $t('views.document.setting.migration') }}
                           </el-dropdown-item>
                           <el-dropdown-item
                             @click="exportDocument(row)"
                             v-if="permissionPrecise.doc_export(id)"
                           >
-                            <AppIcon iconName="app-export" class="color-secondary"></AppIcon>
+                            <LucideIcon name="download" :size="16" class="color-secondary" />
                             {{ $t('views.document.setting.export') }} Excel
                           </el-dropdown-item>
                           <el-dropdown-item
                             @click="exportDocumentZip(row)"
                             v-if="permissionPrecise.doc_export(id)"
                           >
-                            <AppIcon iconName="app-export" class="color-secondary"></AppIcon>
+                            <LucideIcon name="download" :size="16" class="color-secondary" />
                             {{ $t('views.document.setting.export') }} Zip
                           </el-dropdown-item>
                           <el-dropdown-item
                             @click.stop="deleteDocument(row)"
                             v-if="permissionPrecise.doc_delete(id)"
                           >
-                            <AppIcon iconName="app-delete" class="color-secondary"></AppIcon>
+                            <LucideIcon name="trash-2" :size="16" class="color-secondary" />
                             {{ $t('common.delete') }}
                           </el-dropdown-item>
                         </el-dropdown-menu>
@@ -760,9 +765,7 @@
               </template>
             </el-table-column>
           </app-table>
-        </div>
-      </div>
-    </el-card>
+    </div>
     <div class="mul-operation w-full flex" v-if="multipleSelection.length !== 0">
       <el-button
         :disabled="multipleSelection.length === 0"
@@ -834,6 +837,9 @@ import TagDrawer from './tag/TagDrawer.vue'
 import TagSettingDrawer from './tag/TagSettingDrawer.vue'
 import AddTagDialog from '@/views/document/tag/MulAddTagDialog.vue'
 import ExecutionRecord from '@/views/knowledge-workflow/component/execution-record/ExecutionRecordDrawer.vue'
+import { PageHeader } from '@/components/page-header'
+import { LucideIcon } from '@/components/lucide-icon'
+import { StatusDot } from '@/components/status-dot'
 
 const route = useRoute()
 const router = useRouter()
@@ -1550,14 +1556,18 @@ onBeforeUnmount(() => {
 </script>
 <style lang="scss" scoped>
 .document {
+  padding: 0 24px 24px;
+}
+.document__card {
+  overflow: hidden;
   .mul-operation {
     right: 24px;
     width: calc(100% - var(--sidebar-width) - 48px);
   }
-  .document-table {
-    :deep(.el-table__row) {
-      cursor: pointer;
-    }
+}
+.document-table {
+  :deep(.el-table__row) {
+    cursor: pointer;
   }
 }
 </style>

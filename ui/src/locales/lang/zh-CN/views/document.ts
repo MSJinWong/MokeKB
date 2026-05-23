@@ -3,6 +3,7 @@ export default {
   importDocument: '导入文档',
   syncDocument: '同步文档',
   items: '项',
+  total: '共 {n} 个文档',
   migrateDocument: '文档迁移到',
 
   setting: {

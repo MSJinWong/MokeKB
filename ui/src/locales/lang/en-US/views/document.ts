@@ -3,6 +3,7 @@ export default {
   importDocument: 'Import Document',
   syncDocument: 'Sync Document',
   items: '',
+  total: 'Total {n} documents',
   migrateDocument: 'Migrate to',
   setting: {
     migration: 'Move',
