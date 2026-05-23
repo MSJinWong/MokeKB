@@ -178,9 +178,9 @@
 
 /* W1 · 节点 header icon 已移除(顶部色条已识别类型) */
 
-/* 工作流工具栏不要 hover 上移 — 避免点击时按钮位置变化 */
+/* 工作流工具栏不要 hover 时跳动 — base 用 translateX(-50%) 居中,hover 保留居中、不上移、不右跳 */
 .el-card.workflow-control:hover,
 .el-card.workflow-control.is-hover-shadow:hover {
-  transform: none !important;
+  transform: translateX(-50%) !important;
   box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08) !important;
 }

@@ -10,9 +10,9 @@ class CustomEdgeModel2 extends BezierEdgeModel {
 
   getEdgeStyle() {
     const style = super.getEdgeStyle()
-    // svg属性
-    style.strokeWidth = 2
-    style.stroke = '#BBBFC4'
+    style.strokeWidth = 1.5
+    style.stroke = '#0f172a'
+    style.strokeDasharray = 'none'
     style.offset = 0
     return style
   }

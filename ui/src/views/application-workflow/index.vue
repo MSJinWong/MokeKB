@@ -719,85 +719,8 @@ onBeforeUnmount(() => {
         border-color: #f54a45 !important;
       }
 
-      // Type bar — 2 px coloured stripe at the very top (using ::before pseudo-element)
-      &::before {
-        content: '';
-        display: block;
-        height: 2px;
-        width: 100%;
-        background: var(--wf-type-data); // default fallback colour (blue)
-        flex-shrink: 0;
-      }
-    }
-
-    // Per node-type colour overrides for the top bar.
-    // LogicFlow wraps each node in a <g> with class "lf-node lf-node-<type>"; the
-    // HTML content sits in an overlay div.  We cannot read that from here, so we
-    // add class-based overrides on the wrapper using data attributes that
-    // NodeContainer.vue can expose.  As a pragmatic CSS-only fallback we target
-    // the known node class names that LogicFlow adds to the SVG parent, but since
-    // those are in the SVG layer they do not cascade into the HTML overlay.
-    // Therefore we apply sensible per-type colours via attribute selectors on the
-    // workflow-node-container root (populated at runtime by LogicFlow's type).
-
-    // Trigger / Start nodes — green
-    &[data-node-type='start-node'],
-    &[data-node-type='base-node'],
-    &[data-node-type='loop-start-node'],
-    &[data-node-type='tool-start-node'],
-    &[data-node-type='tool-base-node'],
-    &[data-node-type='knowledge-base-node'] {
-      .step-container::before { background: var(--wf-type-trigger); }
-    }
-
-    // Data / Retrieval nodes — blue
-    &[data-node-type='search-knowledge-node'],
-    &[data-node-type='search-document-node'],
-    &[data-node-type='document-extract-node'],
-    &[data-node-type='document-split-node'],
-    &[data-node-type='data-source-local-node'],
-    &[data-node-type='data-source-web-node'],
-    &[data-node-type='knowledge-write-node'],
-    &[data-node-type='reranker-node'] {
-      .step-container::before { background: var(--wf-type-data); }
-    }
-
-    // AI / LLM nodes — purple
-    &[data-node-type='ai-chat-node'],
-    &[data-node-type='image-understand-node'],
-    &[data-node-type='image-generate-node'],
-    &[data-node-type='image-to-video-node'],
-    &[data-node-type='text-to-video-node'],
-    &[data-node-type='video-understand-node'],
-    &[data-node-type='speech-to-text-node'],
-    &[data-node-type='text-to-speech-node'],
-    &[data-node-type='mcp-node'],
-    &[data-node-type='parameter-extraction-node'] {
-      .step-container::before { background: var(--wf-type-ai); }
-    }
-
-    // Logic / Branch nodes — orange
-    &[data-node-type='condition-node'],
-    &[data-node-type='intent-node'],
-    &[data-node-type='loop-node'],
-    &[data-node-type='loop-body-node'],
-    &[data-node-type='loop-continue-node'],
-    &[data-node-type='loop-break-node'],
-    &[data-node-type='variable-assign-node'],
-    &[data-node-type='variable-splitting-node'],
-    &[data-node-type='variable-aggregation-node'] {
-      .step-container::before { background: var(--wf-type-logic); }
-    }
-
-    // Output / Terminal nodes — red
-    &[data-node-type='reply-node'],
-    &[data-node-type='question-node'],
-    &[data-node-type='form-node'],
-    &[data-node-type='application-node'],
-    &[data-node-type='tool-node'],
-    &[data-node-type='tool-lib-node'],
-    &[data-node-type='tool-workflow-lib-node'] {
-      .step-container::before { background: var(--wf-type-output); }
+      // Type bar handled by global workflow.scss .step-container::before
+      // (uses data-node-type on .step-container, single source of truth)
     }
   }
 }

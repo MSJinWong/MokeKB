@@ -82,11 +82,13 @@ const renderGraphData = (data?: any) => {
       polyline: {
         stroke: '#0f172a',
         strokeWidth: 1.5,
-        radius: 8,  // rounded corners on right-angle bends
+        strokeDasharray: 'none',
+        radius: 8,
       },
       bezier: {
         stroke: '#0f172a',
         strokeWidth: 1.5,
+        strokeDasharray: 'none',
       },
       arrow: {
         offset: 8,
