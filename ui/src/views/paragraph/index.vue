@@ -1,33 +1,32 @@
 <template>
-  <div class="paragraph p-12-24">
-    <div class="flex align-center" style="width: 78%">
-      <back-button to="-1" style="margin-left: -4px"></back-button>
-      <h3 style="display: inline-block">{{ documentDetail?.name }}</h3>
-      <el-text type="info" v-if="documentDetail?.type === '1'"
-        >（{{ $t('views.document.form.source_url.label') }}：<el-link
-          :href="documentDetail?.meta?.source_url"
-          target="_blank"
-        >
-          <span class="break-all">{{ documentDetail?.meta?.source_url }} </span></el-link
-        >）
-      </el-text>
-    </div>
-    <div class="header-button" v-if="!shareDisabled && permissionPrecise.doc_edit(id)">
-      <el-button @click="batchSelectedHandle(true)" v-if="isBatch === false">
-        {{ $t('views.paragraph.setting.batchSelected') }}
-      </el-button>
-      <el-button @click="batchSelectedHandle(false)" v-if="isBatch === true">
-        {{ $t('views.paragraph.setting.cancelSelected') }}
-      </el-button>
-      <el-button @click="addParagraph" type="primary" :disabled="loading" v-if="isBatch === false">
-        {{ $t('views.paragraph.addParagraph') }}
-      </el-button>
-    </div>
-    <el-card
-      style="--el-card-padding: 0"
-      class="paragraph__main mt-16"
-      v-loading="(paginationConfig.current_page === 1 && loading) || changeStateloading"
+  <div class="paragraph" v-loading="(paginationConfig.current_page === 1 && loading) || changeStateloading">
+    <PageHeader
+      :title="documentDetail?.name || ''"
+      :showBack="true"
+      @back="$router.back()"
     >
+      <template #subtitle>
+        <el-text type="info" v-if="documentDetail?.type === '1'">
+          {{ $t('views.document.form.source_url.label') }}：
+          <el-link :href="documentDetail?.meta?.source_url" target="_blank">
+            <span class="break-all">{{ documentDetail?.meta?.source_url }}</span>
+          </el-link>
+        </el-text>
+      </template>
+      <template #actions v-if="!shareDisabled && permissionPrecise.doc_edit(id)">
+        <el-button @click="batchSelectedHandle(true)" v-if="isBatch === false">
+          {{ $t('views.paragraph.setting.batchSelected') }}
+        </el-button>
+        <el-button @click="batchSelectedHandle(false)" v-if="isBatch === true">
+          {{ $t('views.paragraph.setting.cancelSelected') }}
+        </el-button>
+        <el-button @click="addParagraph" type="primary" :disabled="loading" v-if="isBatch === false">
+          {{ $t('views.paragraph.addParagraph') }}
+        </el-button>
+      </template>
+    </PageHeader>
+
+    <div class="card-unified paragraph__card">
       <div class="flex-between p-12-16 border-b">
         <span>{{ paginationConfig.total }} {{ $t('views.paragraph.paragraph_count') }}</span>
         <el-input
@@ -195,7 +194,7 @@
           </div>
         </div>
       </LayoutContainer>
-    </el-card>
+    </div>
     <ParagraphDialog
       ref="ParagraphDialogRef"
       :title="title"
@@ -215,6 +214,7 @@
 import { reactive, ref, onMounted, computed, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import type { CheckboxValueType } from 'element-plus'
+import { PageHeader } from '@/components/page-header'
 import ParagraphDialog from './component/ParagraphDialog.vue'
 import ParagraphCard from './component/ParagraphCard.vue'
 import SelectDocumentDialog from './component/SelectDocumentDialog.vue'
@@ -475,47 +475,44 @@ onMounted(() => {
 <style lang="scss" scoped>
 .paragraph {
   position: relative;
-  .header-button {
+  padding: 0 24px 24px;
+}
+.paragraph__card {
+  position: relative;
+  padding: 0;
+  overflow: hidden;
+  box-sizing: border-box;
+
+  .mul-operation {
     position: absolute;
-    right: calc(var(--app-base-px) * 3);
-    top: calc(var(--app-base-px) + 4px);
   }
-  .paragraph-sidebar {
-    width: 100%;
-    height: calc(100vh - 215px);
-    box-sizing: border-box;
-  }
+}
+.paragraph-sidebar {
+  width: 100%;
+  height: calc(100vh - 215px);
+  box-sizing: border-box;
+}
+.paragraph-detail {
+  height: calc(100vh - 215px);
+  max-width: 1000px;
+  margin: 16px auto;
 
-  .paragraph-detail {
-    height: calc(100vh - 215px);
-    max-width: 1000px;
-    margin: 16px auto;
-
-    .el-checkbox-group {
-      font-size: inherit;
-      line-height: inherit;
-    }
+  .el-checkbox-group {
+    font-size: inherit;
+    line-height: inherit;
   }
-
-  &__main {
-    position: relative;
-    box-sizing: border-box;
-    .mul-operation {
-      position: absolute;
-    }
+}
+.paragraph-card {
+  .is-selected {
+    border: 1px solid var(--el-color-primary);
   }
-  .paragraph-card {
-    .is-selected {
-      border: 1px solid var(--el-color-primary);
+  &.handle {
+    .handle-img {
+      visibility: hidden;
     }
-    &.handle {
+    &:hover {
       .handle-img {
-        visibility: hidden;
-      }
-      &:hover {
-        .handle-img {
-          visibility: visible;
-        }
+        visibility: visible;
       }
     }
   }
