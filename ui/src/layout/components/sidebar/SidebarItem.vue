@@ -6,8 +6,12 @@
       popper-class="sidebar-container-popper"
     >
       <template #title>
-        <AppIcon v-if="menu.meta && menu.meta.icon" :iconName="menuIcon" class="sidebar-icon" />
-
+        <LucideIcon
+          v-if="menu.meta && menu.meta.icon"
+          :name="menuIcon"
+          :size="16"
+          class="sidebar-icon"
+        />
         <span>{{ $t(menu.meta?.title as string) }}</span>
       </template>
       <sidebar-item
@@ -27,7 +31,12 @@
       @click="clickHandle(menu)"
     >
       <template #title>
-        <AppIcon v-if="menu.meta && menu.meta.icon" :iconName="menuIcon" class="sidebar-icon" />
+        <LucideIcon
+          v-if="menu.meta && menu.meta.icon"
+          :name="menuIcon"
+          :size="16"
+          class="sidebar-icon"
+        />
         <span v-if="menu.meta && menu.meta.title">{{ $t(menu.meta?.title as string) }}</span>
       </template>
     </el-menu-item>
@@ -37,7 +46,9 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRouter, useRoute, type RouteRecordRaw } from 'vue-router'
+import { LucideIcon } from '@/components/lucide-icon'
 import { isWorkFlow } from '@/utils/application'
+
 const props = defineProps<{
   menu: RouteRecordRaw
   activeMenu: any
@@ -64,45 +75,27 @@ function clickHandle(item?: any) {
     router.push({ path: `/knowledge/${id}/${folderId}/workflow` })
   }
 }
+
 const menuIcon = computed(() => {
-  if (props.activeMenu === props.menu.path) {
-    return props.menu.meta?.iconActive || props.menu?.meta?.icon
-  } else {
-    return props.menu?.meta?.icon
-  }
+  return (props.menu?.meta?.icon as string) ?? ''
 })
 </script>
 
 <style scoped lang="scss">
+@use '@/styles/nav-item' as nav;
+
 .sidebar-item {
   .sidebar-icon {
-    font-size: 20px;
-    margin-top: -2px;
+    flex-shrink: 0;
   }
-  .el-menu-item {
-    padding: 13px 12px 13px 8px !important;
-    font-weight: 500;
-    border-radius: 4px;
-    &:hover {
-      background: rgba(var(--el-text-color-primary-rgb), 0.1);
-      color: var(--el-menu-text-color);
-    }
+  :deep(.el-menu-item) {
+    @include nav.nav-item-base;
   }
   :deep(.el-sub-menu__title) {
-    padding: 13px 12px 13px 10px !important;
-    &:hover {
-      background: none;
-      color: var(--el-color-primary);
-    }
+    @include nav.nav-item-base;
   }
-  .el-sub-menu {
-    .el-menu-item {
-      padding-left: 43px !important;
-    }
-  }
-  .el-menu-item.is-active {
-    color: var(--el-color-primary);
-    background: var(--el-color-primary-light-9);
+  .el-sub-menu .el-menu-item {
+    padding-left: 36px !important;
   }
 }
 </style>

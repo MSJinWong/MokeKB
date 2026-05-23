@@ -12,8 +12,7 @@ const systemRouter = {
       path: '/system/user',
       name: 'user',
       meta: {
-        icon: 'User',
-        iconActive: 'UserFilled',
+        icon: 'users',
         title: 'views.userManage.title',
         activeMenu: '/system',
         parentPath: '/system',
@@ -27,8 +26,7 @@ const systemRouter = {
       path: '/system/authorization',
       name: 'authorization',
       meta: {
-        icon: 'app-resource-authorization',
-        iconActive: 'app-resource-authorization-active',
+        icon: 'shield-check',
         title: 'views.system.resourceAuthorization.title',
         activeMenu: '/system',
         parentPath: '/system',
@@ -111,8 +109,7 @@ const systemRouter = {
       path: '/system/email',
       name: 'email',
       meta: {
-        icon: 'app-setting',
-        iconActive: 'app-setting-active',
+        icon: 'mail',
         title: 'views.system.email.title',
         activeMenu: '/system',
         parentPath: '/system',
