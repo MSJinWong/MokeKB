@@ -49,14 +49,6 @@
           </el-button>
         </span>
         <div v-if="isBatch === false">
-          <el-button
-            class="ml-8"
-            v-if="!isShared && permissionPrecise.create()"
-            @click="openTemplateStoreDialog()"
-          >
-            <AppIcon iconName="app-template-center" class="mr-4" />
-            {{ $t('workflow.setting.templateCenter') }}
-          </el-button>
           <el-dropdown trigger="click" v-if="!isShared && permissionPrecise.create()">
             <el-button type="primary" class="ml-8">
               {{ $t('common.create') }}
@@ -427,7 +419,6 @@
     ref="ResourceAuthorizationDrawerRef"
     v-if="apiType === 'workspace'"
   />
-  <TemplateStoreDialog ref="templateStoreDialogRef" :api-type="apiType" @refresh="getList" />
   <ResourceMappingDrawer ref="resourceMappingDrawerRef"></ResourceMappingDrawer>
 </template>
 
@@ -446,7 +437,6 @@ import MoveToDialog from '@/components/folder-tree/MoveToDialog.vue'
 import GenerateRelatedDialog from '@/components/generate-related-dialog/index.vue'
 import AuthorizedWorkspace from '@/components/authorized-workspace-dialog'
 import ResourceAuthorizationDrawer from '@/components/resource-authorization-drawer/index.vue'
-import TemplateStoreDialog from '@/views/knowledge/template-store/TemplateStoreDialog.vue'
 import ResourceMappingDrawer from '@/components/resource_mapping/index.vue'
 import { MsgSuccess, MsgConfirm } from '@/utils/message'
 import { numberFormat, i18n_name } from '@/utils/common'
@@ -808,11 +798,6 @@ function searchHandle() {
 
 function refreshFolder() {
   emit('refreshFolder')
-}
-
-const templateStoreDialogRef = ref()
-function openTemplateStoreDialog() {
-  templateStoreDialogRef.value?.open(folder.currentFolder.id)
 }
 
 onMounted(() => {

@@ -26,14 +26,6 @@
         </el-button>
       </div>
       <div v-else-if="!route.path.includes('share/')">
-        <el-button
-          class="ml-8"
-          v-if="permissionPrecise.create()"
-          @click="openTemplateStoreDialog()"
-        >
-          <AppIcon iconName="app-template-center" class="mr-4" />
-          {{ $t('workflow.setting.templateCenter') }}
-        </el-button>
         <el-button @click="showPopover = !showPopover">
           <AppIcon iconName="app-add-outlined" class="mr-4" />
           {{ $t('workflow.setting.addComponent') }}
@@ -175,12 +167,6 @@
       v-click-outside="clickoutsideHistory"
       @refreshVersion="refreshVersion"
     />
-    <TemplateStoreDialog
-      ref="templateStoreDialogRef"
-      :api-type="apiType"
-      source="work_flow"
-      @refresh="getDetail"
-    />
   </div>
 </template>
 <script setup lang="ts">
@@ -205,7 +191,6 @@ import permissionMap from '@/permission'
 import { WorkflowMode } from '@/enums/application'
 import { loadSharedApi } from '@/utils/dynamics-api/shared-api'
 import { knowledgeBaseNode } from '@/workflow/common/data'
-import TemplateStoreDialog from '@/views/knowledge/template-store/TemplateStoreDialog.vue'
 provide('getResourceDetail', () => detail)
 provide('workflowMode', WorkflowMode.Knowledge)
 provide('loopWorkflowMode', WorkflowMode.KnowledgeLoop)
@@ -666,11 +651,6 @@ const toImportDoc = () => {
       .then(() => {})
       .catch(() => {})
   }
-}
-
-const templateStoreDialogRef = ref()
-function openTemplateStoreDialog() {
-  templateStoreDialogRef.value?.open(folderId)
 }
 
 /**

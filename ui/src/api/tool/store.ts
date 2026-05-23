@@ -32,24 +32,11 @@ const getStoreToolList: (param?: any, loading?: Ref<boolean>) => Promise<Result<
   return get('/workspace/store/tool', param, loading)
 }
 
-const getStoreKBList: (param?: any, loading?: Ref<boolean>) => Promise<Result<any>> = (
-  param,
-  loading,
-) => {
-  return get('/workspace/store/knowledge_template', param, loading)
-}
 const getStoreToolWorkflowList: (param?: any, loading?: Ref<boolean>) => Promise<Result<any>> = (
   param,
   loading,
 ) => {
   return get('/workspace/store/tool_workflow_template', param, loading)
-}
-
-const getStoreAppList: (param?: any, loading?: Ref<boolean>) => Promise<Result<any>> = (
-  param,
-  loading,
-) => {
-  return get('/workspace/store/application_template', param, loading)
 }
 
 /**
@@ -77,8 +64,6 @@ const addStoreTool: (
 export default {
   getInternalToolList,
   getStoreToolList,
-  getStoreKBList,
-  getStoreAppList,
   getStoreToolWorkflowList,
   addInternalTool,
   addStoreTool,
