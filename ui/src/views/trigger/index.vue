@@ -317,7 +317,6 @@
 </template>
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
 import type { ElTable } from 'element-plus'
 import { MsgSuccess, MsgConfirm, MsgError } from '@/utils/message'
 import useStore from '@/stores'
@@ -325,7 +324,6 @@ import triggerAPI from '@/api/trigger/trigger'
 import { TriggerType } from '@/enums/trigger'
 import { t } from '@/locales'
 import TriggerTaskRecordDrawer from './execution-record/TriggerTaskRecordDrawer.vue'
-import permissionMap from '@/permission'
 import { datetimeFormat } from '@/utils/time'
 import WorkspaceApi from '@/api/workspace/workspace'
 import { resetUrl } from '@/utils/common'
