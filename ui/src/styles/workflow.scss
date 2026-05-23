@@ -102,7 +102,15 @@
   stroke-linecap: round;
   fill: none;
 }
-.lf-edge.is-selected path {
+/* LogicFlow 的 polyline-append 是在折线段上添加新拐点的不可见点击区,
+   原本 SVG 设了 stroke="transparent" + stroke-dasharray="4,4" 让其不可见但可点击。
+   上面 .lf-edge path 会覆盖 transparent → 必须显式还原透明。 */
+.lf-edge .lf-polyline-append path,
+.lf-edge .lf-edge-append path {
+  stroke: transparent !important;
+  fill: transparent !important;
+}
+.lf-edge.is-selected > g > g > path:first-of-type {
   stroke: var(--brand-primary);
 }
 
