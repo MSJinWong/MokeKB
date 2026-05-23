@@ -10,7 +10,7 @@
         </span>
         <span v-if="currentModel.status === 'ERROR'">
           <el-tooltip effect="dark" :content="errMessage" placement="top">
-            <el-icon class="color-danger ml-4" size="18"><WarningFilled /></el-icon>
+            <StatusDot status="error" />
           </el-tooltip>
         </span>
         <span v-if="currentModel.status === 'PAUSE_DOWNLOAD'">
@@ -19,7 +19,7 @@
             :content="`${$t('views.model.modelForm.base_model.label')}: ${props.model.model_name} ${$t('views.model.tip.downloadError')}`"
             placement="top"
           >
-            <el-icon class="color-danger ml-4" size="18"><WarningFilled /></el-icon>
+            <StatusDot status="paused" />
           </el-tooltip>
         </span>
       </div>
@@ -34,7 +34,7 @@
       </el-text>
     </template>
     <template #tag>
-      <el-tag v-if="isShared || isSystemShare" size="small" type="info" class="info-tag">
+      <el-tag v-if="isShared" size="small" type="info" class="info-tag">
         {{ t('views.shared.title') }}
       </el-tag>
     </template>
@@ -71,7 +71,7 @@
     <template #mouseEnter v-if="MoreFilledPermission(model.id)">
       <el-dropdown trigger="click" v-if="!isShared">
         <el-button text @click.stop>
-          <AppIcon iconName="app-more" class="color-secondary"></AppIcon>
+          <LucideIcon name="more-horizontal" :size="16" class="color-secondary" />
         </el-button>
         <template #dropdown>
           <el-dropdown-menu>
@@ -80,17 +80,9 @@
               text
               @click.stop="openEditModel"
             >
-              <AppIcon iconName="app-edit" class="color-secondary"></AppIcon>
+              <LucideIcon name="pencil" :size="16" class="color-secondary" />
               {{ $t('common.edit') }}
             </el-dropdown-item>
-            <el-dropdown-item
-              v-if="isSystemShare"
-              @click.stop="openAuthorizedWorkspaceDialog(model)"
-            >
-              <AppIcon iconName="app-lock" class="color-secondary"></AppIcon>
-              {{ $t('views.shared.authorized_workspace') }}
-            </el-dropdown-item>
-
             <el-dropdown-item
               v-if="
                 (currentModel.model_type === 'TTS' ||
@@ -105,14 +97,14 @@
               "
               @click.stop="openParamSetting"
             >
-              <AppIcon iconName="app-setting" class="color-secondary"></AppIcon>
+              <LucideIcon name="settings" :size="16" class="color-secondary" />
               {{ $t('views.model.modelForm.title.paramSetting') }}
             </el-dropdown-item>
             <el-dropdown-item
               @click.stop="openAuthorization(model)"
-              v-if="apiType === 'workspace' && permissionPrecise.auth(model.id)"
+              v-if="permissionPrecise.auth(model.id)"
             >
-              <AppIcon iconName="app-resource-authorization" class="color-secondary"></AppIcon>
+              <LucideIcon name="shield-check" :size="16" class="color-secondary" />
               {{ $t('views.system.resourceAuthorization.title') }}
             </el-dropdown-item>
             <el-dropdown-item
@@ -120,7 +112,7 @@
               @click.stop="openResourceMappingDrawer(model)"
               v-if="permissionPrecise.relate_map(model.id)"
             >
-              <AppIcon iconName="app-resource-mapping" class="color-secondary"></AppIcon>
+              <LucideIcon name="link" :size="16" class="color-secondary" />
               {{ $t('views.system.resourceMapping.title') }}
             </el-dropdown-item>
             <el-dropdown-item
@@ -129,7 +121,7 @@
               @click.stop="deleteModel"
               v-if="permissionPrecise.delete(model.id)"
             >
-              <AppIcon iconName="app-delete" class="color-secondary"></AppIcon>
+              <LucideIcon name="trash-2" :size="16" class="color-secondary" />
               {{ $t('common.delete') }}
             </el-dropdown-item>
           </el-dropdown-menu>
@@ -138,14 +130,9 @@
     </template>
     <EditModel ref="editModelRef" @submit="emit('change')"></EditModel>
     <ParamSettingDialog ref="paramSettingRef" />
-    <AuthorizedWorkspace
-      ref="AuthorizedWorkspaceDialogRef"
-      v-if="isSystemShare"
-    ></AuthorizedWorkspace>
     <ResourceAuthorizationDrawer
       :type="SourceTypeEnum.MODEL"
       ref="ResourceAuthorizationDrawerRef"
-      v-if="apiType === 'workspace'"
     />
     <ResourceMappingDrawer ref="resourceMappingDrawerRef"></ResourceMappingDrawer>
   </card-box>
@@ -158,7 +145,6 @@ import DownloadLoading from '@/components/loading/DownloadLoading.vue'
 import { MsgConfirm, MsgSuccess } from '@/utils/message'
 import { modelType } from '@/enums/model'
 import ParamSettingDialog from './ParamSettingDialog.vue'
-import AuthorizedWorkspace from '@/components/authorized-workspace-dialog'
 import ResourceAuthorizationDrawer from '@/components/resource-authorization-drawer/index.vue'
 import ResourceMappingDrawer from '@/components/resource_mapping/index.vue'
 import { SourceTypeEnum } from '@/enums/common'
@@ -166,29 +152,24 @@ import { t } from '@/locales'
 import { i18n_name } from '@/utils/common'
 import { dateFormat } from '@/utils/time'
 import permissionMap from '@/permission'
-import { useRoute } from 'vue-router'
 import { loadSharedApi } from '@/utils/dynamics-api/shared-api'
+import { LucideIcon } from '@/components/lucide-icon'
+import { StatusDot } from '@/components/status-dot'
 
 const resourceMappingDrawerRef = ref<InstanceType<typeof ResourceMappingDrawer>>()
-const route = useRoute()
 
 const props = defineProps<{
   model: Model
   provider_list: Array<Provider>
   updateModelById: (model_id: string, model: Model) => void
   isShared?: boolean | undefined
-  isSystemShare?: boolean | undefined
-  apiType: 'systemShare' | 'workspace' | 'systemManage'
+  apiType?: 'workspace'
 }>()
 const openResourceMappingDrawer = (model: any) => {
   resourceMappingDrawerRef.value?.open('MODEL', model)
 }
-const isSystemShare = computed(() => {
-  return props.apiType === 'systemShare'
-})
-
 const permissionPrecise = computed(() => {
-  return permissionMap['model'][props.apiType]
+  return permissionMap['model']['workspace']
 })
 
 const MoreFilledPermission = (id: any) => {
@@ -196,8 +177,7 @@ const MoreFilledPermission = (id: any) => {
     permissionPrecise.value.modify(id) ||
     permissionPrecise.value.delete(id) ||
     permissionPrecise.value.auth(id) ||
-    permissionPrecise.value.relate_map(id) ||
-    isSystemShare.value
+    permissionPrecise.value.relate_map(id)
   )
 }
 
@@ -241,7 +221,7 @@ const deleteModel = () => {
     },
   )
     .then(() => {
-      loadSharedApi({ type: 'model', systemType: props.apiType })
+      loadSharedApi({ type: 'model', systemType: 'workspace' })
         .deleteModel(props.model.id)
         .then(() => {
           emit('change')
@@ -252,7 +232,7 @@ const deleteModel = () => {
 }
 
 const cancelDownload = () => {
-  loadSharedApi({ type: 'model', systemType: props.apiType })
+  loadSharedApi({ type: 'model', systemType: 'workspace' })
     .pauseDownload(props.model.id)
     .then(() => {
       downModel.value = undefined
@@ -275,7 +255,7 @@ const icon = computed(() => {
 const initInterval = () => {
   interval = setInterval(() => {
     if (currentModel.value.status === 'DOWNLOAD') {
-      loadSharedApi({ type: 'model', systemType: props.apiType })
+      loadSharedApi({ type: 'model', systemType: 'workspace' })
         .getModelMetaById(props.model.id)
         .then((ok: any) => {
           downModel.value = ok.data
@@ -301,14 +281,6 @@ const closeInterval = () => {
 const paramSettingRef = ref<InstanceType<typeof ParamSettingDialog>>()
 const openParamSetting = () => {
   paramSettingRef.value?.open(props.model)
-}
-
-const AuthorizedWorkspaceDialogRef = ref()
-
-function openAuthorizedWorkspaceDialog(row: any) {
-  if (AuthorizedWorkspaceDialogRef.value) {
-    AuthorizedWorkspaceDialogRef.value.open(row, 'Model')
-  }
 }
 
 onMounted(() => {
