@@ -1,5 +1,5 @@
 <template>
-  <LayoutContainer showCollapse resizable class="tool-manage">
+  <LayoutContainer showCollapse class="tool-manage">
     <template #left>
       <h4 class="p-12-16 pb-0 mt-12">{{ $t('views.tool.title') }}</h4>
 

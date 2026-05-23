@@ -1,5 +1,5 @@
 <template>
-  <LayoutContainer showCollapse resizable class="knowledge-manage">
+  <LayoutContainer showCollapse class="knowledge-manage">
     <template #left>
       <h4 class="p-12-16 pb-0 mt-12">{{ $t('views.knowledge.title') }}</h4>
 

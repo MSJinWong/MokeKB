@@ -28,7 +28,7 @@
       </div>
     </template>
 
-    <LayoutContainer v-loading="loading" :minLeftWidth="204">
+    <LayoutContainer v-loading="loading">
       <template #left>
         <el-anchor
           direction="vertical"
