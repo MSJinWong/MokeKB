@@ -459,3 +459,63 @@
   padding: 16px 14px 12px;
   margin: 0;
 }
+
+/* ===== 二级导航项 公共样式 ===== */
+%nav-item-base {
+  height: var(--nav-item-height);
+  line-height: var(--nav-item-height);
+  padding: 0 var(--nav-item-padding-x);
+  font-size: var(--nav-item-font-size);
+  font-weight: var(--nav-item-font-weight);
+  color: var(--nav-item-color);
+  border-radius: var(--nav-item-radius);
+  margin-bottom: var(--nav-item-gap);
+  display: flex;
+  align-items: center;
+  gap: var(--nav-item-icon-gap);
+  cursor: pointer;
+  transition: background-color 0.15s, color 0.15s;
+  box-sizing: border-box;
+
+  &:hover {
+    background: var(--nav-item-hover-bg);
+    color: var(--nav-item-hover-color);
+  }
+
+  &.is-active,
+  &.active {
+    background: var(--nav-item-active-bg);
+    color: var(--nav-item-active-color);
+    font-weight: var(--nav-item-active-font-weight);
+  }
+}
+
+/* Mixin fallback — 在 :deep() 下若 @extend 失效，调用方改用 @include nav-item-base */
+@mixin nav-item-base {
+  height: var(--nav-item-height);
+  line-height: var(--nav-item-height);
+  padding: 0 var(--nav-item-padding-x);
+  font-size: var(--nav-item-font-size);
+  font-weight: var(--nav-item-font-weight);
+  color: var(--nav-item-color);
+  border-radius: var(--nav-item-radius);
+  margin-bottom: var(--nav-item-gap);
+  display: flex;
+  align-items: center;
+  gap: var(--nav-item-icon-gap);
+  cursor: pointer;
+  transition: background-color 0.15s, color 0.15s;
+  box-sizing: border-box;
+
+  &:hover {
+    background: var(--nav-item-hover-bg);
+    color: var(--nav-item-hover-color);
+  }
+
+  &.is-active,
+  &.active {
+    background: var(--nav-item-active-bg);
+    color: var(--nav-item-active-color);
+    font-weight: var(--nav-item-active-font-weight);
+  }
+}

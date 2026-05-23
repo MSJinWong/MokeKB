@@ -21,10 +21,29 @@
   --side-width: 220px;
   --side-bg: #f8fafc;
   --side-border: #e2e8f0;
-  --side-item-text: #475569;
-  --side-item-hover-bg: #eef2f6;
-  --side-item-active-bg: #e2e8f0;
-  --side-item-active-text: #0f172a;
+  --side-item-text: var(--nav-item-color);
+  --side-item-hover-bg: var(--nav-item-hover-bg);
+  --side-item-active-bg: var(--nav-item-active-bg);
+  --side-item-active-text: var(--nav-item-active-color);
+
+  /* ===== 二级导航项 token ===== */
+  --nav-item-height: 36px;
+  --nav-item-padding-x: 12px;
+  --nav-item-radius: var(--radius-sm);
+  --nav-item-gap: 2px;
+  --nav-item-font-size: var(--font-size-base);
+  --nav-item-font-weight: 400;
+  --nav-item-color: var(--text-primary);
+
+  --nav-item-hover-bg: rgba(15, 23, 42, 0.06);
+  --nav-item-hover-color: var(--text-primary);
+
+  --nav-item-active-bg: var(--el-color-primary-light-9);
+  --nav-item-active-color: var(--el-color-primary);
+  --nav-item-active-font-weight: 500;
+
+  --nav-item-icon-size: 16px;
+  --nav-item-icon-gap: 8px;
 
   /* ===== Layout · Main ===== */
   --main-bg: #ffffff;
