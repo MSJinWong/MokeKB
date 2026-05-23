@@ -45,7 +45,7 @@
                     <template #content>
                       <p>{{ $t('views.model.modelForm.modeName.tooltip') }}</p>
                     </template>
-                    <AppIcon iconName="app-warning" class="app-warning-icon"></AppIcon>
+                    <LucideIcon name="alert-triangle" :size="16" class="app-warning-icon" />
                   </el-tooltip>
                 </div>
               </template>
@@ -72,7 +72,7 @@
                       <p>{{ $t('views.model.modelForm.model_type.tooltip8') }}</p>
                       <p>{{ $t('views.model.modelForm.model_type.tooltip9') }}</p>
                     </template>
-                    <AppIcon iconName="app-warning" class="app-warning-icon"></AppIcon>
+                    <LucideIcon name="alert-triangle" :size="16" class="app-warning-icon" />
                   </el-tooltip>
                 </div>
               </template>
@@ -123,7 +123,7 @@
                         <template #content>
                           <p class="w-280">{{ item.desc }}</p>
                         </template>
-                        <AppIcon iconName="app-warning" class="app-warning-icon"></AppIcon>
+                        <LucideIcon name="alert-triangle" :size="16" class="app-warning-icon" />
                       </el-tooltip>
                     </div>
                   </template>
@@ -153,7 +153,7 @@
               )
             "
           >
-            <AppIcon iconName="app-add-outlined" class="mr-4" /> {{ $t('common.add') }}
+            <LucideIcon name="plus" :size="16" class="mr-4" /> {{ $t('common.add') }}
           </el-button>
         </div>
         <el-table
@@ -204,13 +204,13 @@
               <span class="mr-4">
                 <el-tooltip effect="dark" :content="$t('common.modify')" placement="top">
                   <el-button type="primary" text @click.stop="openAddDrawer(row, $index)">
-                    <AppIcon iconName="app-edit"></AppIcon>
+                    <LucideIcon name="pencil" :size="16" />
                   </el-button>
                 </el-tooltip>
               </span>
               <el-tooltip effect="dark" :content="$t('common.delete')" placement="top">
                 <el-button type="primary" text @click="deleteParam($index)">
-                  <AppIcon iconName="app-delete"></AppIcon>
+                  <LucideIcon name="trash-2" :size="16" />
                 </el-button>
               </el-tooltip>
             </template>
@@ -231,7 +231,6 @@
 </template>
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { useRoute } from 'vue-router'
 import type { Provider, BaseModel } from '@/api/type/model'
 import type { Dict, KeyValue } from '@/api/type/common'
 import ProviderApi from '@/api/model/provider'
@@ -244,19 +243,10 @@ import { MsgError, MsgSuccess, MsgWarning } from '@/utils/message'
 import { t } from '@/locales'
 import { loadSharedApi } from '@/utils/dynamics-api/shared-api'
 import useStore from '@/stores'
+import { LucideIcon } from '@/components/lucide-icon'
 
-const route = useRoute()
 const { user } = useStore()
 
-const apiType = computed(() => {
-  if (route.path.includes('shared')) {
-    return 'systemShare'
-  } else if (route.path.includes('resource-management')) {
-    return 'systemManage'
-  } else {
-    return 'workspace'
-  }
-})
 const providerValue = ref<Provider>()
 const dynamicsFormRef = ref<InstanceType<typeof DynamicsForm>>()
 const emit = defineEmits(['change', 'submit'])
@@ -386,7 +376,7 @@ const submit = () => {
     ?.validate()
     .then(() => {
       if (providerValue.value) {
-        loadSharedApi({ type: 'model', systemType: apiType.value })
+        loadSharedApi({ type: 'model', systemType: 'workspace' })
           .createModel(
             {
               ...base_form_data.value,
