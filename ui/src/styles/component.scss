@@ -450,3 +450,12 @@
     gap: 8px;
   }
 }
+
+/* ===== 二级导航 / 左栏面板标题 ===== */
+.side-panel__title {
+  font-size: var(--font-size-md);
+  font-weight: 600;
+  color: var(--text-primary);
+  padding: 16px 14px 12px;
+  margin: 0;
+}

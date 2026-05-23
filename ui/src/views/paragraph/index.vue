@@ -52,6 +52,7 @@
       </div>
       <LayoutContainer showCollapse>
         <template #left>
+          <h4 class="side-panel__title">{{ $t('views.paragraph.title') }}</h4>
           <div class="paragraph-sidebar p-16">
             <el-scrollbar class="paragraph-scrollbar">
               <el-anchor
