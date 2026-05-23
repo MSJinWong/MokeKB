@@ -414,8 +414,7 @@
                   <template #reference>
                     <el-tag v-if="row.tag_count" type="info" effect="plain" class="never mr-4">
                       <div class="flex align-center color-text-primary">
-                        <LucideIcon name="tag" :size="16" /><!-- TODO: pick proper lucide name -->
-                        <span class="ml-4">{{ row.tag_count }}</span>
+                        <LucideIcon name="tag" :size="16" />                        <span class="ml-4">{{ row.tag_count }}</span>
                       </div>
                     </el-tag>
                   </template>
@@ -540,8 +539,7 @@
                   >
                     <span class="mr-4" v-if="permissionPrecise.doc_vector(id)">
                       <el-button type="primary" text @click.stop="refreshDocument(row)">
-                        <LucideIcon name="refresh-cw" :size="16" /><!-- TODO: pick proper lucide name -->
-                      </el-button>
+                        <LucideIcon name="refresh-cw" :size="16" />                      </el-button>
                     </span>
                   </el-tooltip>
                   <el-tooltip
@@ -585,8 +583,7 @@
                             @click="openTagSettingDrawer(row)"
                             v-if="permissionPrecise.doc_tag(id)"
                           >
-                            <LucideIcon name="tag" :size="16" class="color-secondary" /><!-- TODO: pick proper lucide name -->
-
+                            <LucideIcon name="tag" :size="16" class="color-secondary" />
                             {{ $t('views.document.tag.setting') }}
                           </el-dropdown-item>
                           <el-dropdown-item
@@ -627,8 +624,7 @@
                             :on-change="(file: any, fileList: any) => replaceDocument(file, row)"
                           >
                             <el-dropdown-item>
-                              <LucideIcon name="upload" :size="16" class="color-secondary" /><!-- TODO: pick proper lucide name -->
-                              {{ $t('views.document.setting.replace') }}
+                              <LucideIcon name="upload" :size="16" class="color-secondary" />                              {{ $t('views.document.setting.replace') }}
                             </el-dropdown-item>
                           </el-upload>
                           <el-dropdown-item
@@ -672,8 +668,7 @@
                   >
                     <span class="mr-4">
                       <el-button type="primary" text @click.stop="refreshDocument(row)">
-                        <LucideIcon name="refresh-cw" :size="16" /><!-- TODO: pick proper lucide name -->
-                      </el-button>
+                        <LucideIcon name="refresh-cw" :size="16" />                      </el-button>
                     </span>
                   </el-tooltip>
                   <el-tooltip
@@ -706,8 +701,7 @@
                             @click="openTagSettingDrawer(row)"
                             v-if="permissionPrecise.doc_tag(id)"
                           >
-                            <LucideIcon name="tag" :size="16" class="color-secondary" /><!-- TODO: pick proper lucide name -->
-
+                            <LucideIcon name="tag" :size="16" class="color-secondary" />
                             {{ $t('views.document.tag.setting') }}
                           </el-dropdown-item>
                           <el-dropdown-item
@@ -839,7 +833,7 @@ import AddTagDialog from '@/views/document/tag/MulAddTagDialog.vue'
 import ExecutionRecord from '@/views/knowledge-workflow/component/execution-record/ExecutionRecordDrawer.vue'
 import { PageHeader } from '@/components/page-header'
 import { LucideIcon } from '@/components/lucide-icon'
-import { StatusDot } from '@/components/status-dot'
+
 
 const route = useRoute()
 const router = useRouter()
@@ -1560,10 +1554,10 @@ onBeforeUnmount(() => {
 }
 .document__card {
   overflow: hidden;
-  .mul-operation {
-    right: 24px;
-    width: calc(100% - var(--sidebar-width) - 48px);
-  }
+}
+.document .mul-operation {
+  right: 24px;
+  width: calc(100% - var(--sidebar-width) - 48px);
 }
 .document-table {
   :deep(.el-table__row) {
