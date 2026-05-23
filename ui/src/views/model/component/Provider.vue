@@ -8,11 +8,7 @@
             class="shared-button flex cursor"
             :class="active?.provider === 'share' && 'active'"
           >
-            <AppIcon
-              iconName="app-shared-active"
-              style="font-size: 18px"
-              class="color-primary"
-            ></AppIcon>
+            <LucideIcon name="share-2" :size="18" class="color-primary" />
             <span class="ml-8">{{ $t('views.shared.shared_model') }}</span>
           </div>
         </div>
@@ -21,11 +17,7 @@
           @click="clickListHandle(allObj as Provider)"
           :class="!active?.provider ? 'all-mode-active color-primary-1' : ''"
         >
-          <AppIcon
-            class="mr-8 color-primary"
-            style="height: 20px; width: 20px"
-            :iconName="'app-all-menu-active'"
-          ></AppIcon>
+          <LucideIcon name="grid-2x2" :size="20" class="mr-8 color-primary" />
           <span>{{ $t('views.model.modelType.allModel') }}</span>
         </div>
 
@@ -37,7 +29,7 @@
           >
             <template #title>
               <div class="flex align-center">
-                <AppIcon iconName="app-folder" style="font-size: 20px"></AppIcon>
+                <LucideIcon name="folder" :size="20" />
                 <span class="ml-8">
                   {{ $t('views.model.modelType.publicModel') }}
                 </span>
@@ -71,7 +63,7 @@
           >
             <template #title>
               <div class="flex align-center">
-                <AppIcon iconName="app-folder" style="font-size: 20px"></AppIcon>
+                <LucideIcon name="folder" :size="20" />
                 <span class="ml-8">
                   {{ $t('views.model.modelType.privateModel') }}
                 </span>
@@ -105,6 +97,7 @@
 </template>
 <script lang="ts" setup>
 import { watch, ref } from 'vue'
+import { LucideIcon } from '@/components/lucide-icon'
 import type { Provider, Model } from '@/api/type/model'
 import { modelTypeList, allObj } from '@/views/model/component/data'
 import { EditionConst } from '@/utils/permission/data'

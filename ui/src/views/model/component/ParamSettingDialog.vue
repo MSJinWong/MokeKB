@@ -54,13 +54,13 @@
           <span class="mr-4">
             <el-tooltip effect="dark" :content="$t('common.modify')" placement="top">
               <el-button type="primary" text @click.stop="openAddDrawer(row, $index)">
-                <AppIcon iconName="app-edit"></AppIcon>
+                <LucideIcon name="pencil" :size="16" />
               </el-button>
             </el-tooltip>
           </span>
           <el-tooltip effect="dark" :content="$t('common.delete')" placement="top">
             <el-button type="primary" text @click="deleteParam($index)">
-              <AppIcon iconName="app-delete"></AppIcon>
+              <LucideIcon name="trash-2" :size="16" />
             </el-button>
           </el-tooltip>
         </template>
@@ -80,6 +80,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { LucideIcon } from '@/components/lucide-icon'
 import { useRoute } from 'vue-router'
 import type { Model } from '@/api/type/model'
 import AddParamDrawer from './AddParamDrawer.vue'

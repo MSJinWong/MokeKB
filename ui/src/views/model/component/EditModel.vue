@@ -37,7 +37,7 @@
                 <template #content>
                   <p>{{ $t('views.model.modelForm.modeName.tooltip') }}</p>
                 </template>
-                <AppIcon iconName="app-warning" class="app-warning-icon"></AppIcon>
+                <LucideIcon name="alert-triangle" :size="16" class="app-warning-icon" />
               </el-tooltip>
             </div>
           </template>
@@ -99,7 +99,7 @@
                     <template #content>
                       <p>{{ item.desc }}</p>
                     </template>
-                    <AppIcon iconName="app-warning" class="app-warning-icon"></AppIcon>
+                    <LucideIcon name="alert-triangle" :size="16" class="app-warning-icon" />
                   </el-tooltip>
                 </div>
               </template>
@@ -120,6 +120,7 @@
 </template>
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { LucideIcon } from '@/components/lucide-icon'
 import { useRoute } from 'vue-router'
 import type { Provider, BaseModel, Model } from '@/api/type/model'
 import type { Dict, KeyValue } from '@/api/type/common'
