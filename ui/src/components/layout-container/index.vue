@@ -2,7 +2,7 @@
   <div class="layout-container flex h-full" :class="isCollapse ? 'layout-container__collapse' : ''">
     <div
       :class="`layout-container__left border-r ${isCollapse ? 'hidden' : ''}`"
-      :style="{ width: isCollapse ? 0 : `${leftWidth}px` }"
+      :style="{ width: widthStyle }"
       v-if="showLeft"
     >
       <div class="layout-container__left_content">
@@ -35,19 +35,19 @@
 </template>
 
 <script setup lang="ts">
-import { onUnmounted, ref } from 'vue'
+import { computed, onUnmounted, ref } from 'vue'
 defineOptions({ name: 'LayoutContainer' })
 
 const props = defineProps({
   showCollapse: Boolean,
-  resizable: Boolean,
+  resizable: { type: Boolean, default: false },
   minLeftWidth: {
     type: Number,
-    default: 240,
+    default: 220,
   },
   maxLeftWidth: {
     type: Number,
-    default: 400,
+    default: 220,
   },
   showLeft: {
     type: Boolean,
@@ -58,6 +58,12 @@ const props = defineProps({
 const isCollapse = ref(false)
 const leftWidth = ref(props.minLeftWidth)
 const isResizing = ref(false)
+
+const widthStyle = computed(() => {
+  if (isCollapse.value) return '0'
+  if (props.resizable) return `${leftWidth.value}px`
+  return 'var(--side-width)'
+})
 
 const onSplitterMouseDown = (e: MouseEvent) => {
   if (!props.resizable) return
