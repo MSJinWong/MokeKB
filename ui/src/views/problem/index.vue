@@ -1,145 +1,145 @@
 <template>
-  <div class="document p-16-24">
-    <h2 class="mb-16">{{ $t('views.problem.title') }}</h2>
-    <el-card style="--el-card-padding: 0">
-      <div class="main-calc-height">
-        <div class="p-24">
-          <div class="flex-between">
-            <div>
-              <el-button
-                type="primary"
-                @click="createProblem"
-                v-if="permissionPrecise.problem_create(id)"
-              >
-                {{ $t('views.problem.createProblem') }}
-              </el-button>
-              <el-button
-                @click="relateProblem()"
-                :disabled="multipleSelection.length === 0"
-                v-if="permissionPrecise.problem_relate(id)"
-              >
-                {{ $t('views.problem.relateParagraph.title') }}
-              </el-button>
-              <el-button
-                @click="deleteMulDocument"
-                :disabled="multipleSelection.length === 0"
-                v-if="permissionPrecise.problem_delete(id)"
-              >
-                {{ $t('views.problem.setting.batchDelete') }}
-              </el-button>
-            </div>
+  <div class="problem">
+    <PageHeader
+      :title="$t('views.problem.title')"
+      :subtitle="$t('views.problem.total', { n: paginationConfig.total })"
+      :showBack="true"
+      @back="$router.back()"
+    >
+      <template #actions>
+        <el-button
+          type="primary"
+          @click="createProblem"
+          v-if="permissionPrecise.problem_create(id)"
+        >
+          {{ $t('views.problem.createProblem') }}
+        </el-button>
+        <el-button
+          @click="relateProblem()"
+          :disabled="multipleSelection.length === 0"
+          v-if="permissionPrecise.problem_relate(id)"
+        >
+          {{ $t('views.problem.relateParagraph.title') }}
+        </el-button>
+        <el-button
+          @click="deleteMulDocument"
+          :disabled="multipleSelection.length === 0"
+          v-if="permissionPrecise.problem_delete(id)"
+        >
+          {{ $t('views.problem.setting.batchDelete') }}
+        </el-button>
+      </template>
+    </PageHeader>
 
-            <el-input
-              v-model="filterText"
-              :placeholder="$t('common.searchBar.placeholder')"
-              prefix-icon="Search"
-              class="w-240"
-              @change="getList"
-              clearable
-            />
-          </div>
-          <app-table
-            ref="multipleTableRef"
-            class="mt-16"
-            :data="problemData"
-            :pagination-config="paginationConfig"
-            :quick-create="permissionPrecise.problem_create(id)"
-            :quickCreateName="$t('views.problem.quickCreateName')"
-            :quickCreatePlaceholder="$t('views.problem.quickCreateProblem')"
-            :quickCreateMaxlength="256"
-            @sizeChange="handleSizeChange"
-            @changePage="getList"
-            @cell-mouse-enter="cellMouseEnter"
-            @cell-mouse-leave="cellMouseLeave"
-            @creatQuick="creatQuickHandle"
-            @row-click="rowClickHandle"
-            @selection-change="handleSelectionChange"
-            :row-class-name="setRowClass"
-            v-loading="loading"
-            :row-key="(row: any) => row.id"
-          >
-            <el-table-column type="selection" width="55" :reserve-selection="true" />
-            <el-table-column prop="content" :label="$t('views.problem.title')" min-width="280">
-              <template #default="{ row }">
-                <ReadWrite
-                  @change="editName($event, row.id)"
-                  :data="row.content"
-                  :showEditIcon="permissionPrecise.problem_edit(id) && row.id === currentMouseId"
-                  :maxlength="256"
-                />
-              </template>
-            </el-table-column>
-            <el-table-column
-              prop="paragraph_count"
-              :label="$t('views.problem.table.paragraph_count')"
-              align="right"
-              min-width="100"
-            >
-              <template #default="{ row }">
-                <el-link
-                  type="primary"
-                  @click.stop="rowClickHandle(row)"
-                  v-if="row.paragraph_count"
-                >
-                  {{ row.paragraph_count }}
-                </el-link>
-                <span v-else>
-                  {{ row.paragraph_count }}
-                </span>
-              </template>
-            </el-table-column>
-            <el-table-column prop="create_time" :label="$t('common.createTime')" width="170">
-              <template #default="{ row }">
-                {{ datetimeFormat(row.create_time) }}
-              </template>
-            </el-table-column>
-            <el-table-column
-              prop="update_time"
-              :label="$t('views.problem.table.updateTime')"
-              width="170"
-            >
-              <template #default="{ row }">
-                {{ datetimeFormat(row.update_time) }}
-              </template>
-            </el-table-column>
-            <el-table-column :label="$t('common.operation')" align="left" fixed="right">
-              <template #default="{ row }">
-                <div>
-                  <span class="mr-4">
-                    <el-tooltip
-                      effect="dark"
-                      :content="$t('views.problem.relateParagraph.title')"
-                      placement="top"
-                    >
-                      <el-button
-                        type="primary"
-                        text
-                        @click.stop="relateProblem(row)"
-                        v-if="permissionPrecise.problem_relate(id)"
-                      >
-                        <AppIcon iconName="app-generate-question"></AppIcon>
-                      </el-button>
-                    </el-tooltip>
-                  </span>
-                  <span>
-                    <el-tooltip effect="dark" :content="$t('common.delete')" placement="top">
-                      <el-button
-                        type="primary"
-                        text
-                        @click.stop="deleteProblem(row)"
-                        v-if="permissionPrecise.problem_delete(id)"
-                      >
-                        <AppIcon iconName="app-delete"></AppIcon>
-                      </el-button>
-                    </el-tooltip>
-                  </span>
-                </div>
-              </template>
-            </el-table-column>
-          </app-table>
+    <div class="card-unified problem__card">
+      <div class="toolbar">
+        <div class="toolbar__left"></div>
+        <div class="toolbar__right">
+          <el-input
+            v-model="filterText"
+            :placeholder="$t('common.searchBar.placeholder')"
+            prefix-icon="Search"
+            class="w-240"
+            @change="getList"
+            clearable
+          />
         </div>
       </div>
-    </el-card>
+
+      <app-table
+        ref="multipleTableRef"
+        :data="problemData"
+        :pagination-config="paginationConfig"
+        :quick-create="permissionPrecise.problem_create(id)"
+        :quickCreateName="$t('views.problem.quickCreateName')"
+        :quickCreatePlaceholder="$t('views.problem.quickCreateProblem')"
+        :quickCreateMaxlength="256"
+        @sizeChange="handleSizeChange"
+        @changePage="getList"
+        @cell-mouse-enter="cellMouseEnter"
+        @cell-mouse-leave="cellMouseLeave"
+        @creatQuick="creatQuickHandle"
+        @row-click="rowClickHandle"
+        @selection-change="handleSelectionChange"
+        :row-class-name="setRowClass"
+        v-loading="loading"
+        :row-key="(row: any) => row.id"
+      >
+        <el-table-column type="selection" width="55" :reserve-selection="true" />
+        <el-table-column prop="content" :label="$t('views.problem.title')" min-width="280">
+          <template #default="{ row }">
+            <ReadWrite
+              @change="editName($event, row.id)"
+              :data="row.content"
+              :showEditIcon="permissionPrecise.problem_edit(id) && row.id === currentMouseId"
+              :maxlength="256"
+            />
+          </template>
+        </el-table-column>
+        <el-table-column
+          prop="paragraph_count"
+          :label="$t('views.problem.table.paragraph_count')"
+          align="right"
+          min-width="100"
+        >
+          <template #default="{ row }">
+            <el-link
+              type="primary"
+              @click.stop="rowClickHandle(row)"
+              v-if="row.paragraph_count"
+            >
+              {{ row.paragraph_count }}
+            </el-link>
+            <span v-else>{{ row.paragraph_count }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="create_time" :label="$t('common.createTime')" width="170">
+          <template #default="{ row }">
+            {{ datetimeFormat(row.create_time) }}
+          </template>
+        </el-table-column>
+        <el-table-column
+          prop="update_time"
+          :label="$t('views.problem.table.updateTime')"
+          width="170"
+        >
+          <template #default="{ row }">
+            {{ datetimeFormat(row.update_time) }}
+          </template>
+        </el-table-column>
+        <el-table-column :label="$t('common.operation')" align="left" fixed="right">
+          <template #default="{ row }">
+            <div>
+              <el-tooltip
+                effect="dark"
+                :content="$t('views.problem.relateParagraph.title')"
+                placement="top"
+              >
+                <el-button
+                  type="primary"
+                  text
+                  @click.stop="relateProblem(row)"
+                  v-if="permissionPrecise.problem_relate(id)"
+                >
+                  <LucideIcon name="sparkles" :size="16" />
+                </el-button>
+              </el-tooltip>
+              <el-tooltip effect="dark" :content="$t('common.delete')" placement="top">
+                <el-button
+                  type="primary"
+                  text
+                  @click.stop="deleteProblem(row)"
+                  v-if="permissionPrecise.problem_delete(id)"
+                >
+                  <LucideIcon name="trash-2" :size="16" />
+                </el-button>
+              </el-tooltip>
+            </div>
+          </template>
+        </el-table-column>
+      </app-table>
+    </div>
+
     <CreateProblemDialog ref="CreateProblemDialogRef" @refresh="refresh" />
     <DetailProblemDrawer
       :next="nextChatRecord"
@@ -158,6 +158,8 @@
 import { ref, onMounted, reactive, onBeforeUnmount, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElTable } from 'element-plus'
+import { PageHeader } from '@/components/page-header'
+import { LucideIcon } from '@/components/lucide-icon'
 import CreateProblemDialog from './component/CreateProblemDialog.vue'
 import DetailProblemDrawer from './component/DetailProblemDrawer.vue'
 import RelateProblemDialog from './component/RelateProblemDialog.vue'
@@ -425,4 +427,11 @@ onMounted(() => {
 
 onBeforeUnmount(() => {})
 </script>
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.problem {
+  padding: 0 24px 24px;
+}
+.problem__card {
+  overflow: hidden;
+}
+</style>

@@ -1,5 +1,6 @@
 export default {
   title: '问题',
+  total: '共 {n} 个问题',
   createProblem: '创建问题',
   detailProblem: '问题详情',
   quickCreateProblem: '快速创建问题',

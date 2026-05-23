@@ -1,5 +1,6 @@
 export default {
   title: 'Questions',
+  total: 'Total {n} questions',
   createProblem: 'Create Question',
   detailProblem: 'Question Details',
   quickCreateProblem: 'Quick Create',
