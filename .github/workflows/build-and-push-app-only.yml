@@ -139,10 +139,12 @@ jobs:
           TAG: ${{ steps.meta.outputs.tag }}
         run: |
           mkdir -p offline
-          OUT="offline/mokekb-app-${TAG}-linux-amd64.tar.gz"
-          docker save "${IMAGE}:${TAG}" | gzip > "$OUT"
+          BASENAME="mokekb-app-${TAG}-linux-amd64.tar.gz"
+          docker save "${IMAGE}:${TAG}" | gzip > "offline/${BASENAME}"
           ls -lh offline/
-          sha256sum "$OUT" > "$OUT.sha256"
+          # Record sha256 with basename only so `sha256sum -c` works when the
+          # user extracts both files into any directory (the artifact zip flattens them).
+          ( cd offline && sha256sum "${BASENAME}" > "${BASENAME}.sha256" )
 
       - name: Upload offline artifact
         if: steps.meta.outputs.build_offline == 'true'

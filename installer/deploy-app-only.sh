@@ -209,8 +209,23 @@ step_get_image() {
       [ -f "$tar" ] || { err "文件不存在: $tar"; exit 1; }
       if [ -f "${tar}.sha256" ]; then
         info "校验 sha256"
-        ( cd "$(dirname "$tar")" && sha256sum -c "$(basename "${tar}.sha256")" ) \
-          || { err "sha256 校验失败"; exit 1; }
+        # Compare hash values directly rather than using `sha256sum -c`, which
+        # relies on the path recorded in the .sha256 file matching the local
+        # layout. Earlier versions of the workflow recorded paths like
+        # `offline/<file>` that won't resolve after artifact extraction.
+        local expected actual
+        expected=$(awk '{print $1}' "${tar}.sha256" | head -1)
+        actual=$(sha256sum "$tar" | awk '{print $1}')
+        if [ -z "$expected" ]; then
+          warn "${tar}.sha256 内容异常，跳过校验"
+        elif [ "$expected" = "$actual" ]; then
+          ok "sha256 校验通过"
+        else
+          err "sha256 不匹配"
+          err "  expected: $expected"
+          err "  actual:   $actual"
+          exit 1
+        fi
       else
         warn "未找到 ${tar}.sha256，跳过校验"
       fi
