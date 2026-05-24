@@ -1,0 +1,97 @@
+# Backend-only deploy: 4 containers (1 web + 3 celery workers) all using the
+# same maxkb-app image. PostgreSQL, Redis, and frontend live OUTSIDE this stack.
+#
+# Usage:
+#   cp installer/.env.app-only.example .env
+#   # edit .env (DB host, Redis host, secrets, image tag)
+#   docker compose -f installer/docker-compose.app-only.yml --env-file .env up -d
+
+x-app-env: &app-env
+  MAXKB_DB_HOST: ${MAXKB_DB_HOST:?set in .env}
+  MAXKB_DB_PORT: ${MAXKB_DB_PORT:-5432}
+  MAXKB_DB_USER: ${MAXKB_DB_USER:?set in .env}
+  MAXKB_DB_PASSWORD: ${MAXKB_DB_PASSWORD:?set in .env}
+  MAXKB_DB_NAME: ${MAXKB_DB_NAME:?set in .env}
+  MAXKB_DB_MAX_OVERFLOW: ${MAXKB_DB_MAX_OVERFLOW:-80}
+  MAXKB_REDIS_HOST: ${MAXKB_REDIS_HOST:?set in .env}
+  MAXKB_REDIS_PORT: ${MAXKB_REDIS_PORT:-6379}
+  MAXKB_REDIS_PASSWORD: ${MAXKB_REDIS_PASSWORD:?set in .env}
+  MAXKB_REDIS_DB: ${MAXKB_REDIS_DB:-0}
+  MAXKB_ENABLE_UI: "false"
+  MAXKB_ENABLE_API_DOCS: ${MAXKB_ENABLE_API_DOCS:-false}
+  MAXKB_ENABLE_EMAIL: ${MAXKB_ENABLE_EMAIL:-false}
+  MAXKB_TASK_QUEUE_PREFIX_ENABLED: "1"
+  MAXKB_ENABLED_PROVIDERS: ${MAXKB_ENABLED_PROVIDERS:?set in .env}
+  MAXKB_SECRET_KEY: ${MAXKB_DJANGO_SECRET_KEY:?set in .env}
+
+services:
+  maxkb-app:
+    image: ${MAXKB_IMAGE:?set in .env}
+    restart: unless-stopped
+    environment:
+      <<: *app-env
+      # Cluster-wide scheduler lives on maxkb-worker-maintenance, not on the web.
+      MAXKB_ENABLE_SCHEDULER: "false"
+    command: ["start", "web"]
+    ports:
+      - "${MAXKB_BACKEND_PORT:-8080}:8080"
+    volumes:
+      - maxkb-data:/opt/maxkb
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8080/admin/api/profile || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+      start_period: 60s
+
+  maxkb-worker-rag:
+    image: ${MAXKB_IMAGE:?set in .env}
+    restart: unless-stopped
+    depends_on:
+      maxkb-app:
+        condition: service_healthy
+    environment:
+      <<: *app-env
+      MAXKB_ENABLE_SCHEDULER: "false"
+      MAXKB_TMPDIR: /opt/maxkb-app/tmp
+      SERVER_NAME: celery
+    entrypoint: ["python", "/opt/maxkb-app/apps/manage.py"]
+    command: ["start", "celery_rag_parse", "celery_rag_embedding", "celery_rag_index"]
+    volumes:
+      - maxkb-data:/opt/maxkb
+
+  maxkb-worker-default:
+    image: ${MAXKB_IMAGE:?set in .env}
+    restart: unless-stopped
+    depends_on:
+      maxkb-app:
+        condition: service_healthy
+    environment:
+      <<: *app-env
+      MAXKB_ENABLE_SCHEDULER: "false"
+      MAXKB_TMPDIR: /opt/maxkb-app/tmp
+      SERVER_NAME: celery
+    entrypoint: ["python", "/opt/maxkb-app/apps/manage.py"]
+    command: ["start", "celery_celery"]
+    volumes:
+      - maxkb-data:/opt/maxkb
+
+  maxkb-worker-maintenance:
+    image: ${MAXKB_IMAGE:?set in .env}
+    restart: unless-stopped
+    depends_on:
+      maxkb-app:
+        condition: service_healthy
+    environment:
+      <<: *app-env
+      # Single scheduler instance for the cluster (apscheduler + celery-beat).
+      MAXKB_ENABLE_SCHEDULER: "true"
+      MAXKB_TMPDIR: /opt/maxkb-app/tmp
+      SERVER_NAME: celery
+    entrypoint: ["python", "/opt/maxkb-app/apps/manage.py"]
+    command: ["start", "celery_maintenance"]
+    volumes:
+      - maxkb-data:/opt/maxkb
+
+volumes:
+  maxkb-data:

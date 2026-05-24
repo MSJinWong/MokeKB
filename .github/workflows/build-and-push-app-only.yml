@@ -1,0 +1,138 @@
+name: build-and-push-app-only
+
+run-name: 构建 backend-only 镜像 ${{ github.event.inputs.tag || github.ref_name }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Image tag (e.g. v2.8.1-app or dev)'
+        default: 'dev'
+        required: true
+      platforms:
+        description: 'Target platforms'
+        default: 'linux/amd64'
+        required: true
+        type: choice
+        options:
+          - linux/amd64
+          - linux/arm64
+          - linux/amd64,linux/arm64
+      build_offline_tar:
+        description: 'Also produce offline tar.gz artifact (linux/amd64)'
+        default: true
+        required: true
+        type: boolean
+  push:
+    tags:
+      - 'v*-app'
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Resolve metadata
+        id: meta
+        run: |
+          OWNER_LC=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          IMAGE="ghcr.io/${OWNER_LC}/mokekb-app"
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            TAG="${{ github.event.inputs.tag }}"
+            PLATFORMS="${{ github.event.inputs.platforms }}"
+            BUILD_OFFLINE="${{ github.event.inputs.build_offline_tar }}"
+          else
+            TAG="${GITHUB_REF_NAME}"
+            PLATFORMS="linux/amd64"
+            BUILD_OFFLINE="true"
+          fi
+          {
+            echo "image=${IMAGE}"
+            echo "tag=${TAG}"
+            echo "platforms=${PLATFORMS}"
+            echo "build_offline=${BUILD_OFFLINE}"
+            echo "build_at=$(TZ=Asia/Shanghai date +'%Y-%m-%dT%H:%M')"
+            echo "commit=$(git rev-parse --short HEAD)"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push (registry)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: installer/Dockerfile.app-only
+          platforms: ${{ steps.meta.outputs.platforms }}
+          push: true
+          tags: ${{ steps.meta.outputs.image }}:${{ steps.meta.outputs.tag }}
+          labels: |
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.created=${{ steps.meta.outputs.build_at }}
+            org.opencontainers.image.version=${{ steps.meta.outputs.tag }}
+          build-args: |
+            DOCKER_IMAGE_TAG=${{ steps.meta.outputs.tag }}
+            BUILD_AT=${{ steps.meta.outputs.build_at }}
+            GITHUB_COMMIT=${{ steps.meta.outputs.commit }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build for local docker (amd64, for offline tar)
+        if: steps.meta.outputs.build_offline == 'true'
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: installer/Dockerfile.app-only
+          platforms: linux/amd64
+          load: true
+          push: false
+          tags: ${{ steps.meta.outputs.image }}:${{ steps.meta.outputs.tag }}
+          build-args: |
+            DOCKER_IMAGE_TAG=${{ steps.meta.outputs.tag }}
+            BUILD_AT=${{ steps.meta.outputs.build_at }}
+            GITHUB_COMMIT=${{ steps.meta.outputs.commit }}
+          cache-from: type=gha
+
+      - name: Export offline tar
+        if: steps.meta.outputs.build_offline == 'true'
+        run: |
+          mkdir -p offline
+          OUT="offline/mokekb-app-${{ steps.meta.outputs.tag }}-linux-amd64.tar.gz"
+          docker save "${{ steps.meta.outputs.image }}:${{ steps.meta.outputs.tag }}" | gzip > "$OUT"
+          ls -lh offline/
+          sha256sum "$OUT" > "$OUT.sha256"
+
+      - name: Upload offline artifact
+        if: steps.meta.outputs.build_offline == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: mokekb-app-${{ steps.meta.outputs.tag }}-offline
+          path: |
+            offline/*.tar.gz
+            offline/*.sha256
+          retention-days: 30
+
+      - name: Attach to GitHub Release (tag push only)
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/') && steps.meta.outputs.build_offline == 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            offline/*.tar.gz
+            offline/*.sha256
