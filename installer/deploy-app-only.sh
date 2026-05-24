@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Interactive deployment script for MokeKB backend-only.
 # Assumes: Ubuntu host. External PostgreSQL (with pgvector) and Redis on
-# separate machines. Frontend deployed elsewhere.
+# separate machines (or on the host itself — script handles the "host network"
+# gotcha by suggesting docker bridge gateway IP). Frontend deployed elsewhere.
 #
 # Usage:
 #   curl -fsSL https://raw.githubusercontent.com/MSJinWong/MokeKB/feat/frontend-redesign/installer/deploy-app-only.sh -o deploy.sh
@@ -35,14 +36,15 @@ ok()    { echo "${C_GREEN}[✓]${C_RESET} $*" >&2; }
 warn()  { echo "${C_YELLOW}[!]${C_RESET} $*" >&2; }
 err()   { echo "${C_RED}[✗]${C_RESET} $*" >&2; }
 
-# === Prompt helpers (prompts go to stderr; value comes back via stdout) ===
+# === Prompt helpers ===
+# `-e` enables readline editing (tab-completion for file paths, arrow-keys for history).
 ask() {
   local prompt="$1" default="${2:-}" var
   if [ -n "$default" ]; then
-    read -rp "$prompt [$default]: " var
+    read -erp "$prompt [$default]: " var
     var="${var:-$default}"
   else
-    read -rp "$prompt: " var
+    read -erp "$prompt: " var
   fi
   printf '%s' "$var"
 }
@@ -51,9 +53,7 @@ ask_required() {
   local prompt="$1" var
   while true; do
     var=$(ask "$prompt")
-    if [ -n "$var" ]; then
-      printf '%s' "$var"; return
-    fi
+    [ -n "$var" ] && { printf '%s' "$var"; return; }
     warn "不能为空"
   done
 }
@@ -65,14 +65,20 @@ ask_secret() {
   printf '%s' "$var"
 }
 
+# Required + non-empty + reject single-quote (we wrap values in single quotes
+# in the .env writer; supporting embedded ' would require shell-quote escaping
+# which is not worth the complexity).
 ask_secret_required() {
   local prompt="$1" var
   while true; do
     var=$(ask_secret "$prompt")
-    if [ -n "$var" ]; then
-      printf '%s' "$var"; return
+    if [ -z "$var" ]; then
+      warn "不能为空"; continue
     fi
-    warn "不能为空"
+    case "$var" in
+      *\'*) warn "暂不支持单引号(')，请换一个字符"; continue ;;
+    esac
+    printf '%s' "$var"; return
   done
 }
 
@@ -92,12 +98,14 @@ ask_yes_no() {
   done
 }
 
+# Single-quote wrap. Caller must ensure value contains no '.
+# Compose parses both 'x' and "x" by stripping outer quotes, so this is safe.
+sq() { printf "'%s'" "$1"; }
+
 # Read a value from a .env-style file WITHOUT shell-evaluating it.
-# Value is taken literally from the `KEY=...` line. Returns empty if key absent.
-# This intentionally bypasses `source` to avoid command-injection / quoting bugs
-# when the file contains special chars (e.g. passwords with $, ", spaces).
+# Strips surrounding single or double quotes (mirrors compose .env semantics).
 parse_env_value() {
-  local key="$1" file="$2" line k
+  local key="$1" file="$2" line k val
   [ -f "$file" ] || return 0
   while IFS= read -r line; do
     case "$line" in
@@ -105,15 +113,18 @@ parse_env_value() {
     esac
     k="${line%%=*}"
     if [ "$k" = "$key" ]; then
-      printf '%s' "${line#*=}"
+      val="${line#*=}"
+      case "$val" in
+        \"*\") val="${val#\"}"; val="${val%\"}" ;;
+        \'*\') val="${val#\'}"; val="${val%\'}" ;;
+      esac
+      printf '%s' "$val"
       return 0
     fi
   done < "$file"
 }
 
 # Compare image arch with host. Warns and prompts on mismatch.
-# Critical for offline tar (workflow only produces linux/amd64) loaded onto
-# ARM hosts — without QEMU the container fails with `exec format error`.
 check_image_arch() {
   local image="$1" img_arch host_arch host_norm
   img_arch=$(docker image inspect "$image" -f '{{.Architecture}}' 2>/dev/null || echo unknown)
@@ -124,8 +135,7 @@ check_image_arch() {
     *) host_norm="$host_arch" ;;
   esac
   if [ "$img_arch" = "unknown" ]; then
-    warn "无法读取镜像架构"
-    return 0
+    warn "无法读取镜像架构"; return 0
   fi
   if [ "$img_arch" != "$host_norm" ]; then
     err "镜像架构 ($img_arch) 与主机 ($host_arch -> $host_norm) 不一致"
@@ -136,7 +146,6 @@ check_image_arch() {
   fi
 }
 
-# Warn if image tag is mutable (dev/latest/edge/nightly) — bad for reproducibility.
 warn_mutable_tag() {
   local image="$1" tag="${1##*:}"
   case "$tag" in
@@ -144,6 +153,28 @@ warn_mutable_tag() {
       warn "镜像使用 mutable tag ':$tag'"
       warn "生产环境建议改用版本号 tag（如 :v2.8.0）以保证可复现 / 回滚 / 审计" ;;
   esac
+}
+
+# If user enters loopback for a service host, offer the docker bridge gateway
+# IP instead. 127.0.0.1 inside the container points to the container, NOT the
+# host — this was the #1 cause of "Redis timeout" / "PG refused" bugs.
+maybe_fix_loopback() {
+  local val="$1" name="$2" gw
+  case "$val" in
+    127.0.0.1|localhost|::1) ;;
+    *) printf '%s' "$val"; return ;;
+  esac
+  gw=$(ip -4 addr show docker0 2>/dev/null | awk '/inet / {print $2}' | cut -d/ -f1 | head -1)
+  warn "$name=$val 是回环地址；容器内访问时指向容器自己，连不到宿主上的服务"
+  if [ -n "$gw" ]; then
+    if ask_yes_no "改用 docker bridge 网关 $gw（宿主上服务的入口）？" y; then
+      printf '%s' "$gw"; return
+    fi
+  else
+    warn "未找到 docker0 网卡；如果服务跑在宿主上，需要手动填宿主 LAN IP"
+  fi
+  warn "继续使用 $val（如果服务跑在另一台机器上则没事）"
+  printf '%s' "$val"
 }
 
 # === 1. environment check ===
@@ -160,6 +191,7 @@ step_check_env() {
   docker compose version >/dev/null 2>&1 || missing+=("docker-compose-plugin")
   command -v nc      >/dev/null 2>&1 || missing+=("netcat-openbsd")
   command -v openssl >/dev/null 2>&1 || missing+=("openssl")
+  command -v ip      >/dev/null 2>&1 || missing+=("iproute2")
 
   if [ ${#missing[@]} -gt 0 ]; then
     warn "缺少: ${missing[*]}"
@@ -209,10 +241,6 @@ step_get_image() {
       [ -f "$tar" ] || { err "文件不存在: $tar"; exit 1; }
       if [ -f "${tar}.sha256" ]; then
         info "校验 sha256"
-        # Compare hash values directly rather than using `sha256sum -c`, which
-        # relies on the path recorded in the .sha256 file matching the local
-        # layout. Earlier versions of the workflow recorded paths like
-        # `offline/<file>` that won't resolve after artifact extraction.
         local expected actual
         expected=$(awk '{print $1}' "${tar}.sha256" | head -1)
         actual=$(sha256sum "$tar" | awk '{print $1}')
@@ -278,9 +306,6 @@ step_configure() {
     REDIS_PASS=$(parse_env_value MAXKB_REDIS_PASSWORD .env)
     BACKEND_PORT=$(parse_env_value MAXKB_BACKEND_PORT .env)
 
-    # Compare .env's MAXKB_IMAGE with what was just pulled/loaded.
-    # Without this, an offline upgrade silently deploys the OLD image
-    # because docker compose reads .env, not the IMAGE variable.
     local env_image
     env_image=$(parse_env_value MAXKB_IMAGE .env)
     if [ -n "$env_image" ] && [ "$env_image" != "$IMAGE" ]; then
@@ -289,7 +314,7 @@ step_configure() {
       if ask_yes_no "更新 .env 的 MAXKB_IMAGE 为新镜像？" y; then
         local tmpf
         tmpf=$(mktemp)
-        sed "s|^MAXKB_IMAGE=.*|MAXKB_IMAGE=$IMAGE|" .env > "$tmpf"
+        sed "s|^MAXKB_IMAGE=.*|MAXKB_IMAGE=$(sq "$IMAGE")|" .env > "$tmpf"
         mv "$tmpf" .env
         chmod 600 .env
         ok "已更新 .env 中的 MAXKB_IMAGE"
@@ -305,6 +330,7 @@ step_configure() {
   echo >&2
   echo "${C_BOLD}PostgreSQL（必须支持 pgvector 扩展）${C_RESET}" >&2
   PG_HOST=$(ask_required "PG host (IP / hostname)")
+  PG_HOST=$(maybe_fix_loopback "$PG_HOST" "MAXKB_DB_HOST")
   PG_PORT=$(ask "PG port" "5432")
   PG_USER=$(ask "PG user" "maxkb")
   PG_PASS=$(ask_secret_required "PG password")
@@ -313,6 +339,7 @@ step_configure() {
   echo >&2
   echo "${C_BOLD}Redis${C_RESET}" >&2
   REDIS_HOST=$(ask_required "Redis host")
+  REDIS_HOST=$(maybe_fix_loopback "$REDIS_HOST" "MAXKB_REDIS_HOST")
   REDIS_PORT=$(ask "Redis port" "6379")
   REDIS_PASS=$(ask_secret_required "Redis password")
   REDIS_DB=$(ask   "Redis DB" "0")
@@ -332,32 +359,35 @@ step_configure() {
   PROVIDERS=$(ask "MAXKB_ENABLED_PROVIDERS" \
     "model_openai_provider,model_anthropic_provider,model_siliconCloud_provider,aliyun_bai_lian_model_provider,model_volcanic_engine_provider,model_ollama_provider,model_vllm_provider,model_xinference_provider,model_docker_ai_provider")
 
+  # All values single-quoted. Critical because compose's .env parser treats
+  # `#` inside an unquoted value as an inline comment marker, silently
+  # truncating passwords like `Zaq12wsxcde#`.
   cat > .env <<EOF
 # Generated by deploy-app-only.sh on $(date -u +'%Y-%m-%dT%H:%M:%SZ')
 # Pin compose project name so volumes/networks survive workdir relocation.
 COMPOSE_PROJECT_NAME=mokekb
 
-MAXKB_IMAGE=${IMAGE}
-MAXKB_BACKEND_PORT=${BACKEND_PORT}
+MAXKB_IMAGE=$(sq "$IMAGE")
+MAXKB_BACKEND_PORT=$(sq "$BACKEND_PORT")
 
-MAXKB_DB_HOST=${PG_HOST}
-MAXKB_DB_PORT=${PG_PORT}
-MAXKB_DB_USER=${PG_USER}
-MAXKB_DB_PASSWORD=${PG_PASS}
-MAXKB_DB_NAME=${PG_DB}
-MAXKB_DB_MAX_OVERFLOW=80
+MAXKB_DB_HOST=$(sq "$PG_HOST")
+MAXKB_DB_PORT=$(sq "$PG_PORT")
+MAXKB_DB_USER=$(sq "$PG_USER")
+MAXKB_DB_PASSWORD=$(sq "$PG_PASS")
+MAXKB_DB_NAME=$(sq "$PG_DB")
+MAXKB_DB_MAX_OVERFLOW='80'
 
-MAXKB_REDIS_HOST=${REDIS_HOST}
-MAXKB_REDIS_PORT=${REDIS_PORT}
-MAXKB_REDIS_PASSWORD=${REDIS_PASS}
-MAXKB_REDIS_DB=${REDIS_DB}
+MAXKB_REDIS_HOST=$(sq "$REDIS_HOST")
+MAXKB_REDIS_PORT=$(sq "$REDIS_PORT")
+MAXKB_REDIS_PASSWORD=$(sq "$REDIS_PASS")
+MAXKB_REDIS_DB=$(sq "$REDIS_DB")
 
-MAXKB_DJANGO_SECRET_KEY=${DJANGO_SECRET}
+MAXKB_DJANGO_SECRET_KEY=$(sq "$DJANGO_SECRET")
 
-MAXKB_ENABLED_PROVIDERS=${PROVIDERS}
+MAXKB_ENABLED_PROVIDERS=$(sq "$PROVIDERS")
 
-MAXKB_ENABLE_API_DOCS=false
-MAXKB_ENABLE_EMAIL=false
+MAXKB_ENABLE_API_DOCS='false'
+MAXKB_ENABLE_EMAIL='false'
 EOF
   chmod 600 .env
   ok ".env 已写入 (chmod 600)"
@@ -378,10 +408,10 @@ step_preflight() {
     ok "Redis 端口可达 $REDIS_HOST:$REDIS_PORT"
   else
     err "Redis 端口不可达 $REDIS_HOST:$REDIS_PORT"
+    err "宿主上的 Redis 需要 'bind 0.0.0.0' 或包含 docker bridge 网段，且防火墙放行 6379"
     ask_yes_no "仍然继续？" n || exit 1
   fi
 
-  # Optional: deeper PG check if psql available
   if command -v psql >/dev/null 2>&1; then
     if PGPASSWORD="$PG_PASS" psql -h "$PG_HOST" -p "$PG_PORT" -U "$PG_USER" -d "$PG_DB" \
          -tAc 'SELECT 1' >/dev/null 2>&1; then
@@ -415,6 +445,26 @@ SQL
   fi
 }
 
+# Dump the actual application error when healthcheck fails.
+# main.py redirects gunicorn stderr to a file inside the container, so
+# `docker compose logs` only shows "Start Gunicorn / gunicorn is stopped"
+# without the real traceback. This dumps both.
+dump_failure_logs() {
+  local cid
+  cid=$(docker compose ps -q maxkb-app 2>/dev/null || true)
+  echo >&2
+  echo "${C_YELLOW}=== docker compose logs maxkb-app (last 30 lines) ===${C_RESET}" >&2
+  docker compose logs --tail=30 --no-color maxkb-app 2>&1 | sed 's/^/  /' >&2 || true
+  echo >&2
+  echo "${C_YELLOW}=== /opt/maxkb/logs/gunicorn.log (last 50 lines) ===${C_RESET}" >&2
+  if [ -n "$cid" ]; then
+    docker exec "$cid" sh -c 'tail -50 /opt/maxkb/logs/gunicorn.log 2>/dev/null' 2>&1 \
+      | sed 's/^/  /' >&2 \
+      || warn "  无法读取 gunicorn.log（容器可能已退出）"
+  fi
+  echo >&2
+}
+
 # === 6. launch ===
 step_launch() {
   info "Step 6/6: 启动"
@@ -427,13 +477,13 @@ step_launch() {
   docker compose up -d
 
   info "等待 maxkb-app 健康检查（最长 3 分钟）"
-  local i cid status
+  local i cid status=""
   cid=$(docker compose ps -q maxkb-app)
   for i in $(seq 1 36); do
     status=$(docker inspect -f '{{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}}' "$cid" 2>/dev/null || echo "none")
     case "$status" in
       healthy)   ok "maxkb-app 健康"; break ;;
-      unhealthy) err "maxkb-app unhealthy"; docker compose logs --tail=50 maxkb-app; return 1 ;;
+      unhealthy) err "maxkb-app unhealthy"; dump_failure_logs; return 1 ;;
     esac
     sleep 5
     printf '.' >&2
@@ -441,7 +491,10 @@ step_launch() {
   echo >&2
 
   if [ "$status" != "healthy" ]; then
-    warn "等待超时。看日志：docker compose logs -f maxkb-app"
+    warn "等待超时。常见原因：Redis/PG 在容器内连不通、Django settings 报错"
+    dump_failure_logs
+    warn "持续观察：docker compose logs -f maxkb-app"
+    return 1
   fi
 
   echo >&2
@@ -453,7 +506,9 @@ step_launch() {
 
   常用命令（在 $WORKDIR 目录下）：
     docker compose ps                          # 容器状态
-    docker compose logs -f maxkb-app           # web 日志
+    docker compose logs -f maxkb-app           # web 日志（应用 stdout）
+    docker exec \$(docker compose ps -q maxkb-app) \\
+      tail -f /opt/maxkb/logs/gunicorn.log     # Gunicorn 真实 stderr
     docker compose logs -f maxkb-worker-rag    # RAG worker 日志
     docker compose restart                     # 重启
     docker compose down                        # 停止
