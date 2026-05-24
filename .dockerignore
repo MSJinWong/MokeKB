@@ -3,3 +3,14 @@
 *.md
 !README.md
 .venv/
+
+# Env files at repo root (e.g. .env.dev with local secrets).
+# installer/.env.*.example templates live in subdir and are deliberately kept;
+# Dockerfile.app-only removes /opt/maxkb-app/installer from the final image anyway.
+.env
+.env.*
+
+# Local runtime artifacts that are tracked but shouldn't ship in the image.
+maxkb-chat-log-*.txt
+docs/
+*.tsbuildinfo
