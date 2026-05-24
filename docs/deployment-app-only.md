@@ -2,6 +2,8 @@
 
 适用：把 MokeKB 后端容器化部署，**外部独立维护** PostgreSQL（带 pgvector）+ Redis + 前端 nginx 的场景。
 
+> 前端独立部署（admin/chat 构建、nginx 配置、宝塔步骤、故障排查）：见 [`deployment-frontend.md`](./deployment-frontend.md)。
+
 ---
 
 ## 1. 部署模型
