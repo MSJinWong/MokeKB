@@ -9,7 +9,7 @@
 #   ./deploy.sh
 #
 # Env overrides:
-#   MOKEKB_BRANCH=main ./deploy.sh        # download compose/.env from a different ref
+#   MOKEKB_BRANCH=main ./deploy.sh        # download compose from a different ref
 #   MOKEKB_DIR=/srv/mokekb ./deploy.sh    # default working dir
 
 set -euo pipefail
@@ -21,7 +21,6 @@ DEFAULT_IMAGE="ghcr.io/msjinwong/mokekb-app:dev"
 DEFAULT_DIR="${MOKEKB_DIR:-$HOME/mokekb}"
 RAW_BASE="https://raw.githubusercontent.com/${REPO}/${BRANCH}/installer"
 COMPOSE_URL="${RAW_BASE}/docker-compose.app-only.yml"
-ENV_URL="${RAW_BASE}/.env.app-only.example"
 
 # === Colors (auto-disable when not a TTY) ===
 if [ -t 1 ]; then
@@ -66,6 +65,17 @@ ask_secret() {
   printf '%s' "$var"
 }
 
+ask_secret_required() {
+  local prompt="$1" var
+  while true; do
+    var=$(ask_secret "$prompt")
+    if [ -n "$var" ]; then
+      printf '%s' "$var"; return
+    fi
+    warn "不能为空"
+  done
+}
+
 ask_yes_no() {
   local prompt="$1" default="${2:-y}" var
   while true; do
@@ -82,6 +92,60 @@ ask_yes_no() {
   done
 }
 
+# Read a value from a .env-style file WITHOUT shell-evaluating it.
+# Value is taken literally from the `KEY=...` line. Returns empty if key absent.
+# This intentionally bypasses `source` to avoid command-injection / quoting bugs
+# when the file contains special chars (e.g. passwords with $, ", spaces).
+parse_env_value() {
+  local key="$1" file="$2" line k
+  [ -f "$file" ] || return 0
+  while IFS= read -r line; do
+    case "$line" in
+      \#*|'') continue ;;
+    esac
+    k="${line%%=*}"
+    if [ "$k" = "$key" ]; then
+      printf '%s' "${line#*=}"
+      return 0
+    fi
+  done < "$file"
+}
+
+# Compare image arch with host. Warns and prompts on mismatch.
+# Critical for offline tar (workflow only produces linux/amd64) loaded onto
+# ARM hosts — without QEMU the container fails with `exec format error`.
+check_image_arch() {
+  local image="$1" img_arch host_arch host_norm
+  img_arch=$(docker image inspect "$image" -f '{{.Architecture}}' 2>/dev/null || echo unknown)
+  host_arch=$(uname -m)
+  case "$host_arch" in
+    x86_64|amd64)  host_norm=amd64 ;;
+    aarch64|arm64) host_norm=arm64 ;;
+    *) host_norm="$host_arch" ;;
+  esac
+  if [ "$img_arch" = "unknown" ]; then
+    warn "无法读取镜像架构"
+    return 0
+  fi
+  if [ "$img_arch" != "$host_norm" ]; then
+    err "镜像架构 ($img_arch) 与主机 ($host_arch -> $host_norm) 不一致"
+    err "运行将依赖 QEMU 模拟（性能很差），或直接 'exec format error'"
+    ask_yes_no "仍要继续？" n || exit 1
+  else
+    ok "架构匹配: $img_arch"
+  fi
+}
+
+# Warn if image tag is mutable (dev/latest/edge/nightly) — bad for reproducibility.
+warn_mutable_tag() {
+  local image="$1" tag="${1##*:}"
+  case "$tag" in
+    dev|latest|edge|nightly)
+      warn "镜像使用 mutable tag ':$tag'"
+      warn "生产环境建议改用版本号 tag（如 :v2.8.0）以保证可复现 / 回滚 / 审计" ;;
+  esac
+}
+
 # === 1. environment check ===
 step_check_env() {
   info "Step 1/6: 检查环境"
@@ -91,10 +155,10 @@ step_check_env() {
   fi
 
   local missing=()
-  command -v curl   >/dev/null 2>&1 || missing+=("curl")
-  command -v docker >/dev/null 2>&1 || missing+=("docker.io")
+  command -v curl    >/dev/null 2>&1 || missing+=("curl")
+  command -v docker  >/dev/null 2>&1 || missing+=("docker.io")
   docker compose version >/dev/null 2>&1 || missing+=("docker-compose-plugin")
-  command -v nc     >/dev/null 2>&1 || missing+=("netcat-openbsd")
+  command -v nc      >/dev/null 2>&1 || missing+=("netcat-openbsd")
   command -v openssl >/dev/null 2>&1 || missing+=("openssl")
 
   if [ ${#missing[@]} -gt 0 ]; then
@@ -159,6 +223,9 @@ step_get_image() {
     *)
       err "无效选择"; exit 1 ;;
   esac
+
+  check_image_arch "$IMAGE"
+  warn_mutable_tag "$IMAGE"
 }
 
 # === 3. workdir + compose ===
@@ -186,12 +253,36 @@ step_configure() {
 
   if [ -f .env ] && ! ask_yes_no ".env 已存在，重新配置？（会备份原文件）" n; then
     ok "保留现有 .env"
-    # Source it so preflight/launch knows the values
-    set -a; . ./.env; set +a
-    PG_HOST="$MAXKB_DB_HOST"; PG_PORT="$MAXKB_DB_PORT"
-    PG_USER="$MAXKB_DB_USER"; PG_PASS="$MAXKB_DB_PASSWORD"; PG_DB="$MAXKB_DB_NAME"
-    REDIS_HOST="$MAXKB_REDIS_HOST"; REDIS_PORT="$MAXKB_REDIS_PORT"
-    REDIS_PASS="$MAXKB_REDIS_PASSWORD"; BACKEND_PORT="$MAXKB_BACKEND_PORT"
+    PG_HOST=$(parse_env_value MAXKB_DB_HOST .env)
+    PG_PORT=$(parse_env_value MAXKB_DB_PORT .env)
+    PG_USER=$(parse_env_value MAXKB_DB_USER .env)
+    PG_PASS=$(parse_env_value MAXKB_DB_PASSWORD .env)
+    PG_DB=$(parse_env_value MAXKB_DB_NAME .env)
+    REDIS_HOST=$(parse_env_value MAXKB_REDIS_HOST .env)
+    REDIS_PORT=$(parse_env_value MAXKB_REDIS_PORT .env)
+    REDIS_PASS=$(parse_env_value MAXKB_REDIS_PASSWORD .env)
+    BACKEND_PORT=$(parse_env_value MAXKB_BACKEND_PORT .env)
+
+    # Compare .env's MAXKB_IMAGE with what was just pulled/loaded.
+    # Without this, an offline upgrade silently deploys the OLD image
+    # because docker compose reads .env, not the IMAGE variable.
+    local env_image
+    env_image=$(parse_env_value MAXKB_IMAGE .env)
+    if [ -n "$env_image" ] && [ "$env_image" != "$IMAGE" ]; then
+      warn ".env 中 MAXKB_IMAGE=$env_image"
+      warn "刚刚准备的镜像  IMAGE=$IMAGE"
+      if ask_yes_no "更新 .env 的 MAXKB_IMAGE 为新镜像？" y; then
+        local tmpf
+        tmpf=$(mktemp)
+        sed "s|^MAXKB_IMAGE=.*|MAXKB_IMAGE=$IMAGE|" .env > "$tmpf"
+        mv "$tmpf" .env
+        chmod 600 .env
+        ok "已更新 .env 中的 MAXKB_IMAGE"
+      else
+        info "保持 .env 原值；后续部署将使用 $env_image"
+        IMAGE="$env_image"
+      fi
+    fi
     return
   fi
   [ -f .env ] && cp .env ".env.bak.$(date +%s)"
@@ -201,14 +292,14 @@ step_configure() {
   PG_HOST=$(ask_required "PG host (IP / hostname)")
   PG_PORT=$(ask "PG port" "5432")
   PG_USER=$(ask "PG user" "maxkb")
-  PG_PASS=$(ask_secret "PG password")
+  PG_PASS=$(ask_secret_required "PG password")
   PG_DB=$(ask   "PG database" "maxkb")
 
   echo >&2
   echo "${C_BOLD}Redis${C_RESET}" >&2
   REDIS_HOST=$(ask_required "Redis host")
   REDIS_PORT=$(ask "Redis port" "6379")
-  REDIS_PASS=$(ask_secret "Redis password（必填）")
+  REDIS_PASS=$(ask_secret_required "Redis password")
   REDIS_DB=$(ask   "Redis DB" "0")
 
   echo >&2
@@ -218,7 +309,7 @@ step_configure() {
   if ask_yes_no "自动生成 Django SECRET_KEY？" y; then
     DJANGO_SECRET=$(openssl rand -hex 32)
   else
-    DJANGO_SECRET=$(ask_secret "Django SECRET_KEY")
+    DJANGO_SECRET=$(ask_secret_required "Django SECRET_KEY")
   fi
 
   echo >&2
@@ -228,6 +319,9 @@ step_configure() {
 
   cat > .env <<EOF
 # Generated by deploy-app-only.sh on $(date -u +'%Y-%m-%dT%H:%M:%SZ')
+# Pin compose project name so volumes/networks survive workdir relocation.
+COMPOSE_PROJECT_NAME=mokekb
+
 MAXKB_IMAGE=${IMAGE}
 MAXKB_BACKEND_PORT=${BACKEND_PORT}
 
