@@ -36,7 +36,15 @@ RUN pip install uv --break-system-packages && \
 # --- Layer 2: application code (changes frequently) ---
 COPY --chmod=700 . /opt/maxkb-app
 
-ENV MAXKB_SANDBOX_HOME=/opt/maxkb-app/sandbox
+# Build-time env for Django bootstrap during `compilemessages`. Without
+# MAXKB_CONFIG_TYPE=ENV, apps/maxkb/conf.py:259 falls through to load_from_yml()
+# and raises ImportError because no config.yml exists in the build context.
+# load_from_env() additionally requires at least one MAXKB_* key to be set,
+# hence MAXKB_LOG_LEVEL. These mirror the Dockerfile-base image used by the
+# all-in-one build and are stage-local (don't leak into the final image).
+ENV MAXKB_SANDBOX_HOME=/opt/maxkb-app/sandbox \
+    MAXKB_CONFIG_TYPE=ENV \
+    MAXKB_LOG_LEVEL=INFO
 RUN mkdir -p ${MAXKB_SANDBOX_HOME}/lib && \
     gcc -shared -fPIC -o ${MAXKB_SANDBOX_HOME}/lib/sandbox.so \
         /opt/maxkb-app/installer/sandbox.c -ldl && \
