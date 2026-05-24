@@ -1,5 +1,5 @@
 # Backend-only deploy: 4 containers (1 web + 3 celery workers) all using the
-# same maxkb-app image. PostgreSQL, Redis, and frontend live OUTSIDE this stack.
+# same hoyanai-app image. PostgreSQL, Redis, and frontend live OUTSIDE this stack.
 #
 # Usage:
 #   cp installer/.env.app-only.example .env
@@ -25,18 +25,18 @@ x-app-env: &app-env
   MAXKB_SECRET_KEY: ${MAXKB_DJANGO_SECRET_KEY:?set in .env}
 
 services:
-  maxkb-app:
+  hoyanai-app:
     image: ${MAXKB_IMAGE:?set in .env}
     restart: unless-stopped
     environment:
       <<: *app-env
-      # Cluster-wide scheduler lives on maxkb-worker-maintenance, not on the web.
+      # Cluster-wide scheduler lives on hoyanai-worker-maintenance, not on the web.
       MAXKB_ENABLE_SCHEDULER: "false"
     command: ["start", "web"]
     ports:
       - "${MAXKB_BACKEND_PORT:-8080}:8080"
     volumes:
-      - maxkb-data:/opt/maxkb
+      - hoyanai-data:/opt/maxkb
     healthcheck:
       test: ["CMD-SHELL", "curl -sf http://localhost:8080/admin/api/profile || exit 1"]
       interval: 15s
@@ -44,11 +44,11 @@ services:
       retries: 20
       start_period: 60s
 
-  maxkb-worker-rag:
+  hoyanai-worker-rag:
     image: ${MAXKB_IMAGE:?set in .env}
     restart: unless-stopped
     depends_on:
-      maxkb-app:
+      hoyanai-app:
         condition: service_healthy
     environment:
       <<: *app-env
@@ -58,13 +58,13 @@ services:
     entrypoint: ["python", "/opt/maxkb-app/apps/manage.py"]
     command: ["start", "celery_rag_parse", "celery_rag_embedding", "celery_rag_index"]
     volumes:
-      - maxkb-data:/opt/maxkb
+      - hoyanai-data:/opt/maxkb
 
-  maxkb-worker-default:
+  hoyanai-worker-default:
     image: ${MAXKB_IMAGE:?set in .env}
     restart: unless-stopped
     depends_on:
-      maxkb-app:
+      hoyanai-app:
         condition: service_healthy
     environment:
       <<: *app-env
@@ -74,13 +74,13 @@ services:
     entrypoint: ["python", "/opt/maxkb-app/apps/manage.py"]
     command: ["start", "celery_celery"]
     volumes:
-      - maxkb-data:/opt/maxkb
+      - hoyanai-data:/opt/maxkb
 
-  maxkb-worker-maintenance:
+  hoyanai-worker-maintenance:
     image: ${MAXKB_IMAGE:?set in .env}
     restart: unless-stopped
     depends_on:
-      maxkb-app:
+      hoyanai-app:
         condition: service_healthy
     environment:
       <<: *app-env
@@ -91,7 +91,7 @@ services:
     entrypoint: ["python", "/opt/maxkb-app/apps/manage.py"]
     command: ["start", "celery_maintenance"]
     volumes:
-      - maxkb-data:/opt/maxkb
+      - hoyanai-data:/opt/maxkb
 
 volumes:
-  maxkb-data:
+  hoyanai-data:

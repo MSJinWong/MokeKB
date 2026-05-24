@@ -51,7 +51,7 @@ jobs:
           REF_NAME: ${{ github.ref_name }}
         run: |
           OWNER_LC=$(echo "$REPO_OWNER" | tr '[:upper:]' '[:lower:]')
-          IMAGE="ghcr.io/${OWNER_LC}/mokekb-app"
+          IMAGE="ghcr.io/${OWNER_LC}/hoyanai-app"
           if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
             TAG="$INPUT_TAG"
             PLATFORMS="$INPUT_PLATFORMS"
@@ -139,7 +139,7 @@ jobs:
           TAG: ${{ steps.meta.outputs.tag }}
         run: |
           mkdir -p offline
-          BASENAME="mokekb-app-${TAG}-linux-amd64.tar.gz"
+          BASENAME="hoyanai-app-${TAG}-linux-amd64.tar.gz"
           docker save "${IMAGE}:${TAG}" | gzip > "offline/${BASENAME}"
           ls -lh offline/
           # Record sha256 with basename only so `sha256sum -c` works when the
@@ -150,7 +150,7 @@ jobs:
         if: steps.meta.outputs.build_offline == 'true'
         uses: actions/upload-artifact@v4
         with:
-          name: mokekb-app-${{ steps.meta.outputs.tag }}-offline
+          name: hoyanai-app-${{ steps.meta.outputs.tag }}-offline
           path: |
             offline/*.tar.gz
             offline/*.sha256

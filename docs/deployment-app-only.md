@@ -1,6 +1,6 @@
 # Backend-only 部署指南
 
-适用：把 MokeKB 后端容器化部署，**外部独立维护** PostgreSQL（带 pgvector）+ Redis + 前端 nginx 的场景。
+适用：把 HoyanAI 后端容器化部署，**外部独立维护** PostgreSQL（带 pgvector）+ Redis + 前端 nginx 的场景。
 
 > 前端独立部署（admin/chat 构建、nginx 配置、宝塔步骤、故障排查）：见 [`deployment-frontend.md`](./deployment-frontend.md)。
 
@@ -8,14 +8,14 @@
 
 ## 1. 部署模型
 
-部署后会跑 **4 个容器，全部用同一个镜像** `ghcr.io/<owner>/mokekb-app:<tag>`：
+部署后会跑 **4 个容器，全部用同一个镜像** `ghcr.io/<owner>/hoyanai-app:<tag>`：
 
 | 容器 | 角色 | 对外端口 |
 |---|---|---|
-| `maxkb-app` | Django web（Gunicorn 在 8080） | `${MAXKB_BACKEND_PORT}` → 8080 |
-| `maxkb-worker-rag` | Celery worker：RAG parse / embedding / index | — |
-| `maxkb-worker-default` | Celery worker：默认 queue | — |
-| `maxkb-worker-maintenance` | Celery worker：维护 queue + apscheduler + celery-beat | — |
+| `hoyanai-app` | Django web（Gunicorn 在 8080） | `${MAXKB_BACKEND_PORT}` → 8080 |
+| `hoyanai-worker-rag` | Celery worker：RAG parse / embedding / index | — |
+| `hoyanai-worker-default` | Celery worker：默认 queue | — |
+| `hoyanai-worker-maintenance` | Celery worker：维护 queue + apscheduler + celery-beat | — |
 
 ```
   浏览器/客户端
@@ -27,16 +27,18 @@
        │    /chat/api/   → backend:8080/chat/api/
        │    /ws/         → ws://backend:8080/ws/
        ▼
-  宿主:${PORT}  →  容器 maxkb-app:8080
+  宿主:${PORT}  →  容器 hoyanai-app:8080
                        │  ┌──── 外部 PostgreSQL（带 pgvector）
                        ├──┤
                        │  └──── 外部 Redis（with auth）
                        │
                        ▼ (Celery via Redis broker)
-        maxkb-worker-rag / default / maintenance
+        hoyanai-worker-rag / default / maintenance
 ```
 
-数据卷：`maxkb-data:/opt/maxkb`（4 个容器共享，存日志、运行时缓存、Python sandbox packages）。
+数据卷：`hoyanai-data:/opt/maxkb`（4 个容器共享，存日志、运行时缓存、Python sandbox packages）。
+
+> 容器内路径仍为 `/opt/maxkb`(后端代码硬编码),不影响部署。
 
 ---
 
@@ -72,13 +74,13 @@
 在 PG 服务器以 superuser 执行：
 
 ```sql
-CREATE DATABASE maxkb;
-CREATE USER maxkb WITH PASSWORD 'YourStrongPasswordHere';
-GRANT ALL PRIVILEGES ON DATABASE maxkb TO maxkb;
+CREATE DATABASE hoyanai;
+CREATE USER hoyanai WITH PASSWORD 'YourStrongPasswordHere';
+GRANT ALL PRIVILEGES ON DATABASE hoyanai TO hoyanai;
 
-\c maxkb
+\c hoyanai
 CREATE EXTENSION IF NOT EXISTS vector;
-GRANT ALL ON SCHEMA public TO maxkb;
+GRANT ALL ON SCHEMA public TO hoyanai;
 ```
 
 ---
@@ -96,14 +98,14 @@ chmod +x deploy.sh
 ./deploy.sh
 
 # 3. 验证
-docker compose -f ~/mokekb/docker-compose.yml ps
+docker compose -f ~/hoyanai/docker-compose.yml ps
 curl http://localhost:8080/admin/api/profile
 ```
 
 脚本会引导完成 6 步：
 1. 环境检查（缺 curl/docker/nc 等会建议 apt 安装）
 2. 镜像准备（pull 或离线 load）
-3. 工作目录（默认 `~/mokekb`）
+3. 工作目录（默认 `~/hoyanai`）
 4. 配置 .env（密码、连接信息、SECRET_KEY 自动生成）
 5. 连通性检查（PG 端口 / Redis 端口 / pgvector 扩展）
 6. 启动 + 等待健康检查通过
@@ -119,14 +121,14 @@ curl http://localhost:8080/admin/api/profile
 ### 阶段 A：联网机器准备 bundle
 
 ```bash
-mkdir mokekb-bundle && cd mokekb-bundle
+mkdir hoyanai-bundle && cd hoyanai-bundle
 
 # 1. 从 GitHub Actions 下载离线镜像 tar.gz
 #    https://github.com/MSJinWong/MokeKB/actions/workflows/build-and-push-app-only.yml
-#    最近一次成功 run → 页面下方 Artifacts → mokekb-app-<tag>-offline
+#    最近一次成功 run → 页面下方 Artifacts → hoyanai-app-<tag>-offline
 #    解压后得到两个文件：
-#      mokekb-app-<tag>-linux-amd64.tar.gz
-#      mokekb-app-<tag>-linux-amd64.tar.gz.sha256
+#      hoyanai-app-<tag>-linux-amd64.tar.gz
+#      hoyanai-app-<tag>-linux-amd64.tar.gz.sha256
 #    把这两个放进当前目录
 
 # 2. 下载部署脚本 + compose 文件
@@ -136,13 +138,13 @@ mv docker-compose.app-only.yml docker-compose.yml   # 重命名以匹配脚本�
 chmod +x deploy-app-only.sh
 
 cd ..
-tar czf mokekb-bundle.tar.gz mokekb-bundle/
+tar czf hoyanai-bundle.tar.gz hoyanai-bundle/
 ```
 
 ### 阶段 B：传到离线服务器
 
 ```bash
-scp mokekb-bundle.tar.gz user@offline-server:~/
+scp hoyanai-bundle.tar.gz user@offline-server:~/
 # 或 U 盘 / 跳板机 / 内网共享
 ```
 
@@ -153,8 +155,8 @@ scp mokekb-bundle.tar.gz user@offline-server:~/
 docker version && docker compose version
 
 # 解包
-tar xzf ~/mokekb-bundle.tar.gz
-cd ~/mokekb-bundle
+tar xzf ~/hoyanai-bundle.tar.gz
+cd ~/hoyanai-bundle
 
 # 跑
 ./deploy-app-only.sh
@@ -166,10 +168,10 @@ cd ~/mokekb-bundle
   1) 在线 — 从 GHCR 拉取（默认）
   2) 离线 — 加载已下载的 tar.gz
 选择 [1]: 2
-tar.gz 文件路径: ./mokekb-app-dev-linux-amd64.tar.gz
+tar.gz 文件路径: ./hoyanai-app-dev-linux-amd64.tar.gz
 ```
 
-> 工作目录提示时输入 `.` 让脚本就用当前 bundle 目录，否则它默认会跳到 `~/mokekb`，那边没有 docker-compose.yml 会重新去网上下载。
+> 工作目录提示时输入 `.` 让脚本就用当前 bundle 目录，否则它默认会跳到 `~/hoyanai`，那边没有 docker-compose.yml 会重新去网上下载。
 
 ---
 
@@ -179,8 +181,8 @@ tar.gz 文件路径: ./mokekb-app-dev-linux-amd64.tar.gz
 
 | 变量 | 必填 | 默认 | 说明 |
 |---|---|---|---|
-| `COMPOSE_PROJECT_NAME` | — | `mokekb` | 显式 pin，volumes 不会因 workdir 改名而漂移 |
-| `MAXKB_IMAGE` | ✓ | — | 镜像 ref，如 `ghcr.io/msjinwong/mokekb-app:v2.8.0` |
+| `COMPOSE_PROJECT_NAME` | — | `hoyanai` | 显式 pin，volumes 不会因 workdir 改名而漂移 |
+| `MAXKB_IMAGE` | ✓ | — | 镜像 ref，如 `ghcr.io/msjinwong/hoyanai-app:v2.8.0` |
 | `MAXKB_BACKEND_PORT` | ✓ | 8080 | 宿主映射端口 |
 | `MAXKB_DB_HOST` | ✓ | — | PG IP/host — **同机部署不能用 127.0.0.1**（用 172.17.0.1） |
 | `MAXKB_DB_PORT` | — | 5432 | |
@@ -192,6 +194,8 @@ tar.gz 文件路径: ./mokekb-app-dev-linux-amd64.tar.gz
 | `MAXKB_ENABLED_PROVIDERS` | ✓ | 9 个 | 模型 provider 白名单，`all` = 全 20 |
 | `MAXKB_ENABLE_API_DOCS` / `MAXKB_ENABLE_EMAIL` | — | false | 可选开关 |
 
+> **变量名保留 `MAXKB_*` 前缀**(后端代码按这个名字读),只是产品已重新品牌为 HoyanAI。
+>
 > **所有值用单引号包裹**（`KEY='value'`），避免 `#`、空格等触发 compose 的 .env 解析器吞行。脚本自动这么写。
 
 ---
@@ -230,10 +234,10 @@ tar.gz 文件路径: ./mokekb-app-dev-linux-amd64.tar.gz
 
 ```bash
 # 应用 stdout（main.py 包装层）
-docker compose logs --tail=50 maxkb-app
+docker compose logs --tail=50 hoyanai-app
 
 # Gunicorn 真实 stderr（这里才有 Python traceback）
-docker exec $(docker compose ps -q maxkb-app) tail -50 /opt/maxkb/logs/gunicorn.log
+docker exec $(docker compose ps -q hoyanai-app) tail -50 /opt/maxkb/logs/gunicorn.log
 ```
 
 > 为什么要看两份日志？`main.py` 用 subprocess 启 Gunicorn 时把 `stderr` 重定向到 `/opt/maxkb/logs/gunicorn.log`，**`docker compose logs` 只看得到 "Start Gunicorn / gunicorn is stopped" 包装信息，看不到真错误**。新版脚本健康检查超时时会自动 dump 这两份。
@@ -244,13 +248,13 @@ docker exec $(docker compose ps -q maxkb-app) tail -50 /opt/maxkb/logs/gunicorn.
 |---|---|---|
 | `redis.exceptions.TimeoutError: Timeout connecting to server` | `MAXKB_REDIS_HOST=127.0.0.1` 在容器里指容器自己 | 改成 docker bridge 网关（`172.17.0.1`）或宿主 LAN IP；宿主 redis.conf `bind 0.0.0.0` |
 | `psycopg.OperationalError: could not connect to server` | PG 网络/防火墙问题 | `pg_hba.conf` 加 docker 网段；`listen_addresses` 改 `*`；防火墙放行 5432 |
-| `psycopg.errors.InsufficientPrivilege: permission denied for schema public` | maxkb 用户权限不够，无法建表 | `GRANT ALL ON SCHEMA public TO maxkb;` |
+| `psycopg.errors.InsufficientPrivilege: permission denied for schema public` | 应用 DB 用户权限不够，无法建表 | `GRANT ALL ON SCHEMA public TO hoyanai;` |
 | `psycopg.errors.UndefinedObject: extension "vector" does not exist` | PG 没装 pgvector | 安装 pgvector 扩展，superuser 执行 `CREATE EXTENSION vector;` |
-| `django.db.utils.ProgrammingError: relation "X" does not exist` | migration 没跑全 | `docker compose exec maxkb-app python apps/manage.py migrate` 手动跑一次 |
+| `django.db.utils.ProgrammingError: relation "X" does not exist` | migration 没跑全 | `docker compose exec hoyanai-app python apps/manage.py migrate` 手动跑一次 |
 
 ### 6.5 4 个容器中只有 worker 起不来 / 一直 Created
 
-`worker` 的 `depends_on: condition: service_healthy` 卡住——maxkb-app 没变 healthy。看 6.4。
+`worker` 的 `depends_on: condition: service_healthy` 卡住——hoyanai-app 没变 healthy。看 6.4。
 
 ### 6.6 健康检查端点 401/403
 
@@ -263,7 +267,7 @@ docker exec $(docker compose ps -q maxkb-app) tail -50 /opt/maxkb/logs/gunicorn.
 ### 在线
 
 ```bash
-cd ~/mokekb
+cd ~/hoyanai
 vim .env   # 改 MAXKB_IMAGE 指向新 tag
 docker compose pull
 docker compose up -d
@@ -272,10 +276,10 @@ docker compose up -d
 ### 离线
 
 ```bash
-cd ~/mokekb-bundle
+cd ~/hoyanai-bundle
 # 把新版 tar.gz 放进来
-docker load < mokekb-app-v2.8.1-linux-amd64.tar.gz
-cd ~/mokekb
+docker load < hoyanai-app-v2.8.1-linux-amd64.tar.gz
+cd ~/hoyanai
 vim .env   # 改 MAXKB_IMAGE
 docker compose up -d
 ```
@@ -287,19 +291,19 @@ docker compose up -d
 ## 8. 卸载 / 重置
 
 ```bash
-cd ~/mokekb
+cd ~/hoyanai
 
 # 停服务（保留数据卷）
 docker compose down
 
-# 完全清理（删除 maxkb-data 卷 — log 和临时文件没了，但 PG/Redis 不动）
+# 完全清理（删除 hoyanai-data 卷 — log 和临时文件没了，但 PG/Redis 不动）
 docker compose down -v
 
 # 想连镜像也删
-docker rmi $(docker images -q ghcr.io/msjinwong/mokekb-app)
+docker rmi $(docker images -q ghcr.io/msjinwong/hoyanai-app)
 ```
 
-> PG 和 Redis 是外部服务，compose 不会动。需要清空时手动 `DROP DATABASE maxkb` / `FLUSHDB`。
+> PG 和 Redis 是外部服务，compose 不会动。需要清空时手动 `DROP DATABASE hoyanai` / `FLUSHDB`。
 
 ---
 
@@ -309,23 +313,23 @@ docker rmi $(docker images -q ghcr.io/msjinwong/mokekb-app)
 
 ```bash
 # 容器内日志
-docker exec $(docker compose ps -q maxkb-app) ls -la /opt/maxkb/logs/
+docker exec $(docker compose ps -q hoyanai-app) ls -la /opt/maxkb/logs/
 
 # 宿主 volume 路径（root 可访问）
-sudo ls $(docker volume inspect mokekb_maxkb-data --format '{{.Mountpoint}}')/logs/
+sudo ls $(docker volume inspect hoyanai_hoyanai-data --format '{{.Mountpoint}}')/logs/
 ```
 
 ### 手动调试
 
 ```bash
 # 容器里跑 Django shell
-docker compose exec maxkb-app python apps/manage.py shell
+docker compose exec hoyanai-app python apps/manage.py shell
 
 # 手动跑 migration
-docker compose exec maxkb-app python apps/manage.py migrate
+docker compose exec hoyanai-app python apps/manage.py migrate
 
 # 检查 Celery worker 是否在消费
-docker compose exec maxkb-app python apps/manage.py celery_inspect_active
+docker compose exec hoyanai-app python apps/manage.py celery_inspect_active
 ```
 
 ### 调整资源
