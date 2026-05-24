@@ -8,6 +8,8 @@ export default {
     status: 'Group by status',
     none: 'No grouping',
   },
+  setLabel: 'Set label',
+  addLabel: 'New label',
   createApplication: 'Create Simple Agent',
   createWorkFlowApplication: 'Create Workflow Agent',
   importApplication: 'Import Agent',

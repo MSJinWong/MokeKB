@@ -40,8 +40,8 @@
             <span class="ml-8">{{ $t('views.trigger.title') }}</span>
           </el-dropdown-item>
           <el-dropdown-item command="move">
-            <LucideIcon name="folder-tree" :size="14" />
-            <span class="ml-8">{{ $t('common.moveTo') }}</span>
+            <LucideIcon name="tag" :size="14" />
+            <span class="ml-8">{{ $t('views.application.setLabel') }}</span>
           </el-dropdown-item>
           <el-dropdown-item command="copy">
             <LucideIcon name="copy" :size="14" />

@@ -78,7 +78,7 @@ docker run -d \
   -v maxkb-data:/opt/maxkb \
   -e MAXKB_ENABLE_API_DOCS=false \
   -e MAXKB_ENABLE_EMAIL=false \
-  -e MAXKB_ENABLED_PROVIDERS=model_openai_provider,model_anthropic_provider,model_siliconCloud_provider \
+  -e MAXKB_ENABLED_PROVIDERS=model_openai_provider,model_anthropic_provider,model_siliconCloud_provider,aliyun_bai_lian_model_provider,model_volcanic_engine_provider,model_ollama_provider,model_vllm_provider,model_xinference_provider,model_docker_ai_provider,aliyun_bai_lian_model_provider,model_volcanic_engine_provider,model_ollama_provider,model_vllm_provider,model_xinference_provider,model_docker_ai_provider \
   ghcr.io/1panel-dev/maxkb:latest
 ```
 

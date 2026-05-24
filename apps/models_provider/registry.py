@@ -59,11 +59,20 @@ _PROVIDER_PATHS: Dict[str, Tuple[str, str]] = {
         ('models_provider.impl.regolo_model_provider.regolo_model_provider', 'RegoloModelProvider'),
 }
 
-# 默认启用的精简白名单：OpenAI 兼容主流 + Anthropic（独立协议）+ SiliconFlow（reranker 缺口）
+# 默认启用的精简白名单：5 公有云 + 4 本地部署，覆盖文本/图片/音频/视频四类模态
+# 公有云：OpenAI(LLM/Embedding/IMAGE/STT/TTS/TTI) + Anthropic(LLM/IMAGE) +
+#         SiliconFlow(Reranker 等) + 阿里百炼(全模态含 ITV/TTV) + 火山引擎(含 ITV/TTV)
+# 本地  ：Ollama / vLLM / Xinference / Docker AI
 _DEFAULT_ENABLED = [
     'model_openai_provider',
     'model_anthropic_provider',
     'model_siliconCloud_provider',
+    'aliyun_bai_lian_model_provider',
+    'model_volcanic_engine_provider',
+    'model_ollama_provider',
+    'model_vllm_provider',
+    'model_xinference_provider',
+    'model_docker_ai_provider',
 ]
 
 # 单一全局 _lock 用于：

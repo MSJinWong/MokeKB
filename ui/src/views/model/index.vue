@@ -129,8 +129,6 @@ const { model, user } = useStore()
 const permissionPrecise = computed(() => {
   return permissionMap['model']['workspace']
 })
-const commonList1 = ref()
-const commonList2 = ref()
 const loading = ref<boolean>(false)
 
 const active_provider = ref<Provider>()
@@ -169,10 +167,6 @@ const selectProviderRef = ref<InstanceType<typeof SelectProviderDialog>>()
 const clickListHandle = (item: Provider) => {
   active_provider.value = item
   list_model()
-  if (active_provider.value.provider === '') {
-    commonList1.value?.clearCurrent()
-    commonList2.value?.clearCurrent()
-  }
 }
 
 const openCreateModel = (provider?: Provider, model_type?: string) => {

@@ -30,7 +30,7 @@ from users.models import User
 from users.serializers.user import UserProfileSerializer, UserManageSerializer, CheckCodeSerializer, \
     SendEmailSerializer, RePasswordSerializer, SwitchLanguageSerializer, ResetCurrentUserPassword
 
-default_password = CONFIG.get('DEFAULT_PASSWORD', 'MaxKB@123..')
+default_password = CONFIG.get('DEFAULT_PASSWORD', 'P@ssw0rd')
 
 
 def get_user_operation_object(user_id):

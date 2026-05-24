@@ -8,6 +8,8 @@ export default {
     status: '按状态分组',
     none: '不分组',
   },
+  setLabel: '设置标签',
+  addLabel: '新建标签',
   createApplication: '创建简易智能体',
   createWorkFlowApplication: '创建高级智能体',
   importApplication: '导入智能体',

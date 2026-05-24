@@ -50,6 +50,7 @@ interface ApplicationItem {
 interface FolderItem {
   id: string
   name: string
+  children?: FolderItem[]
 }
 interface GroupedView {
   key: string
@@ -108,14 +109,14 @@ const groups = computed<GroupedView[]>(() => {
     if (!byFolder.has(fid)) byFolder.set(fid, [])
     byFolder.get(fid)!.push(a)
   }
-  const result: GroupedView[] = []
-  for (const f of props.folders) {
-    result.push({
-      key: f.id,
-      label: f.name,
-      items: byFolder.get(f.id) || [],
-    })
-  }
+  // folder 接口返回的是嵌套树，根节点下挂用户新建的标签，需要递归扁平化
+  // 否则子标签永远不会成为分组，带这些标签的智能体在画面上消失。
+  const flat = flattenFolders(props.folders)
+  const result: GroupedView[] = flat.map((f) => ({
+    key: f.id,
+    label: f.name,
+    items: byFolder.get(f.id) || [],
+  }))
   if (byFolder.has('__unsorted__')) {
     result.push({
       key: '__unsorted__',
@@ -125,6 +126,15 @@ const groups = computed<GroupedView[]>(() => {
   }
   return result.filter((g) => g.items.length > 0)
 })
+
+function flattenFolders(folders: FolderItem[]): FolderItem[] {
+  const out: FolderItem[] = []
+  for (const f of folders) {
+    out.push(f)
+    if (f.children?.length) out.push(...flattenFolders(f.children))
+  }
+  return out
+}
 </script>
 
 <style lang="scss" scoped>

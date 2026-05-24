@@ -1,5 +1,5 @@
 <template>
-  <el-card shadow="hover" class="card-box" @mouseenter="cardEnter()" @mouseleave="cardLeave()">
+  <el-card shadow="hover" class="card-box" :class="{ 'is-disabled': disabled }">
     <div class="card-header">
       <slot name="header">
         <div class="title flex align-center">
@@ -20,7 +20,8 @@
           </div>
 
           <div class="status-tag">
-            <slot name="tag" :hoverShow="show"> <!-- 放标签 --> </slot>
+            <!-- hoverShow 保留为 slot 参数语义：consumer 可在 :hover 时显示某图标。CSS 由 consumer 配 .card-box:hover .xxx 实现 -->
+            <slot name="tag" :hoverShow="false"> <!-- 放标签 --> </slot>
           </div>
         </div>
       </slot>
@@ -37,17 +38,16 @@
       <div style="flex: 1">
         <slot name="footer"></slot>
       </div>
-      <div @mouseenter="subHoveredEnter">
-        <slot name="mouseEnter" v-if="$slots.mouseEnter && show" />
+      <div class="card-mouse-enter">
+        <slot name="mouseEnter" v-if="$slots.mouseEnter" />
       </div>
     </div>
   </el-card>
 </template>
 <script setup lang="ts">
-import { ref, watch } from 'vue'
 import { t } from '@/locales'
 defineOptions({ name: 'CardBox' })
-const props = withDefaults(
+withDefaults(
   defineProps<{
     /**
      * 标题
@@ -65,32 +65,6 @@ const props = withDefaults(
   }>(),
   { title: t('common.title'), description: '', showIcon: true, border: true, disabled: false },
 )
-
-watch(
-  () => props.disabled,
-  (val) => {
-    if (val) {
-      show.value = false
-      subHovered.value = false
-    }
-  },
-)
-const show = ref(false)
-// card上面存在dropdown菜单
-const subHovered = ref(false)
-function cardEnter() {
-  if (props.disabled) return
-  show.value = true
-  subHovered.value = false
-}
-
-function cardLeave() {
-  show.value = subHovered.value
-}
-
-function subHoveredEnter() {
-  subHovered.value = true
-}
 </script>
 <style lang="scss" scoped>
 .card-box {
@@ -129,6 +103,22 @@ function subHoveredEnter() {
     position: absolute;
     right: 16px;
     top: 14px;
+  }
+  // hover 显示 mouseEnter slot 内容（dropdown 等"更多操作"按钮）
+  // 用纯 CSS 实现，避免 JS mouseenter/mouseleave 与 v-if mount/unmount 之间的 hit-test 反馈循环
+  .card-mouse-enter {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s ease;
+  }
+  &:hover .card-mouse-enter,
+  .card-mouse-enter:focus-within {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  &.is-disabled .card-mouse-enter {
+    opacity: 0 !important;
+    pointer-events: none !important;
   }
 }
 </style>

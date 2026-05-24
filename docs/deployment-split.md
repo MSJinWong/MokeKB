@@ -76,7 +76,15 @@ docker compose --env-file installer/.env.split -f installer/docker-compose.split
 
 | 变量 | 默认 | 含义 |
 |------|------|------|
-| `MAXKB_ENABLED_PROVIDERS` | `model_openai_provider,model_anthropic_provider,model_siliconCloud_provider` | 启用的 provider 名单。设为 `all` 启用全部 21 个 |
+| `MAXKB_ENABLED_PROVIDERS` | 5 公有云 + 4 本地，见下 | 启用的 provider 名单。设为 `all` 启用全部 20 个 |
+
+默认 9 项（覆盖文本/图片/音频/视频四类模态）：
+
+```
+model_openai_provider,model_anthropic_provider,model_siliconCloud_provider,
+aliyun_bai_lian_model_provider,model_volcanic_engine_provider,
+model_ollama_provider,model_vllm_provider,model_xinference_provider,model_docker_ai_provider
+```
 
 第三方 OpenAI 兼容端点（DeepSeek / Kimi / vLLM / 自部署 Ollama-OpenAI 等）通过 `model_openai_provider` 接入：在前端添加模型时填写自定义 `API URL`。
 

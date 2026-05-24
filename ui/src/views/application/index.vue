@@ -51,6 +51,9 @@
     <MoveToDialog
       ref="MoveToDialogRef"
       :source="SourceTypeEnum.APPLICATION"
+      :title="$t('views.application.setLabel')"
+      :allow-create="true"
+      :create-label="$t('views.application.addLabel')"
       @refresh="loadAll"
     />
     <CopyApplicationDialog ref="CopyApplicationDialogRef" @refresh="loadAll" />

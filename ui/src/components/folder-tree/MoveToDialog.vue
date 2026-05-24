@@ -1,12 +1,18 @@
 <template>
   <el-dialog
-    :title="$t('common.moveTo')"
+    :title="title || $t('common.moveTo')"
     v-model="dialogVisible"
     append-to-body
     :close-on-click-modal="false"
     :close-on-press-escape="false"
     align-center
   >
+    <div v-if="allowCreate" class="move-to-dialog__create-bar">
+      <el-button text type="primary" @click="openCreateFolder" :disabled="loading">
+        <LucideIcon name="plus" :size="14" />
+        <span class="ml-4">{{ createLabel || $t('components.folder.addFolder') }}</span>
+      </el-button>
+    </div>
     <folder-tree
       ref="treeRef"
       :source="source"
@@ -15,6 +21,12 @@
       :canOperation="false"
       class="move-to-dialog-tree"
       @handleNodeClick="folderClickHandle"
+    />
+    <CreateFolderDialog
+      v-if="allowCreate"
+      ref="CreateFolderDialogRef"
+      :title="createLabel || $t('components.folder.addFolder')"
+      @refresh="onFolderCreated"
     />
     <template #footer>
       <span class="dialog-footer">
@@ -43,6 +55,8 @@ import { SourceTypeEnum } from '@/enums/common'
 import KnowledgeApi from '@/api/knowledge/knowledge'
 import ApplicationApi from '@/api/application/application'
 import ToolApi from '@/api/tool/tool'
+import CreateFolderDialog from '@/components/folder-tree/CreateFolderDialog.vue'
+import { LucideIcon } from '@/components/lucide-icon'
 const { folder } = useStore()
 const emit = defineEmits(['refresh'])
 
@@ -51,9 +65,22 @@ const props = defineProps({
     type: String,
     default: '',
   },
+  title: {
+    type: String,
+    default: '',
+  },
+  allowCreate: {
+    type: Boolean,
+    default: false,
+  },
+  createLabel: {
+    type: String,
+    default: '',
+  },
 })
 
 const treeRef = ref()
+const CreateFolderDialogRef = ref()
 const loading = ref(false)
 const dialogVisible = ref(false)
 const folderList = ref<any[]>([])
@@ -96,6 +123,23 @@ function getFolder() {
 
 function folderClickHandle(item: any) {
   selectForderId.value = item.id
+}
+
+function openCreateFolder() {
+  const rootId = folderList.value?.[0]?.id || 'default'
+  CreateFolderDialogRef.value?.open(props.source, rootId)
+}
+
+function onFolderCreated() {
+  // CreateFolderDialog 内部会把新建的目录写入 folder.currentFolder，
+  // 而本弹窗的提交按钮 disabled 条件包含 `selectForderId === currentFolder.id`，
+  // 不还原会导致刚建的标签选中后按钮反而 disabled。
+  const created = folder.currentFolder
+  folder.setCurrentFolder({})
+  getFolder()
+  if (created?.id) {
+    selectForderId.value = created.id
+  }
 }
 
 const submitHandle = async () => {
@@ -175,6 +219,11 @@ const submitHandle = async () => {
 defineExpose({ open })
 </script>
 <style lang="scss" scoped>
+.move-to-dialog__create-bar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 4px;
+}
 .move-to-dialog-tree {
   :deep(.el-input) {
     padding: 0 !important;

@@ -7,6 +7,7 @@
     :close-on-press-escape="false"
     :destroy-on-close="true"
     :before-close="close"
+    append-to-body
   >
     <el-button type="primary" @click="openAddDrawer()" class="mb-12">
       {{ $t('common.param.addParam') }}

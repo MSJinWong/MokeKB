@@ -214,7 +214,7 @@
                       <span> {{ dateFormat(item.create_time) }}</span>
                     </el-text>
                   </template>
-                  <template #tag="{ hoverShow }">
+                  <template #tag>
                     <el-checkbox :value="item.id" v-if="isBatch" @change="checkboxChange(item)"/>
                     <div v-else>
                       <el-tag v-if="isShared" size="small" type="info" class="info-tag">
@@ -227,11 +227,11 @@
                           showUpdateStoreTool(item) && !isShared && permissionPrecise.edit(item.id)
                         "
                       >
-                        <el-button text @click.stop="updateStoreTool(item)">
-                          <el-icon v-if="hoverShow">
+                        <el-button text @click.stop="updateStoreTool(item)" class="update-toggle">
+                          <el-icon class="update-toggle__icon">
                             <Refresh/>
                           </el-icon>
-                          <div v-else class="dot-success"></div>
+                          <div class="update-toggle__dot dot-success"></div>
                         </el-button>
                       </el-tooltip>
                     </div>
@@ -1291,4 +1291,21 @@ onMounted(() => {
 })
 </script>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+// 用 CSS hover 切换刷新图标与状态点（原先由 card-box 的 JS hoverShow slot 参数控制）
+// 默认显示 dot，hover 卡片时切换到 Refresh 图标
+.update-toggle__icon {
+  display: none;
+}
+.update-toggle__dot {
+  display: block;
+}
+.card-box:hover {
+  .update-toggle__icon {
+    display: inline-flex;
+  }
+  .update-toggle__dot {
+    display: none;
+  }
+}
+</style>
