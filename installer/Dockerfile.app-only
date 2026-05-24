@@ -13,10 +13,12 @@ WORKDIR /opt/maxkb-app
 
 # --- Layer 1: dependencies (changes rarely) ---
 # Copy only the dep manifest first so editing application .py files doesn't bust the pip cache.
+# README.md is required because pyproject.toml declares `readme = "README.md"` and
+# hatchling validates the file exists at build time.
 # TODO: once `uv lock` has been run locally and uv.lock is committed, add
 #   COPY uv.lock ./
 # and pass --frozen below to enable reproducible builds.
-COPY pyproject.toml ./
+COPY pyproject.toml README.md ./
 RUN pip install uv --break-system-packages && \
     python -m uv pip install --system ".[multimodal,providers-cn,providers-extras,tools]"
 
