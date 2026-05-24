@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Image tag (e.g. v2.8.1-app or dev)'
+        description: 'Image tag (e.g. v2.8.1-app or dev). Must match ^[A-Za-z0-9_][A-Za-z0-9_.-]{0,127}$'
         default: 'dev'
         required: true
       platforms:
@@ -40,24 +40,39 @@ jobs:
 
       - name: Resolve metadata
         id: meta
+        env:
+          # Untrusted user inputs — passed via env to avoid shell injection.
+          # https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions#using-an-intermediate-environment-variable
+          INPUT_TAG: ${{ github.event.inputs.tag }}
+          INPUT_PLATFORMS: ${{ github.event.inputs.platforms }}
+          INPUT_BUILD_OFFLINE: ${{ github.event.inputs.build_offline_tar }}
+          EVENT_NAME: ${{ github.event_name }}
+          REPO_OWNER: ${{ github.repository_owner }}
+          REF_NAME: ${{ github.ref_name }}
         run: |
-          OWNER_LC=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          OWNER_LC=$(echo "$REPO_OWNER" | tr '[:upper:]' '[:lower:]')
           IMAGE="ghcr.io/${OWNER_LC}/mokekb-app"
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            TAG="${{ github.event.inputs.tag }}"
-            PLATFORMS="${{ github.event.inputs.platforms }}"
-            BUILD_OFFLINE="${{ github.event.inputs.build_offline_tar }}"
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            TAG="$INPUT_TAG"
+            PLATFORMS="$INPUT_PLATFORMS"
+            BUILD_OFFLINE="$INPUT_BUILD_OFFLINE"
           else
-            TAG="${GITHUB_REF_NAME}"
+            TAG="$REF_NAME"
             PLATFORMS="linux/amd64"
             BUILD_OFFLINE="true"
+          fi
+          # Docker tag spec: ^[A-Za-z0-9_][A-Za-z0-9_.-]{0,127}$
+          # Validating here also covers downstream filenames / artifact names.
+          if ! printf '%s' "$TAG" | grep -qE '^[A-Za-z0-9_][A-Za-z0-9_.-]{0,127}$'; then
+            echo "::error::Invalid tag '$TAG' — must match ^[A-Za-z0-9_][A-Za-z0-9_.-]{0,127}\$"
+            exit 1
           fi
           {
             echo "image=${IMAGE}"
             echo "tag=${TAG}"
             echo "platforms=${PLATFORMS}"
             echo "build_offline=${BUILD_OFFLINE}"
-            echo "build_at=$(TZ=Asia/Shanghai date +'%Y-%m-%dT%H:%M')"
+            echo "build_at=$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
             echo "commit=$(git rev-parse --short HEAD)"
           } >> "$GITHUB_OUTPUT"
 
@@ -104,6 +119,13 @@ jobs:
           load: true
           push: false
           tags: ${{ steps.meta.outputs.image }}:${{ steps.meta.outputs.tag }}
+          # Mirror registry-build labels so the offline image's metadata matches what's in GHCR.
+          # Without lockfile, deterministic equality of the two builds relies on same-run GHA cache hits.
+          labels: |
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.created=${{ steps.meta.outputs.build_at }}
+            org.opencontainers.image.version=${{ steps.meta.outputs.tag }}
           build-args: |
             DOCKER_IMAGE_TAG=${{ steps.meta.outputs.tag }}
             BUILD_AT=${{ steps.meta.outputs.build_at }}
@@ -112,10 +134,13 @@ jobs:
 
       - name: Export offline tar
         if: steps.meta.outputs.build_offline == 'true'
+        env:
+          IMAGE: ${{ steps.meta.outputs.image }}
+          TAG: ${{ steps.meta.outputs.tag }}
         run: |
           mkdir -p offline
-          OUT="offline/mokekb-app-${{ steps.meta.outputs.tag }}-linux-amd64.tar.gz"
-          docker save "${{ steps.meta.outputs.image }}:${{ steps.meta.outputs.tag }}" | gzip > "$OUT"
+          OUT="offline/mokekb-app-${TAG}-linux-amd64.tar.gz"
+          docker save "${IMAGE}:${TAG}" | gzip > "$OUT"
           ls -lh offline/
           sha256sum "$OUT" > "$OUT.sha256"
 
