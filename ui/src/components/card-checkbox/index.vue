@@ -12,7 +12,11 @@
         </slot>
         <slot></slot>
       </div>
-      <el-checkbox v-bind:modelValue="modelValue.includes(toModelValue)" @change="checkboxChange">
+      <el-checkbox
+        v-bind:modelValue="modelValue.includes(toModelValue)"
+        @click.stop
+        @change="checked"
+      >
       </el-checkbox>
     </div>
   </el-card>
@@ -42,10 +46,6 @@ const checked = () => {
   } else {
     emit('update:modelValue', [...value, toModelValue.value])
   }
-  checkboxChange()
-}
-
-function checkboxChange() {
   emit('change')
 }
 </script>

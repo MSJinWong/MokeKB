@@ -15,14 +15,14 @@
           <template #label>
             <div class="flex-between">
               <span> {{ $t('workflow.nodes.searchDocumentNode.selectKnowledge') }}</span>
-              <span>
+              <span class="search-scope-actions">
                 <el-button
-                  v-if="form_data.search_scope_type === 'custom'"
-                  type="primary"
+                  v-if="isCustomSearchScope"
+                  class="search-scope-add-button"
                   link
                   @click="openknowledgeDialog"
                 >
-                  <AppIcon iconName="app-add-outlined"></AppIcon>
+                  <AppIcon iconName="app-add-outlined" class="search-scope-add-icon"></AppIcon>
                 </el-button>
                 <el-select
                   :teleported="false"
@@ -39,7 +39,7 @@
               </span>
             </div>
           </template>
-          <div class="w-full" v-if="form_data.search_scope_type === 'custom'">
+          <div class="w-full" v-if="isCustomSearchScope">
             <el-text type="info" v-if="form_data.knowledge_id_list?.length === 0">
               {{ $t('views.application.form.relatedKnowledge.placeholder') }}
             </el-text>
@@ -216,6 +216,7 @@ const props = defineProps<{ nodeModel: any }>()
 const nodeCascaderRef = ref()
 const form = {
   knowledge_id_list: [],
+  knowledge_list: [],
   knowledge_setting: {
     top_n: 3,
     similarity: 0.6,
@@ -242,6 +243,7 @@ const form_data = computed({
     set(props.nodeModel.properties, 'node_data', value)
   },
 })
+const isCustomSearchScope = computed(() => form_data.value.search_scope_type !== 'referencing')
 
 const knowledgeNodeFormRef = ref<FormInstance>()
 const ParamSettingDialogRef = ref<InstanceType<typeof ParamSettingDialog>>()
@@ -289,7 +291,8 @@ const validate = () => {
 
 onMounted(() => {
   // console.log(props.nodeModel.properties.node_data)
-  knowledgeList.value = props.nodeModel.properties.node_data.knowledge_list
+  knowledgeList.value = props.nodeModel.properties.node_data.knowledge_list || []
+  form_data.value.knowledge_list = form_data.value.knowledge_list || []
   form_data.value.show_knowledge = form_data.value.show_knowledge
     ? form_data.value.show_knowledge
     : false
@@ -302,7 +305,36 @@ onMounted(() => {
   form_data.value.knowledge_id_list = form_data.value.knowledge_id_list
     ? form_data.value.knowledge_id_list
     : []
+  if (!['custom', 'referencing'].includes(form_data.value.search_scope_type)) {
+    form_data.value.search_scope_type = 'custom'
+  }
   set(props.nodeModel, 'validate', validate)
 })
 </script>
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.search-scope-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.search-scope-add-button {
+  color: var(--el-color-primary) !important;
+  border: none;
+  padding: 2px 4px;
+}
+
+.search-scope-add-button:hover,
+.search-scope-add-button:focus {
+  color: var(--el-color-primary-light-3) !important;
+  background: transparent;
+}
+
+:deep(.search-scope-add-icon),
+:deep(.search-scope-add-icon svg),
+:deep(.search-scope-add-icon path) {
+  color: currentColor !important;
+  fill: currentColor !important;
+  stroke: none !important;
+}
+</style>

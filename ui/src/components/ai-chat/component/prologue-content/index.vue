@@ -1,13 +1,12 @@
 <template>
   <!-- 开场白组件 -->
-  <div class="item-content mb-16">
-    <div class="avatar mr-8" v-if="prologue && showAvatar">
+  <div class="prologue-content item-content mb-16" v-if="prologue">
+    <div class="prologue-content__avatar mr-8" v-if="showPrologueAvatar">
       <img v-if="application.avatar" :src="application.avatar" height="28px" width="28px" />
       <LogoIcon v-else height="28px" width="28px" />
     </div>
     <div
-      class="content"
-      v-if="prologue"
+      class="prologue-content__body content"
       :style="{
         'padding-right': showUserAvatar ? 'var(--padding-left)' : '0',
       }"
@@ -41,6 +40,9 @@ const props = defineProps<{
 const showAvatar = computed(() => {
   return props.application.show_avatar == undefined ? true : props.application.show_avatar
 })
+const showPrologueAvatar = computed(() => {
+  return props.type !== 'debug-ai-chat' && showAvatar.value
+})
 const showUserAvatar = computed(() => {
   return props.application.show_user_avatar == undefined ? true : props.application.show_user_avatar
 })
@@ -72,4 +74,34 @@ const prologue = computed(() => {
   return ''
 })
 </script>
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.prologue-content {
+  display: flex;
+  align-items: flex-start;
+  width: 100%;
+  box-sizing: border-box;
+
+  &__avatar {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    overflow: hidden;
+    border-radius: var(--radius-sm);
+
+    img {
+      display: block;
+      width: 28px;
+      height: 28px;
+      object-fit: cover;
+    }
+  }
+
+  &__body {
+    flex: 1;
+    min-width: 0;
+  }
+}
+</style>

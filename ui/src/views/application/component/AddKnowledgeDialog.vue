@@ -226,21 +226,27 @@ function clearCheck() {
 }
 
 const open = (checked: any) => {
-  checkList.value = checked
+  checkList.value = checked || []
   getFolder()
   if (checkList.value.length > 0) {
-    currentEmbedding.value = props.data.filter(
-      (v) => v.id === checkList.value[0],
-    )[0].embedding_model_id
+    currentEmbedding.value =
+      props.data.find((v: any) => v.id === checkList.value[0])?.embedding_model_id || ''
   }
 
   dialogVisible.value = true
 }
 
 const submitHandle = () => {
+  const selectedKnowledgeList = uniqueArray(
+    [
+      ...props.data.filter((item: any) => checkList.value.includes(item.id)),
+      ...knowledgeList.value.filter((item: any) => checkList.value.includes(item.id)),
+    ],
+    'id',
+  )
   emit(
     'addData',
-    knowledgeList.value.filter((item: any) => checkList.value.includes(item.id)),
+    selectedKnowledgeList,
   )
   dialogVisible.value = false
 }

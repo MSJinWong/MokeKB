@@ -129,6 +129,12 @@
 }
 .el-button--primary {
   --el-button-text-color: var(--el-color-white);
+
+  &.is-link {
+    --el-button-text-color: var(--el-color-primary);
+    --el-button-hover-text-color: var(--el-color-primary-light-3);
+    --el-button-active-text-color: var(--el-color-primary-light-5);
+  }
 }
 // dropdown
 .el-dropdown {
