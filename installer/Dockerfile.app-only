@@ -15,12 +15,23 @@ WORKDIR /opt/maxkb-app
 # Copy only the dep manifest first so editing application .py files doesn't bust the pip cache.
 # README.md is required because pyproject.toml declares `readme = "README.md"` and
 # hatchling validates the file exists at build time.
-# TODO: once `uv lock` has been run locally and uv.lock is committed, add
-#   COPY uv.lock ./
-# and pass --frozen below to enable reproducible builds.
+#
+# Install via `-r pyproject.toml --extra <name>` (deps-only) rather than
+# `uv pip install ".[extras]"` (local-package mode). The latter would invoke
+# hatchling.build_wheel, which fails here because there's no `maxkb/` directory
+# at the project root (code lives in `apps/`). pyproject.toml already sets
+# `[tool.uv] package = false` — this command honors that intent.
+#
+# TODO: once `uv lock` has been run locally and uv.lock is committed, replace
+# the line below with `COPY uv.lock ./` + `uv pip sync uv.lock` for fully
+# reproducible builds.
 COPY pyproject.toml README.md ./
 RUN pip install uv --break-system-packages && \
-    python -m uv pip install --system ".[multimodal,providers-cn,providers-extras,tools]"
+    python -m uv pip install --system -r pyproject.toml \
+        --extra multimodal \
+        --extra providers-cn \
+        --extra providers-extras \
+        --extra tools
 
 # --- Layer 2: application code (changes frequently) ---
 COPY --chmod=700 . /opt/maxkb-app
