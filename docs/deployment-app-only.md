@@ -191,7 +191,7 @@ tar.gz 文件路径: ./hoyanai-app-dev-linux-amd64.tar.gz
 | `MAXKB_REDIS_HOST` | ✓ | — | 同理不能 127.0.0.1 |
 | `MAXKB_REDIS_PORT` / `MAXKB_REDIS_PASSWORD` / `MAXKB_REDIS_DB` | ✓ | 6379 / — / 0 | |
 | `MAXKB_DJANGO_SECRET_KEY` | ✓ | — | `openssl rand -hex 32` 生成 |
-| `MAXKB_ENABLED_PROVIDERS` | ✓ | 9 个 | 模型 provider 白名单，`all` = 全 20 |
+| `MAXKB_ENABLED_PROVIDERS` | ✓ | `all` | 模型 provider 白名单。`all` = 启用全部；也可填逗号分隔子集精简部署 |
 | `MAXKB_ENABLE_API_DOCS` / `MAXKB_ENABLE_EMAIL` | — | false | 可选开关 |
 
 > **变量名保留 `MAXKB_*` 前缀**(后端代码按这个名字读),只是产品已重新品牌为 HoyanAI。

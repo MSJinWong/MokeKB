@@ -76,9 +76,9 @@ docker compose --env-file installer/.env.split -f installer/docker-compose.split
 
 | 变量 | 默认 | 含义 |
 |------|------|------|
-| `MAXKB_ENABLED_PROVIDERS` | 5 公有云 + 4 本地，见下 | 启用的 provider 名单。设为 `all` 启用全部 20 个 |
+| `MAXKB_ENABLED_PROVIDERS` | `all` | 启用的 provider 名单。`all` = 全部启用；也可填逗号分隔子集精简部署 |
 
-默认 9 项（覆盖文本/图片/音频/视频四类模态）：
+精简部署示例（覆盖文本/图片/音频/视频四类模态的 9 项最小集）：
 
 ```
 model_openai_provider,model_anthropic_provider,model_siliconCloud_provider,

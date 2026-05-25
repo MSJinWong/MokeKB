@@ -357,9 +357,8 @@ step_configure() {
   fi
 
   echo >&2
-  echo "${C_BOLD}模型 Provider 白名单（all = 全部 20 个）${C_RESET}" >&2
-  PROVIDERS=$(ask "MAXKB_ENABLED_PROVIDERS" \
-    "model_openai_provider,model_anthropic_provider,model_siliconCloud_provider,aliyun_bai_lian_model_provider,model_volcanic_engine_provider,model_ollama_provider,model_vllm_provider,model_xinference_provider,model_docker_ai_provider")
+  echo "${C_BOLD}模型 Provider 白名单（默认 all = 全部启用；可填逗号分隔的子集精简部署）${C_RESET}" >&2
+  PROVIDERS=$(ask "MAXKB_ENABLED_PROVIDERS" "all")
 
   # All values single-quoted. Critical because compose's .env parser treats
   # `#` inside an unquoted value as an inline comment marker, silently
