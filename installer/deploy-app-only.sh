@@ -427,14 +427,45 @@ EOF
   ok ".env 已写入 (chmod 600)"
 }
 
+# host.docker.internal 是容器内 DNS 名（通过 compose 的 extra_hosts: host-gateway 配置），
+# host 上不解析。所以 host 端 preflight 检测时要换成 docker bridge 网关 IP（172.17.0.1 之类）。
+# 返回适合在 host 上跑 nc/psql 的 IP；未识别就原样返回。
+resolve_for_host_check() {
+  local val="$1" gw
+  case "$val" in
+    host.docker.internal)
+      gw=$(ip -4 addr show docker0 2>/dev/null | awk '/inet / {print $2}' | cut -d/ -f1 | head -1)
+      if [ -n "$gw" ]; then
+        printf '%s' "$gw"; return
+      fi
+      # 没有 docker0（不太可能）；退化到 127.0.0.1，至少能检测出 PG 在本机的情况
+      printf '127.0.0.1'; return
+      ;;
+    *)
+      printf '%s' "$val"; return ;;
+  esac
+}
+
 # === 5. preflight ===
 step_preflight() {
   info "Step 5/6: 连通性检查"
 
-  if nc -z -w 5 "$PG_HOST" "$PG_PORT" 2>/dev/null; then
-    ok "PG 端口可达 $PG_HOST:$PG_PORT"
+  local pg_check_host
+  pg_check_host=$(resolve_for_host_check "$PG_HOST")
+  if [ "$pg_check_host" != "$PG_HOST" ]; then
+    info "PG host=$PG_HOST 是容器内 DNS 名，host 端改用 $pg_check_host 检测"
+  fi
+
+  if nc -z -w 5 "$pg_check_host" "$PG_PORT" 2>/dev/null; then
+    ok "PG 端口可达 $pg_check_host:$PG_PORT"
   else
-    err "PG 端口不可达 $PG_HOST:$PG_PORT — 检查防火墙 / listen_addresses / pg_hba.conf"
+    err "PG 端口不可达 $pg_check_host:$PG_PORT"
+    if [ "$pg_check_host" != "$PG_HOST" ]; then
+      err "  PG 容器需要绑 0.0.0.0:$PG_PORT 而不是 127.0.0.1（install-postgres.sh 已默认改对）"
+      err "  确认: ss -tlnp | grep :$PG_PORT  应该看到 LISTEN 0.0.0.0:$PG_PORT"
+    else
+      err "  检查防火墙 / listen_addresses / pg_hba.conf"
+    fi
     ask_yes_no "仍然继续？" n || exit 1
   fi
 
@@ -449,12 +480,12 @@ step_preflight() {
   fi
 
   if command -v psql >/dev/null 2>&1; then
-    if PGPASSWORD="$PG_PASS" psql -h "$PG_HOST" -p "$PG_PORT" -U "$PG_USER" -d "$PG_DB" \
+    if PGPASSWORD="$PG_PASS" psql -h "$pg_check_host" -p "$PG_PORT" -U "$PG_USER" -d "$PG_DB" \
          -tAc 'SELECT 1' >/dev/null 2>&1; then
       ok "PG 用户认证 OK，数据库 $PG_DB 可访问"
 
       local has_vector
-      has_vector=$(PGPASSWORD="$PG_PASS" psql -h "$PG_HOST" -p "$PG_PORT" -U "$PG_USER" -d "$PG_DB" \
+      has_vector=$(PGPASSWORD="$PG_PASS" psql -h "$pg_check_host" -p "$PG_PORT" -U "$PG_USER" -d "$PG_DB" \
                    -tAc "SELECT 1 FROM pg_extension WHERE extname='vector'" 2>/dev/null || true)
       if [ "$has_vector" = "1" ]; then
         ok "pgvector 扩展已启用"

@@ -8,28 +8,34 @@
 # Usage:
 #   curl -fsSL https://raw.githubusercontent.com/MSJinWong/MokeKB/feat/frontend-redesign/installer/install-postgres.sh -o install-pg.sh
 #   chmod +x install-pg.sh
-#   vim install-pg.sh        # edit PG_PASSWORD below — REQUIRED
-#   ./install-pg.sh
+#   ./install-pg.sh           # 首次跑会交互式让你设置密码（自动生成或手输）
 #
-# Re-running this script: detects an existing container, runs pg_dump to
-# PG_BACKUP_DIR, then restarts in place. Data volume survives.
+# Re-runs: 自动读取 PG_CREDENTIALS_FILE 里保存的密码做 pg_dump 备份，
+# 然后用同一个密码重启容器。数据卷保留。
 
 set -euo pipefail
 
 # ============================================================
-# Configuration — edit these before running
+# Configuration — edit these to customize (密码不在这里，运行时交互输入)
 # ============================================================
 PG_IMAGE="pgvector/pgvector:pg17"
 PG_CONTAINER="hoyanai-postgres"
 PG_DATA_DIR="/opt/hoyanai-pg/data"
 PG_BACKUP_DIR="/opt/hoyanai-pg/backups"
-PG_PORT_BIND="127.0.0.1:5432"            # host:container; "127.0.0.1:5432" = local only
+PG_CREDENTIALS_FILE="/opt/hoyanai-pg/.password"   # chmod 0600，记住交互输入的密码
+# 必须绑 0.0.0.0：docker 容器走 host.docker.internal 解析到 docker bridge gw（如 172.17.0.1），
+# 而 127.0.0.1 不在 bridge gw 上。 绑 0.0.0.0 后容器才能连过来。
+# 防护手段：(1) 云厂商安全组拒绝 5432 入站；(2) 物理防火墙规则；(3) docker 默认 iptables
+# 隔离让 LAN 直连 docker0 网关比较难。如果你的部署环境特殊，改成 "172.17.0.1:5432" 也行。
+PG_PORT_BIND="0.0.0.0:5432"
 PG_DB="hoyanai"
 PG_USER="hoyanai"
-PG_PASSWORD="CHANGE_ME_BEFORE_RUN"       # ← MUST change before first run
 PG_MAX_CONNECTIONS=1000
 BACKUP_RETENTION_DAYS=7
 # ============================================================
+
+# 填充自 step_password
+PG_PASSWORD=""
 
 # Colors (auto-disable when not a TTY)
 if [ -t 1 ]; then
@@ -44,24 +50,55 @@ ok()    { echo "${C_GREEN}[✓]${C_RESET} $*" >&2; }
 warn()  { echo "${C_YELLOW}[!]${C_RESET} $*" >&2; }
 err()   { echo "${C_RED}[✗]${C_RESET} $*" >&2; }
 
+# ===== prompt helpers (mirror deploy-app-only.sh style) =====
+ask() {
+  local prompt="$1" default="${2:-}" var
+  if [ -n "$default" ]; then
+    read -erp "$prompt [$default]: " var
+    var="${var:-$default}"
+  else
+    read -erp "$prompt: " var
+  fi
+  printf '%s' "$var"
+}
+
+ask_secret() {
+  local prompt="$1" var
+  read -rsp "$prompt: " var
+  echo >&2
+  printf '%s' "$var"
+}
+
+ask_yes_no() {
+  local prompt="$1" default="${2:-y}" var
+  while true; do
+    if [ "$default" = "y" ]; then
+      read -rp "$prompt [Y/n]: " var; var="${var:-y}"
+    else
+      read -rp "$prompt [y/N]: " var; var="${var:-n}"
+    fi
+    case "$var" in
+      [yY]|[yY][eE][sS]) return 0 ;;
+      [nN]|[nN][oO])     return 1 ;;
+      *) warn "请输入 y 或 n" ;;
+    esac
+  done
+}
+
+# 单引号会破坏后面写 init.sql / psql 等场景，提前拒绝
+validate_password() {
+  case "$1" in
+    *\'*) err "密码不允许包含单引号（'），请换一个字符"; return 1 ;;
+  esac
+  [ -n "$1" ] || { err "密码不能为空"; return 1; }
+  return 0
+}
+
 # ============================================================
-# 1. Guards
+# 1. Guards (docker available)
 # ============================================================
 step_guards() {
-  info "Step 1/7: 前置检查"
-
-  if [ "$PG_PASSWORD" = "CHANGE_ME_BEFORE_RUN" ] || [ -z "$PG_PASSWORD" ]; then
-    err "请先编辑脚本顶部的 PG_PASSWORD（当前是占位值 CHANGE_ME_BEFORE_RUN）"
-    err "建议用 'openssl rand -base64 24' 生成强密码"
-    exit 1
-  fi
-
-  # 单引号会破坏后面写 init.sql / docker exec 等场景，提前拒绝
-  case "$PG_PASSWORD" in
-    *\'*)
-      err "PG_PASSWORD 不允许包含单引号，请换一个字符"
-      exit 1 ;;
-  esac
+  info "Step 1/8: 前置检查"
 
   if ! command -v docker >/dev/null 2>&1; then
     err "未找到 docker"; exit 1
@@ -70,15 +107,83 @@ step_guards() {
     err "docker daemon 不可用（当前用户可能不在 docker 组：sudo usermod -aG docker \$USER && newgrp docker）"
     exit 1
   fi
+  if ! command -v openssl >/dev/null 2>&1; then
+    warn "未找到 openssl，自动生成密码不可用（手动输入仍然 OK）"
+  fi
 
   ok "docker $(docker --version | awk '{print $3}' | tr -d ',')"
 }
 
 # ============================================================
-# 2. Prepare directories
+# 2. Password — load from credentials file or prompt
+# ============================================================
+step_password() {
+  info "Step 2/8: PG 密码"
+
+  if [ -f "$PG_CREDENTIALS_FILE" ]; then
+    PG_PASSWORD=$(cat "$PG_CREDENTIALS_FILE")
+    if ! validate_password "$PG_PASSWORD"; then
+      err "凭据文件 $PG_CREDENTIALS_FILE 内容非法。删除后重跑设置新密码。"
+      exit 1
+    fi
+    ok "从凭据文件读取已有密码: $PG_CREDENTIALS_FILE"
+    return 0
+  fi
+
+  echo >&2
+  echo "${C_BOLD}首次部署，设置 PG 密码${C_RESET}" >&2
+  echo "  1) 自动生成强随机密码（推荐）" >&2
+  echo "  2) 手动输入密码" >&2
+  local choice
+  choice=$(ask "选择" "1")
+
+  case "$choice" in
+    2)
+      while true; do
+        PG_PASSWORD=$(ask_secret "请输入 PG 密码")
+        local confirm
+        confirm=$(ask_secret "再次输入确认")
+        if [ "$PG_PASSWORD" != "$confirm" ]; then
+          warn "两次输入不一致，重试"
+          continue
+        fi
+        validate_password "$PG_PASSWORD" || continue
+        break
+      done
+      ;;
+    *)
+      if ! command -v openssl >/dev/null 2>&1; then
+        err "需要 openssl 来自动生成密码，请装 openssl 或选 2 手动输入"
+        exit 1
+      fi
+      # 去掉 /+= 等特殊字符避免 URL / shell 转义场景出问题
+      PG_PASSWORD=$(openssl rand -base64 32 | tr -dc 'A-Za-z0-9' | head -c 24)
+      echo >&2
+      ok "已生成密码: ${C_BOLD}${PG_PASSWORD}${C_RESET}"
+      warn "请立即抄写下来 — 后端部署时要填到 .env 的 MAXKB_DB_PASSWORD"
+      warn "也会保存到 $PG_CREDENTIALS_FILE（chmod 600）"
+      if ! ask_yes_no "继续？" y; then
+        info "已取消"; exit 0
+      fi
+      ;;
+  esac
+
+  # 保存凭据文件
+  local cred_dir
+  cred_dir=$(dirname "$PG_CREDENTIALS_FILE")
+  mkdir -p "$cred_dir"
+  chmod 0700 "$cred_dir" 2>/dev/null || true
+  # printf 比 echo 更靠谱（不在末尾加 newline 也 OK，cat 读出来一样）
+  printf '%s' "$PG_PASSWORD" > "$PG_CREDENTIALS_FILE"
+  chmod 0600 "$PG_CREDENTIALS_FILE"
+  ok "密码已保存: $PG_CREDENTIALS_FILE (chmod 600)"
+}
+
+# ============================================================
+# 3. Prepare directories
 # ============================================================
 step_dirs() {
-  info "Step 2/7: 准备目录"
+  info "Step 3/8: 准备目录"
 
   # PG 要求 data dir 是 0700，否则启动报错
   if [ ! -d "$PG_DATA_DIR" ]; then
@@ -94,10 +199,10 @@ step_dirs() {
 }
 
 # ============================================================
-# 3. Backup if old container is running
+# 4. Backup if old container is running
 # ============================================================
 step_backup() {
-  info "Step 3/7: 检测旧容器并备份"
+  info "Step 4/8: 检测旧容器并备份"
 
   local cid
   cid=$(docker ps -q -f name="^${PG_CONTAINER}$" 2>/dev/null || true)
@@ -141,10 +246,10 @@ step_backup() {
 }
 
 # ============================================================
-# 4. Write init.sql for first-run extension setup
+# 5. Write init.sql for first-run extension setup
 # ============================================================
 step_init_sql() {
-  info "Step 4/7: 准备 init.sql"
+  info "Step 5/8: 准备 init.sql"
 
   # 注意：/docker-entrypoint-initdb.d 只在 data dir 为空时执行。
   # 已有数据的场景下 init.sql 不会再跑——这是 PG 镜像的设计，不是 bug。
@@ -166,10 +271,10 @@ EOF
 }
 
 # ============================================================
-# 5. (Re)start container
+# 6. (Re)start container
 # ============================================================
 step_start() {
-  info "Step 5/7: 启动容器"
+  info "Step 6/8: 启动容器"
 
   # 停旧
   docker stop "$PG_CONTAINER" 2>/dev/null || true
@@ -192,10 +297,10 @@ step_start() {
 }
 
 # ============================================================
-# 6. Wait + verify
+# 7. Wait + verify
 # ============================================================
 step_wait() {
-  info "Step 6/7: 等待 PG 就绪"
+  info "Step 7/8: 等待 PG 就绪"
 
   local i
   for i in $(seq 1 30); do
@@ -229,10 +334,10 @@ step_wait() {
 }
 
 # ============================================================
-# 7. Cleanup old backups + print connection info
+# 8. Cleanup old backups + print connection info
 # ============================================================
 step_finish() {
-  info "Step 7/7: 清理 & 输出接入信息"
+  info "Step 8/8: 清理 & 输出接入信息"
 
   # 清理过期备份
   if [ -d "$PG_BACKUP_DIR" ]; then
@@ -261,7 +366,7 @@ step_finish() {
     MAXKB_DB_HOST='host.docker.internal'
     MAXKB_DB_PORT='${host_port}'
     MAXKB_DB_USER='${PG_USER}'
-    MAXKB_DB_PASSWORD='<本脚本顶部的 PG_PASSWORD>'
+    MAXKB_DB_PASSWORD='<见 ${PG_CREDENTIALS_FILE}：cat 一下即可>'
     MAXKB_DB_NAME='${PG_DB}'
 
   ${C_BOLD}常用命令：${C_RESET}
@@ -271,12 +376,21 @@ step_finish() {
     手动备份: docker exec $PG_CONTAINER pg_dump -U $PG_USER -d $PG_DB | gzip > backup.sql.gz
 
 EOF
+
+  # 安全提示：0.0.0.0 绑定可能被公网/LAN 扫到。
+  if [ "$bind_addr" = "0.0.0.0" ]; then
+    warn "${C_BOLD}安全提示${C_RESET}：PG 当前绑 0.0.0.0:${host_port}（docker 容器走 host.docker.internal 才能连）"
+    warn "  - 云服务器：在云厂商安全组拒绝 ${host_port}/tcp 入站（关键！）"
+    warn "  - 本地机器：默认 docker iptables 会让 LAN 较难直连 docker0 网关，但仍建议主机防火墙也限制"
+    warn "  - 验证不在公网暴露：在另一台机器 'nc -z -w 3 <你的服务器公网 IP> ${host_port}' 应该 timeout"
+  fi
 }
 
 main() {
   echo "${C_BOLD}HoyanAI PostgreSQL (pgvector) 安装${C_RESET}" >&2
   echo >&2
   step_guards
+  step_password
   step_dirs
   step_backup
   step_init_sql

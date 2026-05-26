@@ -1,4 +1,6 @@
-# Backend-only 部署指南
+# Backend-only 部署指南（详细参考）
+
+> **首次部署看这里**：[`deployment-quickstart.md`](./deployment-quickstart.md) — 用 `install-postgres.sh` 独立装 PG + 本栈管理 Redis（默认密码 123456），单机一键起。本文是详细参考，覆盖外部 PG/Redis、离线包、`.env` 字段、故障排查、CI 踩坑史。
 
 适用：把 HoyanAI 后端容器化部署，**外部独立维护** PostgreSQL（带 pgvector）+ Redis + 前端 nginx 的场景。
 
