@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # Interactive deployment script for HoyanAI backend-only.
-# Assumes: Ubuntu host. External PostgreSQL (with pgvector) and Redis on
-# separate machines (or on the host itself — script handles the "host network"
-# gotcha by suggesting docker bridge gateway IP). Frontend deployed elsewhere.
+# Assumes: Ubuntu host. PostgreSQL (with pgvector) is external — install it
+# with installer/install-postgres.sh on this host, or point at a remote PG.
+# Redis can be either in-stack (default, password 123456, 127.0.0.1) or
+# external. Frontend deployed elsewhere.
 #
 # Usage:
 #   curl -fsSL https://raw.githubusercontent.com/MSJinWong/MokeKB/feat/frontend-redesign/installer/deploy-app-only.sh -o deploy.sh
@@ -307,6 +308,12 @@ step_configure() {
     REDIS_PORT=$(parse_env_value MAXKB_REDIS_PORT .env)
     REDIS_PASS=$(parse_env_value MAXKB_REDIS_PASSWORD .env)
     BACKEND_PORT=$(parse_env_value MAXKB_BACKEND_PORT .env)
+    # Infer Redis mode for downstream steps (preflight skips nc on stack mode).
+    if [ "$REDIS_HOST" = "redis" ]; then
+      REDIS_MODE=stack
+    else
+      REDIS_MODE=external
+    fi
 
     local env_image
     env_image=$(parse_env_value MAXKB_IMAGE .env)
@@ -331,8 +338,13 @@ step_configure() {
 
   echo >&2
   echo "${C_BOLD}PostgreSQL（必须支持 pgvector 扩展）${C_RESET}" >&2
-  PG_HOST=$(ask_required "PG host (IP / hostname)")
-  PG_HOST=$(maybe_fix_loopback "$PG_HOST" "MAXKB_DB_HOST")
+  echo "${C_YELLOW}本机没装 PG？先跑 installer/install-postgres.sh，然后 PG host 填 host.docker.internal${C_RESET}" >&2
+  PG_HOST=$(ask "PG host (IP / hostname)" "host.docker.internal")
+  # host.docker.internal 由 compose 的 extra_hosts 解析到 host-gateway，
+  # 不需要走 maybe_fix_loopback 的回环修正；其他值才走。
+  if [ "$PG_HOST" != "host.docker.internal" ]; then
+    PG_HOST=$(maybe_fix_loopback "$PG_HOST" "MAXKB_DB_HOST")
+  fi
   PG_PORT=$(ask "PG port" "5432")
   PG_USER=$(ask "PG user" "hoyanai")
   PG_PASS=$(ask_secret_required "PG password")
@@ -340,11 +352,32 @@ step_configure() {
 
   echo >&2
   echo "${C_BOLD}Redis${C_RESET}" >&2
-  REDIS_HOST=$(ask_required "Redis host")
-  REDIS_HOST=$(maybe_fix_loopback "$REDIS_HOST" "MAXKB_REDIS_HOST")
-  REDIS_PORT=$(ask "Redis port" "6379")
-  REDIS_PASS=$(ask_secret_required "Redis password")
-  REDIS_DB=$(ask   "Redis DB" "0")
+  echo "  1) 由本栈管理（默认；端口绑 127.0.0.1:6379，密码默认 123456）" >&2
+  echo "  2) 使用外部 Redis（已在其它机器/容器上运行）" >&2
+  REDIS_MODE_CHOICE=$(ask "选择 Redis 模式" "1")
+  case "$REDIS_MODE_CHOICE" in
+    2)
+      REDIS_HOST=$(ask_required "Redis host")
+      REDIS_HOST=$(maybe_fix_loopback "$REDIS_HOST" "MAXKB_REDIS_HOST")
+      REDIS_PORT=$(ask "Redis port" "6379")
+      REDIS_PASS=$(ask_secret_required "Redis password")
+      REDIS_DB=$(ask   "Redis DB" "0")
+      REDIS_MODE=external
+      ;;
+    *)
+      REDIS_HOST=redis
+      REDIS_PORT=6379
+      REDIS_DB=0
+      warn "默认密码 '123456' 仅适合本机回环（端口已绑 127.0.0.1）。"
+      warn "如果以后把 redis 端口改成 LAN 暴露，务必同时换强密码。"
+      if ask_yes_no "使用默认密码 123456？" y; then
+        REDIS_PASS=123456
+      else
+        REDIS_PASS=$(ask_secret_required "Redis password")
+      fi
+      REDIS_MODE=stack
+      ;;
+  esac
 
   echo >&2
   BACKEND_PORT=$(ask "Backend 监听端口" "8080")
@@ -405,7 +438,9 @@ step_preflight() {
     ask_yes_no "仍然继续？" n || exit 1
   fi
 
-  if nc -z -w 5 "$REDIS_HOST" "$REDIS_PORT" 2>/dev/null; then
+  if [ "${REDIS_MODE:-external}" = "stack" ]; then
+    info "Redis 由本栈管理（compose up 后会自动启动并健康检查，跳过端口预检）"
+  elif nc -z -w 5 "$REDIS_HOST" "$REDIS_PORT" 2>/dev/null; then
     ok "Redis 端口可达 $REDIS_HOST:$REDIS_PORT"
   else
     err "Redis 端口不可达 $REDIS_HOST:$REDIS_PORT"
@@ -475,6 +510,13 @@ step_launch() {
     return
   fi
 
+  # External Redis 模式下：本栈仍会启动一个 redis 容器（depends_on 要求 healthy，
+  # 强行 --scale 0 会让 hoyanai-app 永远等不到）。多出来的容器占内存 ~30MB，
+  # 暂时忽略。若想彻底去掉，从 docker-compose.app-only.yml 里删 redis service 即可。
+  if [ "${REDIS_MODE:-external}" = "external" ]; then
+    warn "Redis 模式=external：栈内仍会起一个 redis 容器（hoyanai-app depends_on healthy 限制），"
+    warn "  后端用的是你填的外部 Redis；如要清掉栈内 redis，请编辑 docker-compose.app-only.yml 删除该 service"
+  fi
   docker compose up -d
 
   info "等待 hoyanai-app 健康检查（最长 3 分钟）"
@@ -521,7 +563,8 @@ EOF
 # === Main ===
 main() {
   echo "${C_BOLD}HoyanAI Backend-only 交互式部署${C_RESET}" >&2
-  echo "目标：Ubuntu host + 外部 PG（pgvector） + 外部 Redis + 独立前端" >&2
+  echo "目标：Ubuntu host + 外部 PG（pgvector）+ 本栈/外部 Redis + 独立前端" >&2
+  echo "提示：本机没装 PG 的话，先跑 installer/install-postgres.sh" >&2
   echo >&2
 
   step_check_env;  echo >&2

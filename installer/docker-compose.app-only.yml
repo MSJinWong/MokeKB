@@ -25,9 +25,51 @@ x-app-env: &app-env
   MAXKB_SECRET_KEY: ${MAXKB_DJANGO_SECRET_KEY:?set in .env}
 
 services:
+  # In-stack Redis. To use an external Redis instead:
+  # set MAXKB_REDIS_HOST in .env to that host and `docker compose up -d` without
+  # this service (compose will still try to start it; comment it out, or use
+  # `--scale redis=0`, if you want to avoid running it).
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command:
+      - "redis-server"
+      - "--requirepass"
+      - "${MAXKB_REDIS_PASSWORD:?set in .env}"
+      - "--appendonly"
+      - "yes"
+      - "--maxmemory"
+      - "1gb"
+      - "--maxmemory-policy"
+      - "allkeys-lru"
+    volumes:
+      - hoyanai-redis-data:/data
+    # Bound to loopback only — default password is weak (123456). If you
+    # change MAXKB_REDIS_PASSWORD to a strong one and want LAN access, switch
+    # this to "${MAXKB_REDIS_PORT:-6379}:6379".
+    ports:
+      - "127.0.0.1:${MAXKB_REDIS_PORT:-6379}:6379"
+    healthcheck:
+      # -a + ping returns "PONG" on auth success
+      test: ["CMD-SHELL", "redis-cli -a \"$$MAXKB_REDIS_PASSWORD\" ping | grep -q PONG"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+    environment:
+      MAXKB_REDIS_PASSWORD: ${MAXKB_REDIS_PASSWORD:?set in .env}
+
   hoyanai-app:
     image: ${MAXKB_IMAGE:?set in .env}
     restart: unless-stopped
+    # host.docker.internal lets the container reach services bound to the host's
+    # 127.0.0.1 (e.g. install-postgres.sh's PG container, since they don't share
+    # this compose network).
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      redis:
+        condition: service_healthy
     environment:
       <<: *app-env
       # Cluster-wide scheduler lives on hoyanai-worker-maintenance, not on the web.
@@ -47,6 +89,8 @@ services:
   hoyanai-worker-rag:
     image: ${MAXKB_IMAGE:?set in .env}
     restart: unless-stopped
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     depends_on:
       hoyanai-app:
         condition: service_healthy
@@ -63,6 +107,8 @@ services:
   hoyanai-worker-default:
     image: ${MAXKB_IMAGE:?set in .env}
     restart: unless-stopped
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     depends_on:
       hoyanai-app:
         condition: service_healthy
@@ -79,6 +125,8 @@ services:
   hoyanai-worker-maintenance:
     image: ${MAXKB_IMAGE:?set in .env}
     restart: unless-stopped
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     depends_on:
       hoyanai-app:
         condition: service_healthy
@@ -95,3 +143,4 @@ services:
 
 volumes:
   hoyanai-data:
+  hoyanai-redis-data:
