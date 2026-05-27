@@ -1,0 +1,49 @@
+# 默认：自动识别文本，仓库内统一存 LF，所有平台 checkout 也都是 LF
+# 解决 Windows Git 全局 core.autocrlf=true 与 WSL/Linux/Mac 同事之间的行尾抖动。
+* text=auto eol=lf
+
+# Shell 脚本必须 LF（即使在 Windows，也是通过 WSL/git-bash 执行）
+*.sh text eol=lf
+
+# Windows 原生脚本必须 CRLF
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# 图片
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.ico  binary
+*.webp binary
+
+# 字体
+*.woff  binary
+*.woff2 binary
+*.ttf   binary
+*.otf   binary
+*.eot   binary
+
+# Office / PDF
+*.xlsx binary
+*.xls  binary
+*.docx binary
+*.doc  binary
+*.pptx binary
+*.ppt  binary
+*.pdf  binary
+
+# 音视频
+*.mp3 binary
+*.wav binary
+*.ogg binary
+*.mp4 binary
+*.mov binary
+*.webm binary
+
+# 归档
+*.zip binary
+*.tar binary
+*.gz  binary
+*.7z  binary
