@@ -22,6 +22,7 @@ from common.handle.impl.qa.xls_parse_qa_handle import XlsParseQAHandle
 from common.handle.impl.qa.xlsx_parse_qa_handle import XlsxParseQAHandle
 from common.utils.common import parse_md_image
 from knowledge.models import File
+from oss.file_url import build_file_url
 
 
 class FileBufferHandle:
@@ -98,12 +99,12 @@ def get_image_list(result_list: list, zip_files: List[str]):
                         else:
                             image_file_list.append({'source_file': image_path,
                                                     'image_id': new_image_id})
-                            content = content.replace(source_image_path, f'./oss/file/{new_image_id}')
+                            content = content.replace(source_image_path, build_file_url(new_image_id))
                             p['content'] = content
                     else:
                         image_file_list.append({'source_file': image_path,
                                                 'image_id': new_image_id})
-                        content = content.replace(source_image_path, f'./oss/file/{new_image_id}')
+                        content = content.replace(source_image_path, build_file_url(new_image_id))
                         p['content'] = content
 
     return image_file_list

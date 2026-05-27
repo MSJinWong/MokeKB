@@ -310,9 +310,9 @@ class BaseToolLibNodeNode(IToolLibNode):
             'meta': meta,
             'source_id': knowledge_id,
             'source_type': FileSourceType.KNOWLEDGE.value
-        }).upload().replace("./oss/file/", '')
+        }).upload()
         file.close()
-        return file_url
+        return file_url.split('/')[-1]
 
     def get_details(self, index: int, **kwargs):
         result = _filter_file_bytes(self.context.get('result'))

@@ -8,6 +8,7 @@ from openpyxl import load_workbook
 from common.handle.base_parse_table_handle import BaseParseTableHandle
 from common.handle.impl.common_handle import xlsx_embed_cells_images
 from common.utils.logger import maxkb_logger
+from oss.file_url import build_file_url
 
 
 class XlsxParseTableHandle(BaseParseTableHandle):
@@ -44,7 +45,7 @@ class XlsxParseTableHandle(BaseParseTableHandle):
                     cell_value = ''
                 image = image_dict.get(cell_value, None)
                 if image is not None:
-                    cell_value = f'![](./oss/file/{image.id})'
+                    cell_value = f'![]({build_file_url(image.id)})'
 
                 # 使用标题作为键，单元格的值作为值存入字典
                 row_data[headers[col_idx]] = cell_value

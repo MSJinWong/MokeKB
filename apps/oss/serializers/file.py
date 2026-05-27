@@ -16,6 +16,7 @@ from rest_framework import serializers
 from application.models import Application
 from common.exception.app_exception import NotFound404, AppApiException
 from knowledge.models import File, FileSourceType
+from oss.file_url import build_file_url
 from tools.serializers.tool import UploadedFileField
 
 mime_types = {
@@ -76,7 +77,7 @@ class FileSerializer(serializers.Serializer):
         default=FileSourceType.TEMPORARY_120_MINUTE
     )
 
-    def upload(self, with_valid=True):
+    def upload(self, with_valid=True, scope_prefix=None):
         if with_valid:
             self.is_valid(raise_exception=True)
         meta = self.data.get('meta', None)
@@ -91,7 +92,7 @@ class FileSerializer(serializers.Serializer):
             source_type=self.data.get('source_type') or FileSourceType.TEMPORARY_120_MINUTE
         )
         file.save(self.data.get('file').read())
-        return f'./oss/file/{file_id}'
+        return build_file_url(file_id, scope_prefix=scope_prefix)
 
     class Operate(serializers.Serializer):
         id = serializers.UUIDField(required=True)

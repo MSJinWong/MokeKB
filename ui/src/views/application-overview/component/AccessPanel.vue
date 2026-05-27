@@ -52,8 +52,8 @@ defineEmits<{
 const modelToken = ref(!!props.accessToken?.is_active)
 watch(() => props.accessToken?.is_active, (v) => { modelToken.value = !!v })
 
-const chatUrl = computed(() => `${props.baseUrl}/chat/${props.accessToken?.access_token || ''}`)
-const apiDocUrl = computed(() => `${props.baseUrl}/chat/api-doc/`)
+const chatUrl = computed(() => `${props.baseUrl}/${props.accessToken?.access_token || ''}`)
+const apiDocUrl = computed(() => `${props.baseUrl}/api-doc/`)
 </script>
 
 <style lang="scss" scoped>

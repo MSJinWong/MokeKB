@@ -330,7 +330,8 @@ def flat_map(array: List[List]):
 
 
 def parse_image(content: str):
-    matches = re.finditer("!\[.*?\]\(\.\/oss\/(image|file)\/.*?\)", content)
+    # 兼容老的 ./oss/(image|file)/<id> 与新的 /<prefix>/api/oss/(image|file)/<id>
+    matches = re.finditer(r"!\[.*?\]\([^)]*?oss/(image|file)/[^)]*?\)", content)
     image_list = [match.group() for match in matches]
     return image_list
 

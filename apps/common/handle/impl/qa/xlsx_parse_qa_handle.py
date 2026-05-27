@@ -14,6 +14,7 @@ import openpyxl
 from common.handle.base_parse_qa_handle import BaseParseQAHandle, get_title_row_index_dict, get_row_value
 from common.handle.impl.common_handle import xlsx_embed_cells_images
 from common.utils.logger import maxkb_logger
+from oss.file_url import build_file_url
 
 
 def handle_sheet(file_name, sheet, image_dict):
@@ -39,7 +40,7 @@ def handle_sheet(file_name, sheet, image_dict):
         content = str(content.value)
         image = image_dict.get(content, None)
         if image is not None:
-            content = f'![](./oss/file/{image.id})'
+            content = f'![]({build_file_url(image.id)})'
         paragraph_list.append({'title': title[0:255],
                                'content': content[0:102400],
                                'problem_list': problem_list})

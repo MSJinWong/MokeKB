@@ -28,6 +28,7 @@ from knowledge.models import Document, KnowledgeWorkflow, KnowledgeWorkflowVersi
 from knowledge.models import Paragraph, Problem, ProblemParagraphMapping, Knowledge, File
 from maxkb.conf import PROJECT_DIR
 from models_provider.tools import get_model, get_model_default_params
+from oss.file_url import extract_file_id
 from system_manage.models.resource_mapping import ResourceMapping, ResourceType
 
 
@@ -182,23 +183,21 @@ def is_valid_uuid(s):
 
 def write_image(zip_path: str, image_list: List[str]):
     for image in image_list:
-        search = re.search("\(.*\)", image)
-        if search:
-            text = search.group()
-            if text.startswith('(./oss/file/'):
-                r = text.replace('(./oss/file/', '').replace(')', '')
-                r = r.strip().split(" ")[0]
-                if not is_valid_uuid(r):
-                    break
-                file = QuerySet(File).filter(id=r).first()
-                if file is None:
-                    break
-                zip_inner_path = os.path.join('oss', 'file', r)
-                file_path = os.path.join(zip_path, zip_inner_path)
-                if not os.path.exists(os.path.dirname(file_path)):
-                    os.makedirs(os.path.dirname(file_path))
-                with open(os.path.join(zip_path, file_path), 'wb') as f:
-                    f.write(file.get_bytes())
+        # 兼容老的 ./oss/file/<id> 与新的 /<prefix>/api/oss/file/<id> 两种 markdown URL
+        r = extract_file_id(image)
+        if not r:
+            continue
+        if not is_valid_uuid(r):
+            break
+        file = QuerySet(File).filter(id=r).first()
+        if file is None:
+            break
+        zip_inner_path = os.path.join('oss', 'file', r)
+        file_path = os.path.join(zip_path, zip_inner_path)
+        if not os.path.exists(os.path.dirname(file_path)):
+            os.makedirs(os.path.dirname(file_path))
+        with open(os.path.join(zip_path, file_path), 'wb') as f:
+            f.write(file.get_bytes())
 
 
 def update_document_char_length(document_id: str):

@@ -27,6 +27,7 @@ from common.handle.impl.text.xls_split_handle import XlsSplitHandle
 from common.handle.impl.text.xlsx_split_handle import XlsxSplitHandle
 from common.utils.common import parse_md_image
 from knowledge.models import File
+from oss.file_url import build_file_url
 
 
 class FileBufferHandle:
@@ -90,12 +91,12 @@ def get_image_list(result_list: list, zip_files: List[str]):
                         else:
                             image_file_list.append({'source_file': image_path,
                                                     'image_id': new_image_id})
-                            content = content.replace(source_image_path, f'./oss/file/{new_image_id}')
+                            content = content.replace(source_image_path, build_file_url(new_image_id))
                             p['content'] = content
                     else:
                         image_file_list.append({'source_file': image_path,
                                                 'image_id': new_image_id})
-                        content = content.replace(source_image_path, f'./oss/file/{new_image_id}')
+                        content = content.replace(source_image_path, build_file_url(new_image_id))
                         p['content'] = content
 
     return image_file_list
@@ -122,12 +123,12 @@ def get_image_list_by_content(name: str, content: str, zip_files: List[str]):
                 else:
                     image_file_list.append({'source_file': image_path,
                                             'image_id': new_image_id})
-                    content = content.replace(source_image_path, f'./oss/file/{new_image_id}')
+                    content = content.replace(source_image_path, build_file_url(new_image_id))
 
             else:
                 image_file_list.append({'source_file': image_path,
                                         'image_id': new_image_id})
-                content = content.replace(source_image_path, f'./oss/file/{new_image_id}')
+                content = content.replace(source_image_path, build_file_url(new_image_id))
 
     return image_file_list, content
 

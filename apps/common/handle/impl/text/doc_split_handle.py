@@ -23,6 +23,7 @@ from common.handle.base_split_handle import BaseSplitHandle
 from common.utils.logger import maxkb_logger
 from common.utils.split_model import SplitModel
 from knowledge.models import File
+from oss.file_url import build_file_url
 
 default_pattern_list = [re.compile('(?<=^)# .*|(?<=\\n)# .*'),
                         re.compile('(?<=\\n)(?<!#)## (?!#).*|(?<=^)(?<!#)## (?!#).*'),
@@ -44,7 +45,7 @@ def image_to_mode(image, doc: Document, images_list, get_image_id):
             if len([i for i in images_list if i.id == image_uuid]) == 0:
                 image = File(id=image_uuid, file_name=part.filename, meta={'debug': False, 'content': part.blob})
                 images_list.append(image)
-            return f'![{part.filename.replace("[", "").replace("]", "")}](./oss/file/{image_uuid})'
+            return f'![{part.filename.replace("[", "").replace("]", "")}]({build_file_url(image_uuid)})'
         return None
     return None
 

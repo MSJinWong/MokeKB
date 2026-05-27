@@ -40,6 +40,7 @@ from common.utils.tool_code import ToolExecutor
 from knowledge.models import File, FileSourceType, Knowledge
 from maxkb.const import PROJECT_DIR, CONFIG
 from models_provider.models import Model
+from oss.file_url import build_file_url
 from system_manage.models import AuthTargetType, WorkspaceUserResourcePermission
 from system_manage.models.resource_mapping import ResourceMapping
 from system_manage.serializers.resource_mapping_serializers import ResourceMappingSerializer
@@ -1013,7 +1014,7 @@ class ToolSerializer(serializers.Serializer):
                 )
                 file.save(self.data.get('image').read())
 
-                tool.icon = f'./oss/file/{file_id}'
+                tool.icon = build_file_url(file_id)
             tool.save()
 
             return tool.icon

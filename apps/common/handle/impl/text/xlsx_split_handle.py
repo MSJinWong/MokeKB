@@ -16,6 +16,7 @@ from openpyxl import load_workbook
 from common.handle.base_split_handle import BaseSplitHandle
 from common.handle.impl.common_handle import xlsx_embed_cells_images
 from common.utils.logger import maxkb_logger
+from oss.file_url import build_file_url
 
 splitter = '\n`-----------------------------------`\n'
 
@@ -23,7 +24,7 @@ splitter = '\n`-----------------------------------`\n'
 def post_cell(image_dict, cell_value):
     image = image_dict.get(cell_value, None)
     if image is not None:
-        return f'![](./oss/file/{image.id})'
+        return f'![]({build_file_url(image.id)})'
     return cell_value.replace('\n', '<br>').replace('|', '&#124;')
 
 
@@ -92,7 +93,7 @@ class XlsxSplitHandle(BaseSplitHandle):
 
                 image = image_dict.get(cell_value, None)
                 if image is not None:
-                    cell_value = f'![](./oss/file/{image.id})'
+                    cell_value = f'![]({build_file_url(image.id)})'
 
                 # 使用标题作为键，单元格的值作为值存入字典
                 row_data[headers[col_idx]] = cell_value

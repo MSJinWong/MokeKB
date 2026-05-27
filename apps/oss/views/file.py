@@ -8,6 +8,7 @@ from common.auth import TokenAuth, AllTokenAuth
 from common.log.log import log
 from common.result import result
 from knowledge.api.file import FileUploadAPI, FileGetAPI
+from maxkb.const import CONFIG
 from oss.serializers.file import FileSerializer, get_url_content
 
 
@@ -44,11 +45,15 @@ class FileView(APIView):
     )
     @log(menu='file', operate='Upload file')
     def post(self, request: Request):
+        # 根据当前请求落在 chat/ 还是 admin/ 入口决定返回的 URL 前缀，
+        # 让前端能用绝对路径直接访问，避免相对路径在不同页面被解析成 SPA fallback。
+        chat_prefix = CONFIG.get_chat_path()
+        scope_prefix = chat_prefix if request.path.startswith(chat_prefix + '/') else CONFIG.get_admin_path()
         return result.success(FileSerializer(data={
             'file': request.FILES.get('file'),
             'source_id': request.data.get('source_id'),
             'source_type': request.data.get('source_type'),
-        }).upload())
+        }).upload(scope_prefix=scope_prefix))
 
     class Operate(APIView):
         authentication_classes = [TokenAuth]
