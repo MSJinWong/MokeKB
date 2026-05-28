@@ -66,7 +66,6 @@ export default {
     },
     stats: {
       agents: '智能体',
-      conversations: '本月对话',
       libraries: '资料库',
       tools: '工具',
     },
@@ -74,7 +73,6 @@ export default {
       title: '我的智能体',
       empty: '还没有智能体，去创建一个？',
       cta: '创建智能体',
-      conversation24h: '最近 24h · {n} 次对话',
     },
     quick: {
       title: '快速入口',

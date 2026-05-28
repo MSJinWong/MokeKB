@@ -1,16 +1,13 @@
 /**
  * 工作台聚合 API。
  * 复用已有的 application / knowledge / tool 列表 API，不新增后端端点。
- *
- * 现有方法签名（已确认）：
- *   getAllApplication(param?, loading?) → Result<any[]>          — application/application.ts
- *   getKnowledgeList(param?, loading?)  → Result<any>            — knowledge/knowledge.ts
- *   getToolList(data?, loading?)        → Result<{tools, folders}> — tool/tool.ts
  */
+import applicationApi from '@/api/application/application'
+import knowledgeApi from '@/api/knowledge/knowledge'
+import toolApi from '@/api/tool/tool'
 
 export interface WorkbenchStats {
   agentCount: number
-  conversationCount: number
   libraryCount: number
   toolCount: number
 }
@@ -19,23 +16,51 @@ export interface RecentAgent {
   id: string
   name: string
   description?: string
-  conversation24h: number
   icon?: string
 }
 
+function safeArray<T>(value: any, picker?: (v: any) => any): T[] {
+  const raw = picker ? picker(value) : value
+  return Array.isArray(raw) ? (raw as T[]) : []
+}
+
 export async function loadWorkbenchStats(): Promise<WorkbenchStats> {
-  // TODO（占位实现）：调用项目内现有 API 聚合统计。
-  // 当用户提供具体 API 调用细节或当我们到 P4.T7 启用时再填充。
-  // 现在返回 0 占位，确保类型契约就绪。
+  const [appsRes, libsRes, toolsRes] = await Promise.allSettled([
+    applicationApi.getAllApplication(),
+    knowledgeApi.getKnowledgeList(),
+    toolApi.getToolList(),
+  ])
+
+  const apps =
+    appsRes.status === 'fulfilled' ? safeArray<any>(appsRes.value, (r) => r?.data) : []
+  const libs =
+    libsRes.status === 'fulfilled' ? safeArray<any>(libsRes.value, (r) => r?.data) : []
+  const tools =
+    toolsRes.status === 'fulfilled'
+      ? safeArray<any>(toolsRes.value, (r) => r?.data?.tools)
+      : []
+
   return {
-    agentCount: 0,
-    conversationCount: 0,
-    libraryCount: 0,
-    toolCount: 0,
+    agentCount: apps.filter((a) => a?.resource_type !== 'folder').length,
+    libraryCount: libs.filter((k) => k?.resource_type !== 'folder').length,
+    toolCount: tools.filter((t) => t?.resource_type !== 'folder').length,
   }
 }
 
 export async function loadRecentAgents(): Promise<RecentAgent[]> {
-  // TODO（占位实现）：同上
-  return []
+  try {
+    const res = await applicationApi.getAllApplication()
+    const list = safeArray<any>(res, (r) => r?.data)
+    return list
+      .filter((item) => item?.resource_type !== 'folder')
+      .slice(0, 6)
+      .map((item) => ({
+        id: item.id,
+        name: item.name,
+        description: item.desc || item.description,
+        icon: item.icon,
+      }))
+  } catch {
+    return []
+  }
 }

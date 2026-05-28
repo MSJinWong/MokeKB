@@ -22,9 +22,6 @@
       <div class="agent-card__name">{{ agent.name }}</div>
     </div>
     <p v-if="agent.description" class="agent-card__desc">{{ agent.description }}</p>
-    <div class="agent-card__meta">
-      {{ $t('layout.workbench.recent.conversation24h', { n: agent.conversation24h }) }}
-    </div>
   </router-link>
 </template>
 
@@ -81,14 +78,10 @@ const iconStyle = computed(() => ({
   font-size: var(--font-size-sm);
   color: var(--text-secondary);
   line-height: 1.5;
-  margin: 0 0 12px;
+  margin: 0;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
-}
-.agent-card__meta {
-  font-size: var(--font-size-xs);
-  color: var(--text-tertiary);
 }
 </style>

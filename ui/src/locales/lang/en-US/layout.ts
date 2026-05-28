@@ -66,7 +66,6 @@ export default {
     },
     stats: {
       agents: 'Agents',
-      conversations: 'Conversations this month',
       libraries: 'Libraries',
       tools: 'Tools',
     },
@@ -74,7 +73,6 @@ export default {
       title: 'My Agents',
       empty: 'No agents yet. Create one?',
       cta: 'Create agent',
-      conversation24h: 'Last 24h · {n} conversations',
     },
     quick: {
       title: 'Quick actions',

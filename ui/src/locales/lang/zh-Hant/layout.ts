@@ -66,7 +66,6 @@ export default {
     },
     stats: {
       agents: '智能體',
-      conversations: '本月對話',
       libraries: '資料庫',
       tools: '工具',
     },
@@ -74,7 +73,6 @@ export default {
       title: '我的智能體',
       empty: '還沒有智能體，去創建一個？',
       cta: '創建智能體',
-      conversation24h: '最近 24h · {n} 次對話',
     },
     quick: {
       title: '快速入口',

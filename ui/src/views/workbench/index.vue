@@ -78,7 +78,6 @@ const { user } = useStore()
 
 const stats = ref<WorkbenchStats>({
   agentCount: 0,
-  conversationCount: 0,
   libraryCount: 0,
   toolCount: 0,
 })
@@ -137,7 +136,6 @@ const quickActions = computed(() => [
 
 const statCards = computed(() => [
   { key: 'agents', icon: 'bot', value: stats.value.agentCount, label: t('layout.workbench.stats.agents') },
-  { key: 'conversations', icon: 'message-circle', value: stats.value.conversationCount, label: t('layout.workbench.stats.conversations') },
   { key: 'libraries', icon: 'book-open-text', value: stats.value.libraryCount, label: t('layout.workbench.stats.libraries') },
   { key: 'tools', icon: 'puzzle', value: stats.value.toolCount, label: t('layout.workbench.stats.tools') },
 ])
@@ -176,7 +174,7 @@ onMounted(async () => {
 }
 .workbench__stats {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 12px;
   @media (max-width: 1024px) {
     grid-template-columns: repeat(2, 1fr);
